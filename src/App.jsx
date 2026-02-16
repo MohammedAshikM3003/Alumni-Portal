@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import './App.css'
-import Dashboard from './frontend/Dashboard'
-import LoginGateway from './frontend/LoginGateway'
-import Mail1 from './frontend/mail1'
+import LoginGateway from './frontend/Alumini/Auth/LoginGateway.jsx'
+import Dashboard from './frontend/Alumini/DashBoard/Dashboard.jsx'
+import Mail from './frontend/Alumini/DashBoard/Mail.jsx'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' or 'mail'
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -14,25 +14,23 @@ function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setCurrentView('dashboard');
-  };
-
-  const handleNavigate = (view) => {
-    setCurrentView(view);
   };
 
   return (
-    <>
-      {isLoggedIn ? (
-        currentView === 'mail' ? (
-          <Mail1 onLogout={handleLogout} onNavigate={handleNavigate} currentView={currentView} />
-        ) : (
-          <Dashboard onLogout={handleLogout} onNavigate={handleNavigate} currentView={currentView} />
-        )
-      ) : (
-        <LoginGateway onLogin={handleLogin} />
-      )}
-    </>
+    <Router>
+      <Routes>
+        <Route path="*" element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} />} />
+        <Route path="/login" element={isLoggedIn ? <Navigate to="/dashboard" /> : <LoginGateway onLogin={handleLogin} />} />
+        <Route
+          path="/dashboard"
+          element={isLoggedIn ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/mail"
+          element={isLoggedIn ? <Mail onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+      </Routes>
+    </Router>
   )
 }
 

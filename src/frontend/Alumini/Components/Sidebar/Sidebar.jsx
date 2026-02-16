@@ -1,8 +1,12 @@
-import React from "react";
-import styles from "./alsidebar.module.css";
-import collegeLogo from "../../assets/ksrcollegelogo.svg";
+import React, { useEffect } from "react";
+import styles from "./sidebar.module.css";
+import collegeLogo from '../../../../assets/KSR_College_Logo.svg'
+import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function AlSidebar({ onLogout, onNavigate, currentView = 'dashboard' }) {
+export default function AlSidebar({ onLogout, onNavigate, currentView }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const handleLogout = (e) => {
     e.preventDefault();
     if (onLogout) {
@@ -10,11 +14,23 @@ export default function AlSidebar({ onLogout, onNavigate, currentView = 'dashboa
     }
   };
 
+  const activeView = currentView ?? (location.pathname.includes('/mail') ? 'mail' : 'dashboard');
+
+  useEffect(() => {
+    if (activeView === 'mail') {
+      document.body.classList.add('mail-active');
+    } else {
+      document.body.classList.remove('mail-active');
+    }
+    return () => document.body.classList.remove('mail-active');
+  }, [activeView]);
+
   const handleNavClick = (e, view) => {
     e.preventDefault();
     if (onNavigate) {
       onNavigate(view);
     }
+    navigate(`/${view}`);
   };
 
   return (
@@ -32,7 +48,7 @@ export default function AlSidebar({ onLogout, onNavigate, currentView = 'dashboa
 
       <nav className={styles.sidebarNav}>
         <a 
-          className={`${styles.navLink} ${currentView === 'dashboard' ? styles.navLinkActive : ''} ${styles.dashboardLink}`} 
+          className={`${styles.navLink} ${activeView === 'dashboard' ? styles.navLinkActive : ''} ${styles.dashboardLink}`} 
           href="#"
           onClick={(e) => handleNavClick(e, 'dashboard')}
         >
@@ -42,7 +58,7 @@ export default function AlSidebar({ onLogout, onNavigate, currentView = 'dashboa
           </span>
         </a>
         <a 
-          className={`${styles.navLink} ${currentView === 'mail' ? styles.navLinkActive : ''}`} 
+          className={`${styles.navLink} ${activeView === 'mail' ? styles.navLinkActive : ''}`} 
           href="#"
           onClick={(e) => handleNavClick(e, 'mail')}
         >

@@ -1,13 +1,12 @@
-import React from "react";
 import styles from "./Dashboard.module.css";
-import AlSidebar from "../components/sidebar/alsidebar";
+import Sidebar from "../Components/Sidebar/Sidebar";
 
-export default function Dashboard({ onLogout, onNavigate, currentView }) {
+export default function Dashboard({ onLogout, onNavigate }) {
   return (
     <div className={styles.dashboardContainer}>
       
       {/* Sidebar */}
-      <AlSidebar onLogout={onLogout} onNavigate={onNavigate} currentView={currentView} />
+      <Sidebar onLogout={onLogout}  />
 
       {/* Main */}
       <main className={styles.mainContent}>

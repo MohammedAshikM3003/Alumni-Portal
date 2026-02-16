@@ -1,0 +1,6 @@
+/* Background when Mail view is active */
+body.mail-active {
+	background-color: #cfe8ff;
+	transition: background-color 200ms ease-in-out;
+}
+

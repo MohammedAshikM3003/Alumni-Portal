@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './LoginGateway.module.css';
-import ksrLogo from '../assets/ksrcollegelogo.svg';
+import ksrLogo from '../../../assets/KSR_College_Logo.svg';
 
 export default function LoginGateway({ onLogin }) {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,6 +14,7 @@ export default function LoginGateway({ onLogin }) {
     console.log('Login attempted with:', { email, password });
     if (onLogin) {
       onLogin();
+      navigate('/dashboard');
     }
   };
 
@@ -19,6 +22,7 @@ export default function LoginGateway({ onLogin }) {
     console.log('Google login attempted');
     if (onLogin) {
       onLogin();
+      navigate('/dashboard');
     }
   };
 

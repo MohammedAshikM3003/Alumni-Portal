@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import styles from './mail1.module.css';
-import AlSidebar from '../components/sidebar/alsidebar';
+import { useState } from 'react';
+import styles from './Mail.module.css';
+import Sidebar from '../Components/Sidebar/Sidebar';
 
-export default function Mail1({ onLogout, onNavigate, currentView }) {
+export default function Mail({ onLogout, onNavigate, currentView }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleRefresh = () => {
@@ -38,7 +38,7 @@ export default function Mail1({ onLogout, onNavigate, currentView }) {
 
   return (
     <div className={styles.pageWrapper}>
-      <AlSidebar onLogout={onLogout} onNavigate={onNavigate} currentView={currentView} />
+      <Sidebar onLogout={onLogout} />
 
       <main className={styles.mainContent}>
         <div className={styles.contentContainer}>
