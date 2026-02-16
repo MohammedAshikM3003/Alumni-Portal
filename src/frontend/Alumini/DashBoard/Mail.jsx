@@ -1,12 +1,18 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './Mail.module.css';
 import Sidebar from '../Components/Sidebar/Sidebar';
 
 export default function Mail({ onLogout, onNavigate, currentView }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   const handleRefresh = () => {
     setSearchQuery('');
+  };
+
+  const handleViewMail = () => {
+    navigate('/mail/view');
   };
 
   const mailData = [
@@ -75,7 +81,7 @@ export default function Mail({ onLogout, onNavigate, currentView }) {
                 </div>
                 <div className={styles.mailCardFooter}>
                   <span className={styles.mailCardTime}>{mail.time}</span>
-                  <button className={`${styles.btnView} ${styles[mail.btnStyle]}`}>View</button>
+                  <button className={`${styles.btnView} ${styles[mail.btnStyle]}`} onClick={handleViewMail}>View</button>
                 </div>
               </div>
             ))}

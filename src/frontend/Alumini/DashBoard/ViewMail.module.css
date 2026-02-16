@@ -1,0 +1,509 @@
+/* Material Symbols Icon Settings */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Universal box-sizing */
+.pageContainer * {
+    box-sizing: border-box;
+}
+
+/* Page Layout */
+.pageContainer {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+.mainContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    position: relative;
+    overflow: hidden;
+    background-color: #F8FAFC;
+}
+
+.mailContainer {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 25px 20px 20px 90px;
+    display: flex;
+    justify-content: flex-start;
+    background-color: #F8FAFC;
+}
+
+.contentWrapper {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-bottom: 20px;
+    min-height: min-content;
+    overflow-x: hidden;
+}
+
+/* Back Button */
+.backButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #475569;
+    cursor: pointer;
+    transition: color 0.2s;
+    width: fit-content;
+}
+
+.backButton:hover {
+    color: #2563eb;
+}
+
+.backButton span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Mail Card */
+.mailCard {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Card Header */
+.cardHeader {
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.iconBox {
+    height: 48px;
+    width: 48px;
+    border-radius: 12px;
+    background-color: rgba(2, 132, 199, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0284c7;
+}
+
+.iconBox .material-symbols-outlined {
+    font-size: 30px;
+}
+
+.senderInfo h2 {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #0f172a;
+}
+
+.senderInfo p {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #0284c7;
+}
+
+.headerRight {
+    text-align: right;
+}
+
+.headerRight p:first-child {
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f172a;
+}
+
+.headerRight p:last-child {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* Content with PDF Container */
+.contentWithPdf {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+/* Mail Body */
+.mailBody {
+    flex: 1;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    min-width: 0;
+}
+
+.mailSubject {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #0f172a;
+    margin: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.mailContent {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    line-height: 1.6;
+    font-size: 18px;
+    color: #1e293b;
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.mailContent p {
+    margin: 0;
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Event Details Box */
+.eventDetails {
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+    margin: 24px 0;
+}
+
+.eventDetails h4 {
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #0f172a;
+}
+
+.eventDetails ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.eventDetails li {
+    font-size: 14px;
+    color: #475569;
+}
+
+.eventDetails li span {
+    font-weight: 500;
+}
+
+.signature {
+    color: #0284c7;
+    font-weight: 500;
+}
+
+/* PDF Preview Section */
+.pdfSection {
+    flex: 0 0 550px;
+    padding: 24px;
+    background-color: #ffffff;
+    border-left: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    max-height: calc(100vh - 200px);
+}
+
+.pdfHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pdfInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pdfInfo .material-symbols-outlined {
+    font-size: 32px;
+    color: #dc2626;
+}
+
+.pdfInfo div {
+    display: flex;
+    flex-direction: column;
+}
+
+.pdfTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+}
+
+.pdfSize {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+.pdfPreview {
+    width: 100%;
+    height: 600px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.pdfPlaceholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    color: #94a3b8;
+}
+
+.pdfPlaceholder .material-symbols-outlined {
+    font-size: 80px;
+    color: #dc2626;
+}
+
+.pdfPlaceholder p {
+    font-size: 18px;
+    font-weight: 600;
+    color: #475569;
+    margin: 0;
+}
+
+.pdfText {
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.pdfDownloadContainer {
+    display: flex;
+    justify-content: center;
+    padding-top: 8px;
+}
+
+/* Attachment Section (Old - keeping for reference) */
+.attachmentSection {
+    padding: 16px 32px;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.attachmentSection:hover {
+    background-color: #f1f5f9;
+}
+
+.attachmentInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.attachmentIcon {
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.attachmentDetails p:first-child {
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f172a;
+}
+
+.attachmentDetails p:last-child {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.downloadButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #0284c7;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.2);
+}
+
+.downloadButton:hover {
+    background-color: #0369a1;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    transform: translateY(-1px);
+}
+
+.downloadButton .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Action Buttons */
+.actionFooter {
+    padding: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    justify-content: space-between;
+}
+
+.declineButton {
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    font-weight: 700;
+    font-size: 14px;
+    background-color: #fef2f2;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.declineButton:hover {
+    background-color: #fee2e2;
+}
+
+.acceptButton {
+    padding: 12px 32px;
+    border-radius: 12px;
+    background-color: #0284c7;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px rgba(2, 132, 199, 0.2);
+    border: none;
+}
+
+.acceptButton:hover {
+    box-shadow: 0 0 30px rgba(2, 132, 199, 0.4);
+}
+
+.acceptButton:active {
+    transform: scale(0.95);
+}
+
+/* Custom scrollbar for mail content */
+.customScrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.customScrollbar::-webkit-scrollbar-track {
+    background: #e5e7eb;
+    border-radius: 6px;
+    margin: 8px 0;
+}
+
+.customScrollbar::-webkit-scrollbar-thumb {
+    background: #0284c7;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.customScrollbar::-webkit-scrollbar-thumb:hover {
+    background: #0369a1;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .contentWithPdf {
+        flex-direction: column;
+    }
+    
+    .pdfSection {
+        flex: 1;
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid #e2e8f0;
+        position: relative;
+        max-height: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .mailContainer {
+        padding: 24px 16px;
+    }
+    
+    .mailSubject {
+        font-size: 24px;
+    }
+    
+    .mailContent {
+        font-size: 16px;
+    }
+    
+    .cardHeader {
+        padding: 16px 24px;
+    }
+    
+    .mailBody {
+        padding: 24px 16px;
+    }
+    
+    .attachmentSection {
+        padding: 12px 16px;
+    }
+    
+    .actionFooter {
+        padding: 24px 16px;
+    }
+}

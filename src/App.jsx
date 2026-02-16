@@ -3,6 +3,7 @@ import './App.css'
 import LoginGateway from './frontend/Alumini/Auth/LoginGateway.jsx'
 import Dashboard from './frontend/Alumini/DashBoard/Dashboard.jsx'
 import Mail from './frontend/Alumini/DashBoard/Mail.jsx'
+import ViewMail from './frontend/Alumini/DashBoard/ViewMail.jsx'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
@@ -28,6 +29,10 @@ function App() {
         <Route
           path="/mail"
           element={isLoggedIn ? <Mail onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/mail/view"
+          element={isLoggedIn ? <ViewMail onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
       </Routes>
     </Router>
