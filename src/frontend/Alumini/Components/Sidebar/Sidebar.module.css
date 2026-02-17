@@ -127,6 +127,7 @@
   color: #475569;
   transition: all 0.2s;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .navLink:hover:not(.navLinkActive) {

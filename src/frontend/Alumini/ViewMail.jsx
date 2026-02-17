@@ -1,7 +1,6 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ViewMail.module.css';
-import Sidebar from '../../Components/Sidebar/Sidebar';
+import Sidebar from './Components/Sidebar/Sidebar';
 
 const ViewMail = ({ onLogout }) => {
   const navigate = useNavigate();

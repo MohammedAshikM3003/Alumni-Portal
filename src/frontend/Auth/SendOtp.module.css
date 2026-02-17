@@ -1,0 +1,338 @@
+/* Container */
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background-color: #f5f7f9;
+  font-family: 'Inter', sans-serif;
+}
+
+.main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card */
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 
+              0 1px 2px 0 rgba(0, 0, 0, 0.02), 
+              0 20px 25px -5px rgba(0, 0, 0, 0.05), 
+              0 10px 10px -5px rgba(0, 0, 0, 0.02);
+  border: 1px solid #f3f4f6;
+  padding: 2rem;
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Progress Stepper */
+.stepperWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 280px;
+  position: relative;
+}
+
+.stepperLine {
+  position: absolute;
+  top: 6px;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background-color: #e5e7eb;
+  z-index: 0;
+}
+
+.stepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 10;
+}
+
+.stepDot {
+  width: 12px;
+  height: 12px;
+  background-color: #e5e7eb;
+  border-radius: 50%;
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+.stepDotActive {
+  background-color: #0056b3;
+}
+
+.stepDotCompleted {
+  background-color: #0056b3;
+}
+
+.bloom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #0056b3;
+  opacity: 0.15;
+}
+
+.stepLabelActive {
+  font-size: 10px;
+  font-weight: 700;
+  color: #0056b3;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.stepLabelInactive {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.75rem;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 0 1rem;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 2rem;
+}
+
+/* OTP Input Container */
+.otpContainer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.otpInput {
+  width: 3.5rem;
+  height: 4rem;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.3s ease;
+  color: #1f2937;
+}
+
+.otpInput::placeholder {
+  color: #d1d5db;
+}
+
+.otpInput:focus {
+  background-color: #ffffff;
+  border: 2px solid #0056b3;
+  box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.05);
+}
+
+.otpInput:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.otpInputFilled {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+/* Actions */
+.actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Submit Button */
+.submitButton {
+  width: 100%;
+  background-color: #0056b3;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 1rem 1.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 10px 15px -3px rgba(0, 86, 179, 0.2);
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 16px;
+  letter-spacing: 0.025em;
+}
+
+.submitButton:hover {
+  background-color: #004494;
+}
+
+.submitButton:active {
+  transform: scale(0.98);
+}
+
+.submitButton span.material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* Helper Links */
+.helperLinks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.resendButton {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.resendButton:hover:not(:disabled) {
+  color: #0056b3;
+}
+
+.resendButton:disabled {
+  cursor: not-allowed;
+}
+
+.timer {
+  color: #0056b3;
+  margin-left: 0.25rem;
+}
+
+.backButton {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.backButton:hover {
+  color: #4b5563;
+}
+
+.backButton span.material-symbols-outlined {
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.backButton:hover span.material-symbols-outlined {
+  transform: translateX(-4px);
+}
+
+/* Footer */
+.footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.footerLink {
+  text-decoration: underline;
+  color: #9ca3af;
+  transition: color 0.3s ease;
+}
+
+.footerLink:hover {
+  color: #0056b3;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .card {
+    padding: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 1.5rem;
+  }
+
+  .otpContainer {
+    gap: 0.75rem;
+  }
+
+  .otpInput {
+    width: 3rem;
+    height: 3.5rem;
+    font-size: 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+  }
+}

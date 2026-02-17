@@ -1,5 +1,5 @@
 import styles from './Donation_History.module.css';
-import Sidebar from '../../Components/Sidebar/Sidebar';
+import Sidebar from './Components/Sidebar/Sidebar';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 

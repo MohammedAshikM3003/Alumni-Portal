@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styles from './Donation_Form.module.css';
-import Sidebar from '../../Components/Sidebar/Sidebar';
+import Sidebar from './Components/Sidebar/Sidebar';
 
 const DonationFormPage = ({ onLogout }) => {
   const [amount, setAmount] = useState('1000');

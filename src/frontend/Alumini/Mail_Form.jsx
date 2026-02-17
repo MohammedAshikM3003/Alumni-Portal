@@ -1,4 +1,4 @@
-import Sidebar from '../../Components/Sidebar/Sidebar';
+import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './Mail_form.module.css';
 
 export default function MailForm({ onLogout }) {

@@ -1,4 +1,4 @@
-import Sidebar from '../../Components/Sidebar/Sidebar';
+import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './JobReference_Form.module.css';
 
 const JobReference_Form = ({ onLogout }) => {
@@ -7,20 +7,15 @@ const JobReference_Form = ({ onLogout }) => {
     <div className={styles.pageContainer}>
 
       {/* Sidebar Navigation (Collapsed State) */}
-      <Sidebar onLogout={onLogout} currentView="job_reference_form" />
+      <Sidebar onLogout={onLogout} currentView="job_reference_history" />
 
       {/* Main Content Area */}
       <main className={styles.mainContent}>
-            {/* Navigation Back */}
-            <div className={styles.backButton} onClick={() => window.history.back()}>
-              <span className="material-symbols-outlined">arrow_back</span>
-              <span>Back</span>
-            </div>
-        {/* Page Header Area */}
-        <header className={styles.header}>
-          <h1 className={styles.pageTitle}>Job & Reference</h1>
-        </header>
-
+          {/* Navigation Back */}
+          <div className={styles.backButton} onClick={() => window.history.back()}>
+            <span className="material-symbols-outlined">arrow_back</span>
+            <span>Back</span>
+          </div>
 
         {/* Centered Form Wrapper */}
         <div className={styles.formWrapper}>
@@ -34,9 +29,6 @@ const JobReference_Form = ({ onLogout }) => {
                   Provide details about the career opportunity you'd like to share with the alumni community.
                 </p>
               </div>
-              <button className={styles.refreshBtn} aria-label="Reset Form">
-                <span className="material-symbols-outlined">refresh</span>
-              </button>
             </div>
 
             {/* Form Fields Container */}
@@ -81,6 +73,27 @@ const JobReference_Form = ({ onLogout }) => {
                     className={styles.inputField} 
                     placeholder="e.g. 5" 
                   />
+                </div>
+                
+                {/* Field: Location */}
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Job Location</label>
+                  <input 
+                    type="text" 
+                    className={styles.inputField} 
+                    placeholder="e.g. Salem / Chennai / Banglore" 
+                  />
+                </div>
+
+                {/* Field: Job Type */}
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Mode of Work</label>
+                  <select className={styles.inputField} defaultValue="" required>
+                    <option value="" disabled hidden>Select mode of work</option>
+                    <option value="remote">Offline</option>
+                    <option value="hybrid">Online</option>
+                    <option value="onsite">Hybird</option>
+                  </select>
                 </div>
 
               </div>

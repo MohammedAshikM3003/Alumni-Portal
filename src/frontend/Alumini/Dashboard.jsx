@@ -1,5 +1,5 @@
 import styles from "./Dashboard.module.css";
-import Sidebar from "../Components/Sidebar/Sidebar";
+import Sidebar from "./Components/Sidebar/Sidebar";
 import { useNavigate } from 'react-router-dom';
 
 
@@ -120,7 +120,12 @@ export default function AluminiDashboard({ onLogout }) {
                     <span className={`material-symbols-outlined ${styles.iconPrimaryXl}`}>arrow_forward</span>
                   </div>
                 </div>
-                <button className={`${styles.buttonBase} ${styles.buttonOutline}`}>Explore All Jobs</button>
+                <button 
+                  className={`${styles.buttonBase} ${styles.buttonOutline}`}
+                  onClick={() => navigate('/alumini/JobReference_History') }
+                >
+                  Explore All Jobs
+                </button>
               </div>
 
               {/* Giving Back Card */}
@@ -156,7 +161,7 @@ export default function AluminiDashboard({ onLogout }) {
                     </div>
                   </div>
                 </div>
-                <button className={`${styles.buttonBase} ${styles.buttonPrimary}`}>Donate Now</button>
+                <button className={`${styles.buttonBase} ${styles.buttonPrimary}`} onClick={() => navigate('/alumini/donation_History')}>Donate Now</button>
               </div>
 
               {/* Grand Reunion Card */}

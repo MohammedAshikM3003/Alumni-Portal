@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styles from './Profile.module.css';
-import Sidebar from '../../Components/Sidebar/Sidebar.jsx';
+import Sidebar from './Components/Sidebar/Sidebar.jsx';
 
 const Profile = ({ onLogout }) => {
   const [isEditing, setIsEditing] = useState(false);

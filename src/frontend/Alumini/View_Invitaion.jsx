@@ -1,5 +1,5 @@
 import styles from './View_Invitation.module.css';
-import Sidebar from '../../Components/Sidebar/Sidebar';
+import Sidebar from './Components/Sidebar/Sidebar';
 
 const View_Invitation = ({ onLogout }) => {
 

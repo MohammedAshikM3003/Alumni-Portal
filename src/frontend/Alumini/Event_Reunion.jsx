@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import styles from './Event_Reunion.module.css';
-import Sidebar from '../../Components/Sidebar/Sidebar';
+import Sidebar from './Components/Sidebar/Sidebar';
 
 const EventsReunion = ({ onLogout }) => {
 

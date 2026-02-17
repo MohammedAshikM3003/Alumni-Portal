@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './LoginGateway.module.css';
 import ksrLogo from '../../assets/KSR_College_Logo.svg';
+import NavBar from '../Alumini/Components/NavBar/NavBar';
 
 export default function LoginGateway({ onLogin }) {
   const navigate = useNavigate();
@@ -40,8 +41,14 @@ export default function LoginGateway({ onLogin }) {
     }
   };
 
+  const handleForgotPassword = () => {
+    navigate('/forgot-password');
+  };
+
   return (
     <div className={styles.container}>
+      {/* Navigation Bar */}
+      <NavBar />
       
       {/* Particles Background */}
       <div className={styles.particlesContainer}>
@@ -101,7 +108,13 @@ export default function LoginGateway({ onLogin }) {
             <div className={styles.inputGroup}>
               <div className={styles.labelRow}>
                 <label className={styles.label}>Password</label>
-                <a href="#" className={styles.forgotPassword}>Forgot Password?</a>
+                <button 
+                  type="button"
+                  onClick={handleForgotPassword} 
+                  className={styles.forgotPassword}
+                >
+                  Forgot Password?
+                </button>
               </div>
               <div className={styles.inputWrapper}>
                 <div className={styles.inputIconBox}>

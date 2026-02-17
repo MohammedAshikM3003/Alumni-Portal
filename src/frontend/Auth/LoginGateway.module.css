@@ -7,8 +7,11 @@
   justify-content: center;
   background-color: #F8FAFC;
   padding: 1.5rem;
+  padding-top: calc(1.5rem + 80px); /* Account for floating navbar */
+  padding-bottom: 2.5rem; /* Extra padding at bottom */
   font-family: 'Inter', sans-serif;
-  overflow: hidden;
+  overflow-y: auto; /* Allow scrolling if needed */
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -70,7 +73,7 @@
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 440px;
+  max-width: 380px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -84,7 +87,7 @@
   border: 1px solid rgba(0, 91, 177, 0.08);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
   border-radius: 1rem;
-  padding: 2rem 2.5rem;
+  padding: 1.5rem 2rem;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -96,12 +99,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .logoBox {
-  width: 16rem;
-  height: 6rem;
+  width: 12rem;
+  height: 4.5rem;
   background: transparent;
   /* border-radius: 1rem; */
   display: flex;
@@ -132,7 +135,7 @@
 
 /* Header */
 .title {
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #005BB1;
   text-align: center;
@@ -154,7 +157,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 /* Input Group */
@@ -184,6 +187,10 @@
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
 }
 
 .forgotPassword:hover {
@@ -328,7 +335,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin: 2rem 0;
+  margin: 1.25rem 0;
 }
 
 .dividerLine {

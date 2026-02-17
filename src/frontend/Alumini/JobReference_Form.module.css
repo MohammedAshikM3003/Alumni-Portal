@@ -16,10 +16,48 @@
 .mainContent {
   flex: 1;
   margin-left: 88px;
-  padding: 48px 56px;
+  padding: 35px 56px;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease-in-out;
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
+/* Volume Bar Style Scrollbar - Webkit (Chrome, Safari, Edge) */
+.mainContent::-webkit-scrollbar {
+  width: 10px;
+}
+
+.mainContent::-webkit-scrollbar-track {
+  background-color: #E5E7EB;
+  border-radius: 10px;
+  margin: 8px 0;
+}
+
+.mainContent::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #007BFF, #0069D9);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  border: 2px solid #E5E7EB;
+  box-shadow: inset 0 0 6px rgba(0, 123, 255, 0.3);
+}
+
+.mainContent::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #0069D9, #0051CC);
+  border-color: #007BFF;
+  box-shadow: inset 0 0 8px rgba(0, 123, 255, 0.5), 0 0 4px rgba(0, 123, 255, 0.4);
+}
+
+.mainContent::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(to bottom, #0051CC, #003d99);
+  box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.7);
+}
+
+/* Firefox Scrollbar */
+.mainContent {
+  scrollbar-color: linear-gradient(to bottom, #007BFF, #0069D9) #E5E7EB;
+  scrollbar-width: auto;
 }
 
 
@@ -46,6 +84,7 @@
 .backButton {
     display: flex;
     align-items: center;
+    padding-bottom: 20px;
     color: #475569;
     cursor: pointer;
     transition: color 0.2s;
@@ -158,6 +197,29 @@
   outline: none;
   border-color: #0084D6;
   box-shadow: 0 0 0 3px rgba(0, 132, 214, 0.1);
+}
+
+/* Select Dropdown Styling */
+select.inputField {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 45px;
+  cursor: pointer;
+}
+select.inputField option {
+  padding: 12px;
+  background-color: #FFFFFF;
+  color: #111827;
+}
+select.inputField option:hover {
+  background-color: #F3F4F6;
+}
+select.inputField:invalid,
+select.inputField option[value=""] {
+  color: #9CA3AF;
 }
 
 /* SUBMIT BUTTON */

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './JobReference_History.module.css';
-import Sidebar from '../../Components/Sidebar/Sidebar';
+import Sidebar from './Components/Sidebar/Sidebar';
 
 const JobReference_History = ({ onLogout }) => {
   const [activeMenuId, setActiveMenuId] = useState(null);
