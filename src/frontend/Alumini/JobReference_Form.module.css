@@ -60,26 +60,6 @@
   scrollbar-width: auto;
 }
 
-
-/* PAGE HEADER */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.pageTitle {
-  font-size: 28px;
-  font-weight: 800;
-  color: #111827;
-  margin: 0;
-  letter-spacing: -0.5px;
-}
-
 /* Back Button */
 .backButton {
     display: flex;
@@ -137,25 +117,6 @@
   color: #6B7280;
   margin: 0;
   max-width: 600px;
-}
-
-.refreshBtn {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  color: #4B5563;
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.refreshBtn:hover {
-  background-color: #F9FAFB;
-  border-color: #D1D5DB;
-  color: #111827;
 }
 
 /* INPUT GRID */
@@ -255,7 +216,6 @@ select.inputField option[value=""] {
 @media (max-width: 1024px) {
   .mainContent { padding: 40px; }
   .formCard { padding: 40px; }
-  .header { max-width: 100%; }
 }
 
 /* 2. Mobile / Hamburger Menu (768px) */
@@ -287,16 +247,11 @@ select.inputField option[value=""] {
 @media (max-width: 425px) {
   .mainContent { padding: 16px; }
   
-  .header { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .pageTitle { font-size: 24px; }
-  
   .formCard { padding: 24px 20px; }
   .cardHeader { flex-direction: column; gap: 20px; }
   
   .formTitle { font-size: 22px; }
   .formSubtitle { font-size: 14px; line-height: 1.5; }
-  
-  .refreshBtn { position: absolute; top: 0; right: 0; }
   
   .submitBtn { font-size: 15px; }
 }

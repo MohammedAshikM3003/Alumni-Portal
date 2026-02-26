@@ -212,7 +212,7 @@ export default function Admin_Mail({ onLogout }) {
                     </div>
                     <div className={styles.mailCardFooter}>
                       <span className={styles.mailTime}>{mail.time}</span>
-                      <button className={`${styles.btnView} ${getButtonClass(mail.buttonClass)}`}>
+                      <button className={`${styles.btnView} ${getButtonClass(mail.buttonClass)}`} onClick={() => { navigate('/admin/mail/view_mail') }} >
                         View
                       </button>
                     </div>

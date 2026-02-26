@@ -40,41 +40,7 @@ const Alumini_Profile = ({ onLogout }) => {
     numEmployees: '200',
     spouseName: 'N/A',
     spouseQualification: 'N/A',
-    numChildren: '',
-
-    fatherSpouseName: 'N/A',
-    dob: '1996-06-15',
-    yearFrom: '2014',
-    yearTo: '2018',
-    courseBranch: 'B.E. Computer Science',
-    rollNumber: '14CSE052',
-    presentAddress: '123 Green Meadow, Tiruchengode, Tamil Nadu - 637215',
-    presentCity: 'San Francisco',
-    presentPin: '94103',
-    presentMobile: '+1 (555) 012-3456',
-    presentEmail: 'mohammed.ashik@example.com',
-    permanentAddress: '123 Green Meadow',
-    permanentCity: 'Tiruchengode',
-    permanentPin: '637215',
-    
-    // Qualifications
-    gateScore: 'N/A',
-    tancetScore: 'N/A',
-    upscOthers: 'N/A',
-    
-    // Employment
-    designation: 'Senior Product Designer',
-    officeAddress: 'TechCorp Inc., One Market Street, San Francisco, CA',
-    remarks: 'Updating profile for the alumni meet.',
-    
-    // Additional Info
-    organizationName: 'TechCorp Inc.',
-    natureOfWork: 'Software Development',
-    annualTurnover: '50L',
-    numEmployees: '200',
-    spouseName: 'N/A',
-    spouseQualification: 'N/A',
-    numChildren: '',
+    numChildren: ''
   });
 
   const [signatureFile, setSignatureFile] = useState(null);

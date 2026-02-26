@@ -39,6 +39,8 @@ import Admin_Feedback_Form from './frontend/Admin/AD_Feedback_Form';
 import Admin_Alumini from './frontend/Admin/AD_Alumini';
 import Admin_Alumini_Form from './frontend/Admin/AD_Alumini_Form';
 import Admin_Dashboard from './frontend/Admin/AD_Dashboard';
+import Admin_ViewMail from './frontend/Admin/AD_ViewMail';
+import Admin_Profile from './frontend/Admin/AD_Profile';
 
 
 function App() {
@@ -160,6 +162,10 @@ function App() {
           element={isLoggedIn ? <Admin_CreateMail onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
         <Route
+          path="/admin/mail/view_mail"
+          element={isLoggedIn ? <Admin_ViewMail onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
           path="/admin/mail/draft_history"
           element={isLoggedIn ? <Admin_Draft_History onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
@@ -228,8 +234,15 @@ function App() {
           element={isLoggedIn ? <Admin_Alumini_Form onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
 
+{/* Admin Alumini Routes */}
+        <Route
+          path="/admin/profile"
+          element={isLoggedIn ? <Admin_Profile onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
 
 
+{/* Common Route */}
+        <Route path='*' element={<Navigate to="/login" />} />
       </Routes>
     </Router>
   )
