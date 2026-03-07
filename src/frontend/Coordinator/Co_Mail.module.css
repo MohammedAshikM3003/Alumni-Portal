@@ -1,0 +1,227 @@
+.sidebarTransition {
+    transition: width 0.3s ease-in-out;
+}
+
+.mainScrollable {
+    flex: 1;
+    height: 100vh;
+    overflow-y: scroll;
+}
+
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.1rem 1.25rem 1.5rem 0.1rem;
+    border-bottom: 0px solid #f1f5f9;
+    overflow: hidden;
+    white-space: nowrap;
+    justify-content: flex-start;
+}
+
+.sidebarLogo {
+    width: 70px;
+    height: 70px;
+    min-width: 70px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* Header Styles matching Dashboard */
+.header {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    flex: none;
+    background-color: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.600rem 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    z-index: 40;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.collegeName {
+    color: #001E2B;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+    margin-left: 10px;
+}
+
+/* Volume Bar Style Scrollbar - Red Theme matching Alumni functionality */
+.mainScrollable::-webkit-scrollbar {
+    width: 10px;
+}
+
+.mainScrollable::-webkit-scrollbar-track {
+    background-color: #E5E7EB;
+    border-radius: 100px;
+    margin: 8px 0;
+}
+
+.mainScrollable::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #FF3D00, #E63600);
+    border-radius: 100px;
+    border: 2px solid #E5E7EB;
+    box-shadow: inset 0 0 6px rgba(255, 61, 0, 0.3);
+}
+
+.mainScrollable::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #E63600, #CC3000);
+    border-color: #FF3D00;
+    box-shadow: inset 0 0 8px rgba(255, 61, 0, 0.5), 0 0 4px rgba(255, 61, 0, 0.4);
+}
+
+.mainScrollable::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(to bottom, #CC3000, #B32A00);
+    box-shadow: inset 0 0 10px rgba(255, 61, 0, 0.7);
+}
+
+.mainScrollable::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.mailGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    padding-bottom: 3rem;
+}
+
+.mailCard {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    border: 2px solid transparent;
+    position: relative;
+    padding: 1.5rem;
+    min-height: 280px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.mailCard:nth-child(3n+1) {
+    border-color: #d1d5db;
+}
+
+.mailCard:nth-child(3n+2) {
+    border-color: #22c55e;
+}
+
+.mailCard:nth-child(3n+3) {
+    border-color: #ef4444;
+}
+
+.mailCard:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    z-index: 10;
+}
+
+.btnView {
+    width: calc(100% - 16px);
+    margin: 0 auto;
+    padding: 10px 0;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    text-align: center;
+    display: block;
+}
+
+.btnViewGreySolid {
+    background-color: #6B7280;
+    color: white;
+    border: 2px solid #6B7280;
+}
+
+.btnViewGreySolid:hover {
+    background-color: #4b5563;
+    border-color: #4b5563;
+}
+
+.btnViewGreyOutline {
+    background-color: transparent;
+    border: 2px solid #6B7280;
+    color: #6B7280;
+}
+
+.btnViewGreyOutline:hover,
+.btnViewGreyOutline:active {
+    background-color: #6B7280;
+    color: white;
+}
+
+.btnViewGreenSolid {
+    background-color: #22c55e;
+    color: white;
+    border: 2px solid #22c55e;
+}
+
+.btnViewGreenSolid:hover {
+    background-color: #16a34a;
+    border-color: #16a34a;
+}
+
+.btnViewGreenOutline {
+    background-color: transparent;
+    border: 2px solid #22c55e;
+    color: #22c55e;
+}
+
+.btnViewGreenOutline:hover,
+.btnViewGreenOutline:active {
+    background-color: #22c55e;
+    color: white;
+}
+
+.btnViewRedSolid {
+    background-color: #ef4444;
+    color: white;
+    border: 2px solid #ef4444;
+}
+
+.btnViewRedSolid:hover {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+.btnViewRedOutline {
+    background-color: transparent;
+    border: 2px solid #ef4444;
+    color: #ef4444;
+}
+
+.btnViewRedOutline:hover,
+.btnViewRedOutline:active {
+    background-color: #ef4444;
+    color: white;
+}
+
+.customSidebarScrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.customSidebarScrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.customSidebarScrollbar::-webkit-scrollbar-button {
+    display: none;
+}

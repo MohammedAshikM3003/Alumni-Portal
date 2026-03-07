@@ -1,0 +1,81 @@
+.mainContentScrollbar {
+    overflow: auto!important;
+    height: 100vh;
+}
+
+/* Volume Bar Style Scrollbar - Webkit (Chrome, Safari, Edge) */
+.mainContentScrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.mainContentScrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-left: 1px solid #e2e8f0;
+}
+
+.mainContentScrollbar::-webkit-scrollbar-thumb {
+  background-color: #E53935;
+  border-radius: 10px;
+  border: 3px solid #f1f5f9;
+}
+
+.mainContentScrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #FF3D00;
+}
+
+
+.sidebarTransition {
+    transition: width 0.3s ease-in-out;
+}
+
+/* Sidebar Styles matching Alumini */
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.1rem 1.25rem 1.5rem 0.1rem;
+    border-bottom: 0px solid #f1f5f9;
+    overflow: hidden;
+    white-space: nowrap;
+    justify-content: flex-start;
+}
+
+.sidebarLogo {
+    width: 70px;
+    height: 70px;
+    min-width: 70px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* Header Styles matching Alumini */
+.header {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    flex: none;
+    background-color: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.600rem 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    z-index: 40;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.collegeName {
+    color: #001E2B;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+    margin-left: 10px;
+}

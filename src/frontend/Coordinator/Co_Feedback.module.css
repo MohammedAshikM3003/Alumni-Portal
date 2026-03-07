@@ -1,0 +1,110 @@
+.sidebarTransition {
+    transition: width 0.3s ease-in-out;
+}
+
+.customSidebarScrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.customSidebarScrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.mainScrollable {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+/* Volume Bar Style Scrollbar - Red Theme */
+.mainScrollable::-webkit-scrollbar {
+    width: 10px;
+}
+
+.mainScrollable::-webkit-scrollbar-track {
+    background-color: #E5E7EB;
+    border-radius: 100px;
+    margin: 8px 0;
+}
+
+.mainScrollable::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #FF3D00, #E63600);
+    border-radius: 100px;
+    border: 2px solid #E5E7EB;
+    box-shadow: inset 0 0 6px rgba(255, 61, 0, 0.3);
+}
+
+.mainScrollable::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #E63600, #CC3000);
+    border-color: #FF3D00;
+    box-shadow: inset 0 0 8px rgba(255, 61, 0, 0.5), 0 0 4px rgba(255, 61, 0, 0.4);
+}
+
+.mainScrollable::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(to bottom, #CC3000, #B32A00);
+    box-shadow: inset 0 0 10px rgba(255, 61, 0, 0.7);
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    flex: none;
+    background-color: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.600rem 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    z-index: 40;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.collegeName {
+    color: #001E2B;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+    margin-left: 10px;
+}
+
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.1rem 1.25rem 1.5rem 0.1rem;
+    border-bottom: 0px solid #f1f5f9;
+    overflow: hidden;
+    white-space: nowrap;
+    justify-content: flex-start;
+}
+
+.sidebarLogo {
+    width: 70px;
+    height: 70px;
+    min-width: 70px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.customSidebarScrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.customSidebarScrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.customSidebarScrollbar::-webkit-scrollbar-button {
+    display: none;
+}

@@ -42,13 +42,32 @@ import Admin_Dashboard from './frontend/Admin/AD_Dashboard';
 import Admin_ViewMail from './frontend/Admin/AD_ViewMail';
 import Admin_Profile from './frontend/Admin/AD_Profile';
 
+// Co-Oridinator Imports
+import Coordinator_Dashboard from './frontend/Coordinator/Co_Dashboard';
+import Coordinator_Mail from './frontend/Coordinator/Co_Mail';
+import CoordinatorInformationForm from './frontend/Coordinator/Co_InformationForm';
+import CoordinatorJobHistory from './frontend/Coordinator/Co_JobHistory';
+import CoordinatorViewJobForm from './frontend/Coordinator/Co_View_JobForm';
+import CoordinatorDonationHistory from './frontend/Coordinator/Co_Donation_History';
+import CoordinatorViewDonation from './frontend/Coordinator/Co_View_Donation';
+import CoordinatorInvitations from './frontend/Coordinator/Co_Invitations';
+import CoordinatorViewInvitation from './frontend/Coordinator/Co_View_Invitation';
+import CoordinatorFeedbackHistory from './frontend/Coordinator/Co_Feedback'
+import CoordinatorFeedbackForm from './frontend/Coordinator/Co_Feedback_Form'
+import CoordinatorProfile from './frontend/Coordinator/Co_Profile'
+import PageTitleManager from './components/PageTitleManager';
 
 function App() {
+  const getPostLoginPath = () => {
+    return localStorage.getItem('postLoginPath') || '/alumini/dashboard';
+  };
+
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return localStorage.getItem('isLoggedIn') === 'true';
   });
 
-  const handleLogin = () => {
+  const handleLogin = (targetPath = '/alumini/dashboard') => {
+    localStorage.setItem('postLoginPath', targetPath);
     setIsLoggedIn(true);
     localStorage.setItem('isLoggedIn', 'true');
   };
@@ -56,10 +75,12 @@ function App() {
   const handleLogout = () => {
     setIsLoggedIn(false);
     localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('postLoginPath');
   };
 
   return (
     <Router>
+      <PageTitleManager />
       <Routes>
 {/* Landing Page Routes */}
         <Route 
@@ -69,16 +90,16 @@ function App() {
 {/* Login GateWay Routes */}
         <Route 
           path="/login" 
-          element={isLoggedIn ? <Navigate to="/alumini/dashboard" /> : <LoginGateway onLogin={handleLogin} />} />
+          element={isLoggedIn ? <Navigate to={getPostLoginPath()} replace /> : <LoginGateway onLogin={handleLogin} />} />
         <Route 
           path="/forgot-password" 
-          element={isLoggedIn ? <Navigate to="/alumini/dashboard" /> : <ForgotPassword onLogin={handleLogin} />} />
+          element={isLoggedIn ? <Navigate to={getPostLoginPath()} replace /> : <ForgotPassword onLogin={handleLogin} />} />
         <Route 
           path="/send-otp" 
-          element={isLoggedIn ? <Navigate to="/alumini/dashboard" /> : <SendOtp onLogin={handleLogin} />} />
+          element={isLoggedIn ? <Navigate to={getPostLoginPath()} replace /> : <SendOtp onLogin={handleLogin} />} />
         <Route 
           path="/update-password" 
-          element={isLoggedIn ? <Navigate to="/alumini/dashboard" /> : <UpdatePassword onLogin={handleLogin} />} />
+          element={isLoggedIn ? <Navigate to={getPostLoginPath()} replace /> : <UpdatePassword onLogin={handleLogin} />} />
 
 
 {/* Alumini Routes */}
@@ -238,6 +259,73 @@ function App() {
         <Route
           path="/admin/profile"
           element={isLoggedIn ? <Admin_Profile onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+
+
+
+
+
+{/* Co-Oridinator Routes */}
+{/* Co-Oridinator Dashboard Route */}
+        <Route
+          path="/coordinator/dashboard"
+          element={isLoggedIn ? <Coordinator_Dashboard onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+
+{/* Co-Oridinator Mail Routes */}
+        <Route
+          path="/coordinator/mail"
+          element={isLoggedIn ? <Coordinator_Mail onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/coordinator/info-form"
+          element={isLoggedIn ? <CoordinatorInformationForm onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+
+{/* Co-Oridinator Job And Reference Routes */}
+        <Route
+          path="/coordinator/job_and_reference"
+          element={isLoggedIn ? <CoordinatorJobHistory onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/coordinator/View_job_and_reference"
+          element={isLoggedIn ? <CoordinatorViewJobForm onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+
+{/* Co-Oridinator Donation Routes */}
+        <Route
+          path="/coordinator/donation_history"
+          element={isLoggedIn ? <CoordinatorDonationHistory onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/coordinator/View_donation"
+          element={isLoggedIn ? <CoordinatorViewDonation onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+
+{/* Co-Oridinator Invitations Routes */}
+        <Route
+          path="/coordinator/invitations"
+          element={isLoggedIn ? <CoordinatorInvitations onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/coordinator/view_invitations"
+          element={isLoggedIn ? <CoordinatorViewInvitation onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+
+{/* Co-Oridinator Feedback Routes */}
+        <Route
+          path="/coordinator/feedback_history"
+          element={isLoggedIn ? <CoordinatorFeedbackHistory onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/coordinator/view_feedback"
+          element={isLoggedIn ? <CoordinatorFeedbackForm onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+
+{/* Co-Oridinator Feedback Routes */}
+        <Route
+          path="/coordinator/profile"
+          element={isLoggedIn ? <CoordinatorProfile onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
 
 

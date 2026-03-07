@@ -124,9 +124,6 @@ const Alumini_EventsReunion = ({ onLogout }) => {
               </span>
               <h3>Received Emails</h3>
             </div>
-            <a href="#" className={styles.viewAllLink}>
-              View All
-            </a>
           </div>
 
           <div className={styles.emailList}>

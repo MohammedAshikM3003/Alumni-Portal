@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import styles from './landing.module.css';
-import NavBar from '../Alumini/Components/Navbar/NavBar';
+import NavBar from '../../components/Navbar/NavBar';
 
 export default function Landing() {
 
