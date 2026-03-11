@@ -1,5 +1,6 @@
 import styles from './AD_Event_and_Reunion_Form2.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
+import { DateInput } from '../../components/Calendar';
 
 const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
   return (
@@ -102,7 +103,7 @@ const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
                     </div>
                     <div>
                       <label htmlFor="event-date" className={styles.inputLabel}>Date</label>
-                      <input id="event-date" type="date" className={styles.inputCustom} />
+                      <DateInput theme="admin" id="event-date" className={styles.inputCustom} />
                     </div>
                     <div>
                       <label htmlFor="event-time" className={styles.inputLabel}>Time</label>

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import styles from './Co_Donation_History.module.css';
 import ksrLogo from '../../assets/KSR_College_Logo.svg';
 import Sidebar from './Components/Sidebar/Sidebar';
+import { DateInput } from '../../components/Calendar';
 
 const CoordinatorDonationHistory = ( { onLogout } ) => {
     const donationData = [
@@ -66,8 +67,8 @@ const CoordinatorDonationHistory = ( { onLogout } ) => {
                                 </div>
                             </div>
                             <div className="flex gap-4">
-                                <input
-                                    type="date"
+                                <DateInput
+                                    theme="coordinator"
                                     className="bg-slate-50 border-none rounded-lg focus:ring-2 focus:ring-[#FF3D00]/20 text-sm px-4 py-2"
                                 />
                             </div>

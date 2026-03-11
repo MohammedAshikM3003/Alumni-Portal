@@ -1,6 +1,7 @@
 import styles from './AD_CreateMail.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useState } from 'react';
+import { DateInput } from '../../components/Calendar';
 
 const Admin_CreateMail = ({ onLogout }) => {
   const [showPreview, setShowPreview] = useState(false);
@@ -139,8 +140,8 @@ const Admin_CreateMail = ({ onLogout }) => {
                 </div>
                 <div className={styles.formGroup}>
                   <label htmlFor="event-date">Date</label>
-                  <input 
-                    type="date" 
+                  <DateInput
+                    theme="admin"
                     id="event-date" 
                     name="date"
                     className={styles.inputField}

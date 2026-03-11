@@ -2,6 +2,7 @@ import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './Feedback.module.css';
 import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
+import { DateInput } from '../../components/Calendar';
 
 // --- Utility function to physically crop the image using HTML5 Canvas ---
 const getCroppedImg = (imageSrc, pixelCrop) => {
@@ -177,7 +178,7 @@ const Alumini_Feedback = ({ onLogout }) => {
                   <div className={styles.inputGroupDate}>
                     <label>DATE:</label>
                     <div className={styles.dateInputWrapper}>
-                      <input type="date" className={styles.dateInput} />
+                      <DateInput theme="alumni" className={styles.dateInput} />
                     </div>
                   </div>
                   <div className={styles.inputGroupTime}>

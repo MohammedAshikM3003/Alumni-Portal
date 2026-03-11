@@ -1,5 +1,6 @@
 import styles from './AD_Alumini_form.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
+import { DateInput } from '../../components/Calendar';
 
 const Admin_Alumini_Form = ( { onLogout } ) => {
 
@@ -83,7 +84,7 @@ const Admin_Alumini_Form = ( { onLogout } ) => {
               <div className={styles.gridThreeCol}>
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Date of Birth</label>
-                  <input type="date" className={styles.textInput} />
+                  <DateInput theme="admin" className={styles.textInput} />
                 </div>
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Years of Study (From)</label>

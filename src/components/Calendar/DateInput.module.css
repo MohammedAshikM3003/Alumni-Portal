@@ -1,0 +1,32 @@
+.dateInputContainer {
+  position: relative;
+  width: 100%;
+}
+
+.inputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.dateInputField {
+  width: 100%;
+  padding-right: 40px !important;
+  cursor: pointer;
+  background-color: #FFFFFF !important;
+}
+
+.calendarIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6B7280;
+  cursor: pointer;
+  user-select: none;
+  pointer-events: none;
+  font-size: 20px;
+}
+
+.dateInputField:focus {
+  outline: none;
+}

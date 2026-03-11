@@ -1,0 +1,354 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.calendarContainer {
+  width: 360px;
+  height: 360px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  position: relative;
+  overflow: hidden;
+  max-width: calc(100vw - 40px);
+}
+
+/* Theme Variables */
+.admin {
+  --primary-color: #2E6F40;
+  --primary-hover: #255833;
+  --primary-light: #EAF1EC;
+}
+
+.alumni {
+  --primary-color: #007BFF;
+  --primary-hover: #0069D9;
+  --primary-light: #E7F3FF;
+}
+
+.coordinator {
+  --primary-color: #FF3D00;
+  --primary-hover: #E63600;
+  --primary-light: #FFF1F0;
+}
+
+/* Header with Tabs */
+.calendarHeader {
+  padding: 16px 20px 0;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.viewTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: -1px;
+  flex: 1;
+}
+
+.closeButton {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6B7280;
+  margin-bottom: -1px;
+}
+
+.closeButton:hover {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.closeButton span {
+  font-size: 20px;
+}
+
+.viewTab {
+  flex: 1;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.viewTab:hover {
+  color: #374151;
+}
+
+.activeTab {
+  color: var(--primary-color) !important;
+  border-bottom-color: var(--primary-color) !important;
+}
+
+/* Month/Year Navigation */
+.monthYearHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+}
+
+.monthYear {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.navButton {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6B7280;
+}
+
+.navButton:hover {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.navButton span {
+  font-size: 20px;
+}
+
+/* Calendar Body */
+.calendarBody {
+  flex: 1;
+  padding: 0 20px 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.weekDaysHeader {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.weekDay {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9CA3AF;
+  padding: 4px 0;
+}
+
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 2px;
+  flex: 1;
+}
+
+.monthsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.yearsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 20px 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar for years grid */
+.yearsGrid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.yearsGrid::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 3px;
+}
+
+.yearsGrid::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+
+.yearsGrid::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+.yearViewHeader {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2937;
+  padding: 16px 0 0;
+  text-align: center;
+}
+
+.dayCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1F2937;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  min-height: 32px;
+}
+
+.monthCell {
+  aspect-ratio: 2.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1F2937;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.yearCell {
+  aspect-ratio: 2.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1F2937;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.dayCell:hover:not(.otherMonth),
+.monthCell:hover,
+.yearCell:hover {
+  background: #F3F4F6;
+}
+
+.dayCell.otherMonth {
+  color: #D1D5DB;
+  cursor: default;
+}
+
+.dayCell.today {
+  border: 2px solid var(--primary-color);
+  font-weight: 600;
+}
+
+.dayCell.selected,
+.monthCell.selected,
+.yearCell.selected {
+  background: var(--primary-color);
+  color: #FFFFFF;
+}
+
+.dayCell.selected.today {
+  border: 2px solid #FFFFFF;
+}
+
+.dayCell.selected:hover,
+.monthCell.selected:hover,
+.yearCell.selected:hover {
+  background: var(--primary-hover);
+}
+
+/* Footer with Action Buttons */
+.calendarFooter {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.cancelButton,
+.applyButton {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.cancelButton {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.cancelButton:hover {
+  background: #E5E7EB;
+}
+
+.applyButton {
+  background: var(--primary-color);
+  color: #FFFFFF;
+}
+
+.applyButton:hover {
+  background: var(--primary-hover);
+}
+
+.cancelButton,
+.applyButton {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.cancelButton {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.cancelButton:hover {
+  background: #E5E7EB;
+}
+
+.applyButton {
+  background: var(--primary-color);
+  color: #FFFFFF;
+}
+
+.applyButton:hover {
+  background: var(--primary-hover);
+}

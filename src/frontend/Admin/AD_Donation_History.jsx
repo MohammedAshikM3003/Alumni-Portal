@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './AD_Donation_History.module.css';
 import { useNavigate } from 'react-router-dom';
+import { DateInput } from '../../components/Calendar';
 
 const Admin_Donation_History = ( { onLogout } ) => {
   const navigate = useNavigate();
@@ -183,9 +184,9 @@ const Admin_Donation_History = ( { onLogout } ) => {
               />
             </div>
             <div className={styles.dateFilterWrapper}>
-              <input 
-                type="date" 
-                className={styles.dateInput} 
+              <DateInput
+                theme="admin"
+                className={styles.dateInput}
               />
             </div>
           </div>

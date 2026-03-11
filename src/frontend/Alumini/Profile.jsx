@@ -3,6 +3,7 @@ import styles from './Profile.module.css';
 
 import Cropper from 'react-easy-crop';
 import Sidebar from './Components/Sidebar/Sidebar';
+import { DateInput } from '../../components/Calendar';
 
 const Alumini_Profile = ({ onLogout }) => {
   const fileInputRef = useRef(null);
@@ -215,8 +216,8 @@ const Alumini_Profile = ({ onLogout }) => {
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.label}>Date of Birth</label>
-                <input 
-                  type="date" 
+                <DateInput
+                  theme="alumni"
                   value={formData.dob} 
                   onChange={handleChange('dob')}
                   className={styles.input} 

@@ -4,6 +4,7 @@ import styles from './Co_InformationForm.module.css';
 import ksrLogo from '../../assets/KSR_College_Logo.svg';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from './Components/BackButton/Back';
+import { DateInput } from '../../components/Calendar';
 
 
 const CoordinatorInformationForm = ( { onLogout } ) => {
@@ -101,7 +102,7 @@ const CoordinatorInformationForm = ( { onLogout } ) => {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-600 mb-2">Date of Birth</label>
-                                        <input className={styles.inputField} type="date" />
+                                        <DateInput theme="coordinator" className={styles.inputField} />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-600 mb-2">Years of Study (From)</label>
