@@ -111,7 +111,6 @@ const Admin_Dashboard = ( { onLogout } ) => {
               <div className={styles.achievementsHeader}>
                 <div className={styles.cardIcon}>🏆</div>
                 <h2 className={styles.achievementsTitle}>Achievements & News</h2>
-                <a className={styles.achievementsViewAll} href="#">View All →</a>
               </div>
               <div className={styles.achievementsGrid}>
                 <div className={styles.achievementItem}>

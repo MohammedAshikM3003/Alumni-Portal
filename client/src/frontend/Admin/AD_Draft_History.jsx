@@ -99,7 +99,7 @@ const Admin_Draft_History = ( {onLogout} ) => {
       {/* Main Content Area */}
       <main className={styles.mainContent}>
         {/* Back Button */}
-          <div className={styles.backButton} onClick={() => window.history.back()}>
+          <div className={styles.backButton} onClick={() => navigate('/admin/mail')} >
             <span className="material-symbols-outlined">arrow_back</span>
             <span>Back</span>
           </div>

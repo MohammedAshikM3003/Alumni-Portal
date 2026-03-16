@@ -10,13 +10,6 @@ const CoordinatorViewInvitation = ( { onLogout } ) => {
             <Sidebar currentView="invitations" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                {/* Header */}
-                <header className={styles.header}>
-                    <div className={styles.headerLeft}>
-                        <h1 className={`${styles.collegeName} hidden md:block`}>K.S.R College of Engineering</h1>
-                    </div>
-                </header>
-
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} ${styles.dottedBg} min-h-screen`}>
                     <Back to={'/coordinator/invitations'} />
                     <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-stretch pb-20">

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Co_Invitations.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
+import Back from './Components/BackButton/Back';
 
 const CoordinatorInvitations = ( { onLogout } ) => {
     return (
@@ -10,32 +11,8 @@ const CoordinatorInvitations = ( { onLogout } ) => {
             <Sidebar currentView="invitations" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                {/* Header */}
-                <header className={styles.header}>
-                    <div className={styles.headerLeft}>
-                        <h1 className={`${styles.collegeName} hidden md:block`}>K.S.R College of Engineering</h1>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-4">
-                            <button className="relative p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors">
-                                <span className="material-symbols-outlined">notifications</span>
-                                <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white"></span>
-                            </button>
-                            <div className="h-8 w-[1px] bg-slate-200"></div>
-                            <div className="flex items-center gap-3">
-                                <div className="text-right hidden lg:block">
-                                    <p className="text-sm font-bold text-[#001E2B]">Mohammed Ashik M</p>
-                                    <p className="text-xs text-slate-500">Class of 2018</p>
-                                </div>
-                                <div className="size-10 rounded-full bg-slate-100 border-2 border-[#FF3D00] overflow-hidden">
-                                    <img alt="User profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCy29l1WzunyAjiRD6SzVOveOoOJ4sRZWjusYjhMmBN8mEcEU612GP9-RWaw7OPzq_9vdwrx7a-_tRk7usal0ltsyGKefbK7NlKRwNMKlx5dyAsY_t6_9foDZay8Za9LYG4PLA2ZOORrD_AKThNfSBNKXRXR0GqVHV49AkIoLI4Z42dUOGQn1S5Do6x-CeFLH6R9seCFXLyF2BGuBd2sm2dDHuA1ffwbhc-f8KrfvnqpWMrPvcTMvaeWMqC26-CypNOPXTK_hzGfbPX" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-7 bg-[#F9FAFB]`}>
+                    <Back to={'/coordinator/dashboard'} />
                     <header className="flex justify-between items-start mb-10">
                         <div>
                             <h2 className="text-3xl font-bold text-slate-900">Welcome back, Coordinator!</h2>

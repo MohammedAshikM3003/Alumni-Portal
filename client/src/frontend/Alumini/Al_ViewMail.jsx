@@ -1,9 +1,30 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './ViewMail.module.css';
+import styles from './Al_ViewMail.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 
 const Alumini_ViewMail = ({ onLogout }) => {
   const navigate = useNavigate();
+  const [showDeclinePopup, setShowDeclinePopup] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
+
+  const handleOpenDeclinePopup = () => {
+    setShowDeclinePopup(true);
+  };
+
+  const handleCloseDeclinePopup = () => {
+    setShowDeclinePopup(false);
+    setDeclineReason('');
+  };
+
+  const handleSendDecline = () => {
+    if (!declineReason.trim()) {
+      return;
+    }
+
+    setShowDeclinePopup(false);
+    setDeclineReason('');
+  };
 
   return (
     <div className={styles.pageContainer}>
@@ -109,7 +130,7 @@ const Alumini_ViewMail = ({ onLogout }) => {
 
               {/* Action Footer */}
               <div className={styles.actionFooter}>
-                <button className={styles.declineButton}>
+                <button className={styles.declineButton} onClick={handleOpenDeclinePopup}>
                   Decline
                 </button>
                 <button className={styles.acceptButton} onClick={() => {navigate('/alumini/mail/viewmail/acceptmail')}}>
@@ -120,6 +141,30 @@ const Alumini_ViewMail = ({ onLogout }) => {
           </div>
         </div>
       </main>
+
+      {showDeclinePopup && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Reason for Declining</h3>
+            <p className={styles.modalText}>Please provide a reason before sending your response.</p>
+            <textarea
+              className={styles.reasonTextarea}
+              rows="4"
+              placeholder="Enter your reason here"
+              value={declineReason}
+              onChange={(e) => setDeclineReason(e.target.value)}
+            />
+            <div className={styles.modalActions}>
+              <button className={styles.cancelButton} onClick={handleCloseDeclinePopup}>
+                Cancel
+              </button>
+              <button className={styles.sendButton} onClick={handleSendDecline}>
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

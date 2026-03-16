@@ -1,5 +1,5 @@
 import Sidebar from './Components/Sidebar/Sidebar';
-import styles from './Feedback.module.css';
+import styles from './Al_Feedback.module.css';
 import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import { DateInput, TimeInput } from '../../components/Calendar';

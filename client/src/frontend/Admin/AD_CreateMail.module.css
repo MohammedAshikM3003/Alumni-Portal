@@ -322,6 +322,7 @@
 .generateBtn {
   display: flex;
   justify-self: end;
+  margin-top: 5px;
   padding: 0.625rem 2rem;
   background-color: var(--forest-green);
   color: var(--white);

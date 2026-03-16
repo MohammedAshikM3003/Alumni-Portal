@@ -173,7 +173,9 @@ const Admin_CreateMail = ({ onLogout }) => {
                     onChange={handleEventChange}
                   />
                   {isAIEnabled && (
-                    <button className={styles.generateBtn}>Write With AI</button>
+                    <>
+                      <button className={styles.generateBtn}>Generate</button>
+                    </>
                   )}
                 </div>
               </div>

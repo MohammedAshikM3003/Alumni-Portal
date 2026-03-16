@@ -4,6 +4,9 @@
 :root {
   --primary: #2E6F40;
   --primary-hover: #245832;
+
+  --primary-danger: #f12b2b;
+  --primary-danger-hover: #ff0000;
   
   --bg-light: #F9FAFB;
   --bg-white: #FFFFFF;
@@ -197,7 +200,7 @@
 }
 
 .discardBtn {
-  background-color: #94A3B8;
+  background-color: var(--primary-danger);
   color: white;
   font-weight: 700;
   padding: 0.625rem 2rem;
@@ -208,7 +211,7 @@
 }
 
 .discardBtn:hover {
-  background-color: #64748B;
+  background-color: var(--primary-danger-hover);
 }
 
 .saveBtn {

@@ -28,9 +28,8 @@
 
 /* ================== MAIN CONTENT ================== */
 .mainContent {
-  margin-left: 70px;
-  flex: 1;
-  padding: 1rem 3rem;
+  margin-left: 60px;
+  padding: 1rem;
   margin-right: auto;
   height: 100vh;
   overflow-y: auto;
@@ -58,15 +57,12 @@
 .contentWrapper {
   width: 100%;
   margin: 0 auto;
-  padding: 2rem 2rem;
+  padding: 0rem 2rem;
 }
 
 
 /* Back Button */
 .backButton {
-  position: absolute;
-  top: 10px;
-  left: 75px;
   display: flex;
   align-items: center;
   gap: 4px;

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import styles from './Profile.module.css';
+import styles from './Al_Profile.module.css';
 
 import Cropper from 'react-easy-crop';
 import Sidebar from './Components/Sidebar/Sidebar';
@@ -7,9 +7,8 @@ import { DateInput } from '../../components/Calendar';
 
 const Alumini_Profile = ({ onLogout }) => {
   const fileInputRef = useRef(null);
-  
-  const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
+
+  const initialProfileData = {
     // Personal Details
     fullName: 'Mohammed Ashik M',
     fatherSpouseName: 'N/A',
@@ -42,7 +41,11 @@ const Alumini_Profile = ({ onLogout }) => {
     spouseName: 'N/A',
     spouseQualification: 'N/A',
     numChildren: ''
-  });
+  };
+
+  const [editMode, setEditMode] = useState(false);
+  const [savedData, setSavedData] = useState(initialProfileData);
+  const [formData, setFormData] = useState(initialProfileData);
 
   const [signatureFile, setSignatureFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -57,6 +60,7 @@ const Alumini_Profile = ({ onLogout }) => {
   };
 
   const handleUploadClick = () => {
+    if (!editMode) return;
     fileInputRef.current?.click();
   };
 
@@ -137,8 +141,18 @@ const Alumini_Profile = ({ onLogout }) => {
     if (editMode) {
       console.log('Form submitted:', formData);
       // TODO: Add API call to save profile
+      setSavedData(formData);
       setEditMode(false);
     }
+  };
+
+  const handleStartEdit = () => {
+    setEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setFormData(savedData);
+    setEditMode(false);
   };
 
   return (
@@ -365,7 +379,9 @@ const Alumini_Profile = ({ onLogout }) => {
                 ) : (
                   <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8}} onClick={e => e.stopPropagation()}>
                     <img src={previewUrl} alt="Signature Preview" className={styles.signaturePreview} style={{maxWidth: 220, maxHeight: 60, border: '1.5px solid #CBD5E1', borderRadius: 8, marginBottom: 8, background: '#fff'}} />
-                    <button type="button" className={styles.clearBtn} onClick={() => setPreviewUrl(null)}>Clear</button>
+                    {editMode && (
+                      <button type="button" className={styles.clearBtn} onClick={() => setPreviewUrl(null)}>Clear</button>
+                    )}
                   </div>
                 )}
                 <p className={styles.uploadText} style={{marginTop: 8}}>Click to upload signature or drag and drop</p>
@@ -673,52 +689,35 @@ const Alumini_Profile = ({ onLogout }) => {
               <label className={styles.label}>Any Other Relevant Information</label>
               <textarea rows="3" className={styles.textarea} readOnly={!editMode}></textarea>
             </div>
-
-            {/* Alumni Details Table */}
-            <div className={styles.addressSection}>
-              <h4 className={styles.subsectionTitle}>Alumni Details For Name Update</h4>
-              <div className={styles.tableWrapper}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Degree</th>
-                      <th>Batch</th>
-                      <th>E-Mail</th>
-                      <th>Phone/Mobile No.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><input type="text" defaultValue="James Wilson" className={styles.tableInput} readOnly={!editMode} /></td>
-                      <td><input type="text" defaultValue="B.E CSE" className={styles.tableInput} readOnly={!editMode} /></td>
-                      <td><input type="text" defaultValue="2018" className={styles.tableInput} readOnly={!editMode} /></td>
-                      <td><input type="email" defaultValue="james.w@example.com" className={styles.tableInput} readOnly={!editMode} /></td>
-                      <td><input type="tel" defaultValue="98844 12345" className={styles.tableInput} readOnly={!editMode} /></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </div>
 
           {/* Action Buttons */}
           <div className={styles.actionButtons}>
-            <button
-              type="button"
-              className={styles.editBtn}
-              onClick={() => setEditMode(true)}
-              disabled={editMode}
-            >
-              Edit Profile
-            </button>
-            <button
-              type="submit"
-              className={styles.saveBtn}
-              disabled={!editMode}
-            >
-              Save
-            </button>
+            {!editMode ? (
+              <button
+                type="button"
+                className={styles.editBtn}
+                onClick={handleStartEdit}
+              >
+                Edit
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className={styles.cancelEditBtn}
+                  onClick={handleCancelEdit}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={styles.saveBtn}
+                >
+                  Save
+                </button>
+              </>
+            )}
           </div>
         </form>
       </main>

@@ -1,4 +1,4 @@
-import styles from './View_Invitation.module.css';
+import styles from './Al_View_Invitation.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 
 const Alumini_View_Invitation = ({ onLogout }) => {

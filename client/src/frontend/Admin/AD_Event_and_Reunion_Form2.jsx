@@ -353,7 +353,7 @@ const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
       {/* Main Content */}
       <main className={styles.mainContent}>
           {/* Back Button */}
-          <div className={styles.backButton} onClick={() => window.history.back()}>
+          <div className={styles.backButton} onClick={() => navigate('/admin/event_and_reunion_form1')} >
               <span className="material-symbols-outlined">arrow_back</span>
               <span>Back</span>
           </div>

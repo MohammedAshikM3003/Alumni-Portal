@@ -1,6 +1,7 @@
-    import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import styles from './Co_View_Donation.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
+import Back from './Components/BackButton/Back';
 
 const CoordinatorViewDonation = ( { onLogout } ) => {
     return (
@@ -9,29 +10,21 @@ const CoordinatorViewDonation = ( { onLogout } ) => {
             <Sidebar currentView="donation_history" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                {/* Header & Banner */}
-                <header className="sticky top-0 z-10 shrink-0">
+                {/* Banner */}
+                <div className="sticky top-0 z-10 shrink-0">
                     <div className="bg-red-50 border-b border-red-100 px-6 py-3 flex items-center justify-center">
                         <div className="flex items-center gap-2 text-sm font-medium text-red-600">
                             <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
                             <span>Recent: Suresh Kumar just donated ₹500 to the Alumni Fund!</span>
                         </div>
                     </div>
-                    <div className={styles.header}>
-                        <div className={styles.headerLeft}>
-                            <h1 className={`${styles.collegeName} hidden md:block`}>K.S.R College of Engineering</h1>
-                        </div>
-                    </div>
-                </header>
+                </div>
 
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
+                    <Back to={'/coordinator/donation_history'} />
                     <div className="max-w-8xl mx-auto">
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-2xl font-bold text-slate-900">Donation Transaction Details</h2>
-                            <Link className="bg-[#FF3D00] hover:bg-red-600 text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 shadow-sm shadow-red-500/10" to="/coordinator/donation_history">
-                                <span className="material-symbols-outlined text-lg">arrow_back</span>
-                                Back to List
-                            </Link>
                         </div>
 
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">

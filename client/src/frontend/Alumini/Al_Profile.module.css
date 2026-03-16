@@ -553,6 +553,22 @@
   background-color: #EFF6FF;
 }
 
+.cancelEditBtn {
+  padding: 8px 32px;
+  border: 1px solid #D1D5DB;
+  color: #374151;
+  background-color: #FFFFFF;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.cancelEditBtn:hover {
+  background-color: #F3F4F6;
+}
+
 .saveBtn {
   padding: 8px 48px;
   background-color: #007BFF;
@@ -626,6 +642,7 @@
   }
 
   .editBtn,
+  .cancelEditBtn,
   .saveBtn {
     width: 100%;
   }

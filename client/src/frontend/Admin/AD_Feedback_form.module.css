@@ -300,6 +300,10 @@
   font-size: 1rem;
 }
 
+.inputGroup input[readonly] {
+  cursor: not-allowed;
+}
+
 .inputGroup input:focus {
   border-color: var(--brand-green);
   box-shadow: 0 0 0 1px var(--brand-green);
@@ -408,12 +412,20 @@
   cursor: pointer;
 }
 
+.radioLabel:has(.radioInput:disabled) {
+  cursor: not-allowed;
+}
+
 .radioInput {
   width: 1.25rem;
   height: 1.25rem;
   color: var(--brand-green);
   border-color: #d1d5db; /* gray-300 */
   accent-color: var(--brand-green); /* Fallback for native styling */
+}
+
+.radioInput:disabled {
+  cursor: not-allowed;
 }
 
 .radioInput:focus {
@@ -436,6 +448,10 @@
   font-family: inherit;
   outline: none;
   resize: vertical;
+}
+
+.feedbackTextarea[readonly] {
+  cursor: not-allowed;
 }
 
 .feedbackTextarea:focus {
@@ -487,7 +503,7 @@
   justify-content: flex-end;
 }
 
-.editBtn {
+.downloadBtn {
   background-color: var(--brand-green);
   color: white;
   font-weight: 700;
@@ -502,6 +518,6 @@
   transition: background-color 0.2s;
 }
 
-.editBtn:hover {
+.downloadBtn:hover {
   background-color: var(--brand-green-hover);
 }

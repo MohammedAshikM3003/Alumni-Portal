@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './Mail.module.css';
+import styles from './Al_Mail.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 
 export default function Alumini_Mail({ onLogout }) {

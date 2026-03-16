@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
-import styles from './Accept_Invitation.module.css';
+import styles from './Al_Accept_Invitation.module.css';
 
 export default function Alumini_MailForm({ onLogout }) {
   const navigate = useNavigate();

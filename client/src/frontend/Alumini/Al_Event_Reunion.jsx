@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import styles from './Event_Reunion.module.css';
+import styles from './Al_Event_Reunion.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 
 const Alumini_EventsReunion = ({ onLogout }) => {
@@ -95,26 +95,6 @@ const Alumini_EventsReunion = ({ onLogout }) => {
 
       {/* Main Content Area */}
       <main className={styles.mainContent}>
-      {/* Top Header */}
-        <header className={styles.header}>
-            <div className={styles.headerTitles}>
-              <h2 className={styles.welcomeTitle}>Welcome back, Alumni!</h2>
-              <p className={styles.welcomeSubtitle}>
-                Check out what's happening in your alma mater today.
-              </p>
-            </div>
-          
-          <div className={styles.headerRight}>
-            <button className={styles.iconBtn}>
-              <span className="material-symbols-outlined">notifications_none</span>
-              <span className={styles.notificationDot}></span>
-            </button>
-            {/* Peach colored profile button as seen in the header close-up */}
-            <button className={styles.profileBtn}>
-              <span className="material-symbols-outlined">person</span>
-            </button>
-          </div>
-        </header>
         {/* Content Section */}
         <section className={styles.emailSection}>
           <div className={styles.sectionHeader}>

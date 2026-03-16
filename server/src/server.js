@@ -4,7 +4,6 @@ import { config } from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
-import invitationRoutes from './routes/invitationRoutes.js';
 
 // Load environment variables from a .env file
 config();
@@ -22,8 +21,8 @@ connectDB();
 
 // --- Routes ---
 app.use('/api/auth', authRoutes);
+
 app.use('/api/feedback', feedbackRoutes);
-app.use('/api/invitation', invitationRoutes);
 
 
 // --- Start the Server ---

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import styles from './Co_Donation_History.module.css';
 import ksrLogo from '../../assets/KSR_College_Logo.svg';
 import Sidebar from './Components/Sidebar/Sidebar';
+import Back from './Components/BackButton/Back';
 import { DateInput } from '../../components/Calendar';
 
 const CoordinatorDonationHistory = ( { onLogout } ) => {
@@ -29,22 +30,18 @@ const CoordinatorDonationHistory = ( { onLogout } ) => {
             <Sidebar onLogout={onLogout} currentView="donation_history" />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                {/* Fixed Banner & Header */}
-                <header className="sticky top-0 z-10 shrink-0">
+                {/* Fixed Banner */}
+                <div className="sticky top-0 z-10 shrink-0">
                     <div className="bg-red-50 border-b border-red-100 px-6 py-3 flex items-center justify-center">
                         <div className="flex items-center gap-2 text-sm font-medium text-red-600">
                             <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
                             <span>Recent: Suresh Kumar just donated ₹500 to the Alumni Fund!</span>
                         </div>
                     </div>
-                    <div className={styles.header}>
-                        <div className={styles.headerLeft}>
-                            <h1 className={`${styles.collegeName} hidden md:block`}>K.S.R College of Engineering</h1>
-                        </div>
-                    </div>
-                </header>
+                </div>
 
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
+                    <Back to={'/coordinator/dashboard'} />
                     <div className="max-w-7xl mx-auto">
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-2xl font-bold text-slate-900">Alumni Donations Tracking</h2>

@@ -8,18 +8,18 @@ import SendOtp from './frontend/Auth/SendOtp';
 import UpdatePassword from './frontend/Auth/UpdatePassword';
 
 // Alumini Imports
-import Alumini_Dashboard from './frontend/Alumini/Dashboard';
-import Alumini_Mail from './frontend/Alumini/Mail';
-import Alumini_ViewMail from './frontend/Alumini/ViewMail';
-import Alumini_MailForm from './frontend/Alumini/Accept_Invitation';
-import Alumini_EventsReunion from './frontend/Alumini/Event_Reunion';
-import Alumini_View_Invitation from './frontend/Alumini/View_Invitaion';
-import Alumini_Donation_History from './frontend/Alumini/Donation_History';
-import Alumini_DonationFormPage from './frontend/Alumini/Donation_Form';
-import Alumini_JobReference_History from './frontend/Alumini/JobReference_History';
-import Alumini_Feedback from './frontend/Alumini/Feedback';
-import Alumini_JobReference_Form from './frontend/Alumini/JobReference_Form';
-import Alumini_Profile from './frontend/Alumini/Profile';
+import Alumini_Dashboard from './frontend/Alumini/Al_Dashboard';
+import Alumini_Mail from './frontend/Alumini/Al_Mail';
+import Alumini_ViewMail from './frontend/Alumini/Al_ViewMail';
+import Alumini_MailForm from './frontend/Alumini/Al_Accept_Invitation';
+import Alumini_EventsReunion from './frontend/Alumini/Al_Event_Reunion';
+import Alumini_View_Invitation from './frontend/Alumini/Al_View_Invitaion';
+import Alumini_Donation_History from './frontend/Alumini/Al_Donation_History';
+import Alumini_DonationFormPage from './frontend/Alumini/Al_Donation_Form';
+import Alumini_JobReference_History from './frontend/Alumini/Al_JobReference_History';
+import Alumini_Feedback from './frontend/Alumini/Al_Feedback';
+import Alumini_JobReference_Form from './frontend/Alumini/Al_JobReference_Form';
+import Alumini_Profile from './frontend/Alumini/Al_Profile';
 
 // Admin Imports
 import Admin_Mail from './frontend/Admin/AD_Mail';
@@ -56,6 +56,11 @@ import CoordinatorFeedbackHistory from './frontend/Coordinator/Co_Feedback'
 import CoordinatorFeedbackForm from './frontend/Coordinator/Co_Feedback_Form'
 import CoordinatorProfile from './frontend/Coordinator/Co_Profile'
 import PageTitleManager from './components/PageTitleManager';
+import Admin_Department from './frontend/Admin/AD_Department';
+import Admin_View_Department from './frontend/Admin/AD_View_Department';
+import Admin_View_Faculty from './frontend/Admin/AD_View_Faculty';
+import Admin_Add_Faculty from './frontend/Admin/AD_Add_Faculty';
+import Admin_Edit_Faculty from './frontend/Admin/AD_Edit_Faculty';
 
 function App() {
   const { user, isLoggedIn, logout, loading } = useAuth();
@@ -196,6 +201,39 @@ function App() {
           element={guard('admin', <Admin_Draft onLogout={logout} />)}
         />
 
+{/* Admin Alumini Routes */}
+        <Route
+          path="/admin/alumini"
+          element={guard('admin', <Admin_Alumini onLogout={logout} />)}
+        />
+        <Route
+          path="/admin/alumini_form"
+          element={guard('admin', <Admin_Alumini_Form onLogout={logout} />)}
+        />
+
+{/* Admin Department Route */}
+        <Route
+          path="/admin/department"
+          element={guard('admin', <Admin_Department onLogout={logout} />)}
+        />
+        <Route
+          path="/admin/department/view_department"
+          element={guard('admin', <Admin_View_Department onLogout={logout} />)}
+        />
+        <Route
+          path="/admin/department/add_faculty"
+          element={guard('admin', <Admin_Add_Faculty onLogout={logout} />)}
+        />
+        <Route
+          path="/admin/department/view_faculty"
+          element={guard('admin', <Admin_View_Faculty onLogout={logout} />)}
+        />
+        <Route
+          path="/admin/department/edit_faculty"
+          element={guard('admin', <Admin_Edit_Faculty onLogout={logout} />)}
+        />
+
+
 
 {/* Admin Job and Reference Routes */}
         <Route
@@ -244,16 +282,6 @@ function App() {
         <Route
           path="/admin/feedback_form"
           element={guard('admin', <Admin_Feedback_Form onLogout={logout} />)}
-        />
-
-{/* Admin Alumini Routes */}
-        <Route
-          path="/admin/alumini"
-          element={guard('admin', <Admin_Alumini onLogout={logout} />)}
-        />
-        <Route
-          path="/admin/alumini_form"
-          element={guard('admin', <Admin_Alumini_Form onLogout={logout} />)}
         />
 
 {/* Admin Profile Route */}

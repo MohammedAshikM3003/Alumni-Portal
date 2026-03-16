@@ -1,7 +1,12 @@
+import { useRef } from 'react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './AD_Feedback_form.module.css';
 
 const Admin_Feedback_Form = ( { onLogout } ) => {
+  const formCardRef = useRef(null);
+
   // Assessment sections data to keep JSX clean
   const assessments = [
     {
@@ -31,6 +36,40 @@ const Admin_Feedback_Form = ( { onLogout } ) => {
     },
   ];
 
+  const handleDownload = async () => {
+    if (!formCardRef.current) return;
+
+    const canvas = await html2canvas(formCardRef.current, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+
+    const maxWidth = pageWidth - margin * 2;
+    const maxHeight = pageHeight - margin * 2;
+    const widthRatio = maxWidth / canvas.width;
+    const heightRatio = maxHeight / canvas.height;
+    const ratio = Math.min(widthRatio, heightRatio);
+
+    const imgWidth = canvas.width * ratio;
+    const imgHeight = canvas.height * ratio;
+    const x = (pageWidth - imgWidth) / 2;
+    const y = (pageHeight - imgHeight) / 2;
+
+    // Fit entire content onto exactly one A4 page.
+    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight, undefined, 'FAST');
+
+    const date = new Date().toISOString().split('T')[0];
+    pdf.save(`feedback-review-${date}.pdf`);
+  };
+
   return (
     <div className={styles.pageLayout}>
       
@@ -47,7 +86,7 @@ const Admin_Feedback_Form = ( { onLogout } ) => {
 
         {/* BEGIN: Scrollable Feedback Container */}
         <div className={styles.scrollableContainer}>
-          <div className={styles.formCard}>
+          <div className={styles.formCard} ref={formCardRef}>
             
             {/* BEGIN: Form Header */}
             <div className={styles.formHeader}>
@@ -130,19 +169,20 @@ const Admin_Feedback_Form = ( { onLogout } ) => {
                     <h5>{item.title}</h5>
                     <div className={styles.radioGroup}>
                       <label className={styles.radioLabel}>
-                        <input name={item.id} type="radio" className={styles.radioInput} />
+                        <input disabled name={item.id} type="radio" className={styles.radioInput} />
                         <span>Needs improvement</span>
                       </label>
                       <label className={styles.radioLabel}>
-                        <input name={item.id} type="radio" className={styles.radioInput} />
+                        <input disabled name={item.id} type="radio" className={styles.radioInput} />
                         <span>Satisfied</span>
                       </label>
                       <label className={styles.radioLabel}>
-                        <input defaultChecked name={item.id} type="radio" className={styles.radioInput} />
+                        <input disabled defaultChecked name={item.id} type="radio" className={styles.radioInput} />
                         <span>Best</span>
                       </label>
                     </div>
                     <textarea 
+                      readOnly
                       className={styles.feedbackTextarea} 
                       placeholder="Comments/Suggestions" 
                       rows="2"
@@ -160,7 +200,7 @@ const Admin_Feedback_Form = ( { onLogout } ) => {
                     </div>
                   </div>
                   <div className={styles.actionRow}>
-                    <button className={styles.editBtn}>EDIT</button>
+                    <button type="button" className={styles.downloadBtn} onClick={handleDownload}>Download</button>
                   </div>
                 </div>
 

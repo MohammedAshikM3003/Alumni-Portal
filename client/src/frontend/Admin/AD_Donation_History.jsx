@@ -145,22 +145,6 @@ const Admin_Donation_History = ( { onLogout } ) => {
       <Sidebar onLogout={onLogout} currentView={'donation_history'} />
       {/* Main Content Area */}
       <main className={styles.mainContent}>
-        
-        {/* Sticky Notification Header */}
-        <header className={styles.stickyHeader}>
-          <div className={styles.notificationBanner}>
-            <div className={styles.notificationContent}>
-              <span 
-                className="material-symbols-outlined" 
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                favorite
-              </span>
-              <span>Recent: Suresh Kumar just donated ₹500 to the Alumni Fund!</span>
-            </div>
-          </div>
-        </header>
-
         {/* Page Content */}
         <div className={styles.contentWrapper}>
           

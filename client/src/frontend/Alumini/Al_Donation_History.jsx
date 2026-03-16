@@ -1,4 +1,4 @@
-import styles from './Donation_History.module.css';
+import styles from './Al_Donation_History.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -17,6 +17,10 @@ const Alumini_Donation_History = ({ onLogout }) => {
     { id: '09', cause: 'Sports Complex Renovation', type: 'Bank Transfer', txId: 'TXN-912234567', amount: '₹25,000.00', date: 'Oct 15, 2023', status: 'Pending' },
     { id: '10', cause: 'Annual Alumni Meet Fund', type: 'UPI', txId: 'TXN-881223344', amount: '₹2,500.00', date: 'Oct 12, 2023', status: 'Pending' },
     { id: '11', cause: 'Research Lab Upgrade', type: 'Online', txId: 'TXN-445566778', amount: '₹50,000.00', date: 'Oct 05, 2023', status: 'Failed' },
+    { id: '12', cause: 'Annual Alumni Meet Fund', type: 'UPI', txId: 'TXN-881223344', amount: '₹2,500.00', date: 'Oct 12, 2023', status: 'Pending' },
+    { id: '13', cause: 'Research Lab Upgrade', type: 'Online', txId: 'TXN-445566778', amount: '₹50,000.00', date: 'Oct 05, 2023', status: 'Failed' },
+    { id: '14', cause: 'Annual Alumni Meet Fund', type: 'UPI', txId: 'TXN-881223344', amount: '₹2,500.00', date: 'Oct 12, 2023', status: 'Pending' },
+    { id: '15', cause: 'Research Lab Upgrade', type: 'Online', txId: 'TXN-445566778', amount: '₹50,000.00', date: 'Oct 05, 2023', status: 'Failed' },
   ];
 
   // Pagination state
@@ -69,6 +73,42 @@ const Alumini_Donation_History = ({ onLogout }) => {
                 New Donation
             </button>
             </header>
+
+            {/* Summary Cards */}
+            <div className={styles.summaryGrid}>
+              {/* Card 1 */}
+              <div className={styles.summaryCard}>
+                  <div className={`${styles.summaryIcon} ${styles.iconBlue}`}>
+                  <span className="material-symbols-outlined">account_balance_wallet</span>
+                  </div>
+                  <div className={styles.summaryInfo}>
+                  <p className={styles.summaryLabel}>TOTAL DONATED</p>
+                  <p className={styles.summaryValue}>₹1,20,000.00</p>
+                  </div>
+              </div>
+
+              {/* Card 2 */}
+              <div className={styles.summaryCard}>
+                  <div className={`${styles.summaryIcon} ${styles.iconGreen}`}>
+                  <span className="material-symbols-outlined">check</span>
+                  </div>
+                  <div className={styles.summaryInfo}>
+                  <p className={styles.summaryLabel}>COMPLETED CONTRIBUTIONS</p>
+                  <p className={styles.summaryValue}>18</p>
+                  </div>
+              </div>
+
+              {/* Card 3 */}
+              <div className={styles.summaryCard}>
+                  <div className={`${styles.summaryIcon} ${styles.iconOrange}`}>
+                  <span className="material-symbols-outlined">emoji_events</span>
+                  </div>
+                  <div className={styles.summaryInfo}>
+                  <p className={styles.summaryLabel}>IMPACT RANK</p>
+                  <p className={styles.summaryValue}>Top 5% Donor</p>
+                  </div>
+              </div>
+            </div>
 
             {/* Table Container */}
             <div className={styles.tableCard}>
@@ -135,42 +175,6 @@ const Alumini_Donation_History = ({ onLogout }) => {
                   >
                     Next
                   </button>
-                </div>
-            </div>
-            </div>
-
-            {/* Summary Cards */}
-            <div className={styles.summaryGrid}>
-            {/* Card 1 */}
-            <div className={styles.summaryCard}>
-                <div className={`${styles.summaryIcon} ${styles.iconBlue}`}>
-                <span className="material-symbols-outlined">account_balance_wallet</span>
-                </div>
-                <div className={styles.summaryInfo}>
-                <p className={styles.summaryLabel}>TOTAL DONATED</p>
-                <p className={styles.summaryValue}>₹1,20,000.00</p>
-                </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className={styles.summaryCard}>
-                <div className={`${styles.summaryIcon} ${styles.iconGreen}`}>
-                <span className="material-symbols-outlined">check</span>
-                </div>
-                <div className={styles.summaryInfo}>
-                <p className={styles.summaryLabel}>COMPLETED CONTRIBUTIONS</p>
-                <p className={styles.summaryValue}>18</p>
-                </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className={styles.summaryCard}>
-                <div className={`${styles.summaryIcon} ${styles.iconOrange}`}>
-                <span className="material-symbols-outlined">emoji_events</span>
-                </div>
-                <div className={styles.summaryInfo}>
-                <p className={styles.summaryLabel}>IMPACT RANK</p>
-                <p className={styles.summaryValue}>Top 5% Donor</p>
                 </div>
             </div>
             </div>

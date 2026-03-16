@@ -1,3 +1,8 @@
+.dashboardContent {
+  scrollbar-color: linear-gradient(to bottom, #007BFF, #0069D9) #E5E7EB;
+  scrollbar-width: auto;
+}
+
 /* --- Alumni Dashboard Scrollbar Styles --- */
 .dashboardContent::-webkit-scrollbar {
   width: 10px;
@@ -16,15 +21,11 @@
 }
 .dashboardContent::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom, #0069D9, #0051CC);
-  border-color: #007BFF;
+  border-color: var(-p);
 }
 .dashboardContent::-webkit-scrollbar-thumb:active {
   background: linear-gradient(to bottom, #0051CC, #003d99);
   box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.7);
-}
-.dashboardContent {
-  scrollbar-color: linear-gradient(to bottom, #007BFF, #0069D9) #E5E7EB;
-  scrollbar-width: auto;
 }
 /* --- Alumni Dashboard Search Bar Styles --- */
 .searchContainer {

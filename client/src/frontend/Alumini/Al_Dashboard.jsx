@@ -1,4 +1,4 @@
-import styles from "./Dashboard.module.css";
+import styles from "./Al_Dashboard.module.css";
 import Sidebar from "./Components/Sidebar/Sidebar";
 import { useNavigate } from 'react-router-dom';
 
@@ -200,9 +200,6 @@ export default function Alumini_Dashboard({ onLogout }) {
                     </div>
                     <h3 className={styles.cardTitle}>Achievements &amp; News</h3>
                   </div>
-                  <button className={styles.viewAllButton}>
-                    View All <span className={`material-symbols-outlined ${styles.viewAllIcon}`}>open_in_new</span>
-                  </button>
                 </div>
                 <div className={styles.newsGrid}>
                   <div className={styles.newsCard}>
