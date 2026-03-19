@@ -1,9 +1,24 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './Al_Donation_Form.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE = import.meta.env.VITE_API_URL;
+
+const parseApiResponse = async (response) => {
+    const raw = await response.text();
+
+    if (!raw) {
+        return {};
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return { message: raw };
+    }
+};
 
 const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -22,14 +37,10 @@ const loadRazorpayScript = () => {
 
 const Alumini_DonationFormPage = ({ onLogout }) => {
     const { user } = useAuth();
+        const navigate = useNavigate();
   const [amount, setAmount] = useState('1000');
     const [purpose, setPurpose] = useState('');
-  const [selectedMethod, setSelectedMethod] = useState('upi');
     const [isPaying, setIsPaying] = useState(false);
-
-  const handleMethodSelect = (method) => {
-    setSelectedMethod(method);
-  };
 
     const handlePayment = async () => {
         const numericAmount = Number(amount);
@@ -66,11 +77,10 @@ const Alumini_DonationFormPage = ({ onLogout }) => {
                 body: JSON.stringify({
                     purpose: trimmedPurpose,
                     amount: numericAmount,
-                    method: selectedMethod,
                 }),
             });
 
-            const orderData = await orderRes.json();
+            const orderData = await parseApiResponse(orderRes);
             if (!orderRes.ok || !orderData?.order?.id) {
                 throw new Error(orderData.message || 'Unable to create order');
             }
@@ -86,9 +96,6 @@ const Alumini_DonationFormPage = ({ onLogout }) => {
                     name: user.name,
                     email: user.email,
                 },
-                notes: {
-                    paymentMethod: selectedMethod,
-                },
                 handler: async (response) => {
                     try {
                         const verifyRes = await fetch(`${API_BASE}/api/payments/verify`, {
@@ -100,12 +107,13 @@ const Alumini_DonationFormPage = ({ onLogout }) => {
                             body: JSON.stringify(response),
                         });
 
-                        const verifyData = await verifyRes.json();
+                        const verifyData = await parseApiResponse(verifyRes);
                         if (!verifyRes.ok || !verifyData.success) {
                             throw new Error(verifyData.message || 'Payment verification failed');
                         }
 
-                        alert('Payment successful. Thank you for your donation!');
+                        alert('Payment successful! Thank you for your donation.');
+                        navigate('/alumini/donation_history');
                     } catch (error) {
                         alert(error.message || 'Payment verification failed');
                     } finally {
@@ -182,38 +190,6 @@ const Alumini_DonationFormPage = ({ onLogout }) => {
                         value={amount} 
                         onChange={(e) => setAmount(e.target.value)}
                     />
-                    </div>
-                </div>
-
-                {/* Payment Methods */}
-                <div className={styles.methodSection}>
-                    <label className={styles.inputLabel}>Select Payment Method</label>
-                    <div className={styles.methodGrid}>
-                    
-                    <button 
-                        className={`${styles.methodBtn} ${selectedMethod === 'upi' ? styles.methodActive : ''}`}
-                        onClick={() => handleMethodSelect('upi')}
-                    >
-                        <span className="material-symbols-outlined">qr_code_scanner</span>
-                        <span>UPI</span>
-                    </button>
-
-                    <button 
-                        className={`${styles.methodBtn} ${selectedMethod === 'card' ? styles.methodActive : ''}`}
-                        onClick={() => handleMethodSelect('card')}
-                    >
-                        <span className="material-symbols-outlined">credit_card</span>
-                        <span>Credit/Debit Card</span>
-                    </button>
-
-                    <button 
-                        className={`${styles.methodBtn} ${selectedMethod === 'netbanking' ? styles.methodActive : ''}`}
-                        onClick={() => handleMethodSelect('netbanking')}
-                    >
-                        <span className="material-symbols-outlined">account_balance</span>
-                        <span>Net Banking</span>
-                    </button>
-
                     </div>
                 </div>
 

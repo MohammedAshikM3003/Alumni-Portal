@@ -124,7 +124,7 @@
   align-items: center;
 }
 
-.inputSection, .methodSection {
+.inputSection {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -209,51 +209,6 @@
 .amountInput::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
-}
-
-/* METHOD GRID */
-.methodGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  width: 100%;
-}
-
-.methodBtn {
-  background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #4B5563;
-}
-.methodBtn span:first-child {
-  font-size: 32px;
-}
-.methodBtn span:last-child {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.methodBtn:hover {
-  border-color: #CBD5E1;
-  background-color: #F8FAFC;
-}
-
-.methodActive {
-  border: 2px solid #0084D6;
-  color: #0084D6;
-  background-color: #F0F9FF;
-}
-.methodActive:hover {
-  border-color: #0084D6;
-  background-color: #F0F9FF;
 }
 
 /* DONATE BUTTON */
@@ -346,14 +301,6 @@
     background-color: rgba(17, 24, 39, 0.4); z-index: 40;
   }
 
-  .methodGrid {
-    grid-template-columns: 1fr;
-  }
-  .methodBtn {
-    flex-direction: row;
-    justify-content: flex-start;
-    padding: 16px 20px;
-  }
 }
 
 /* 3. Small Mobile Phones (425px) */

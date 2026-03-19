@@ -1,11 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Save, X, User, Book, ShieldCheck } from 'lucide-react';
 import styles from './AD_Add_Faculty.module.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
+import { useAuth } from '../../context/authContext/authContext';
+
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const Admin_Add_Faculty = ({ onLogout }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { deptCode } = useParams();
+
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
 
   const [formData, setFormData] = useState({
     // Personal Information
@@ -21,9 +29,9 @@ const Admin_Add_Faculty = ({ onLogout }) => {
     // Professional Information
     designation: '',
     status: 'Active',
-    department: 'Computer Science and Engineering',
+    department: '',
     staffId: '',
-    dateOfJoining: '',
+    dateOfJoining: today,
 
     // Security
     userId: '',
@@ -32,6 +40,36 @@ const Admin_Add_Faculty = ({ onLogout }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [departmentName, setDepartmentName] = useState('');
+
+  // Fetch department details to get the department name
+  useEffect(() => {
+    const fetchDepartment = async () => {
+      if (!deptCode || !user?.token) return;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/departments/code/${deptCode}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.department) {
+            setDepartmentName(data.department.branch);
+            setFormData(prev => ({ ...prev, department: data.department.deptCode }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching department:', error);
+      }
+    };
+
+    fetchDepartment();
+  }, [deptCode, user?.token]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -53,6 +91,7 @@ const Admin_Add_Faculty = ({ onLogout }) => {
     if (!formData.location.trim()) newErrors.location = 'Location is required';
     if (!formData.designation) newErrors.designation = 'Designation is required';
     if (!formData.staffId.trim()) newErrors.staffId = 'Staff ID is required';
+    if (!formData.dateOfJoining.trim()) newErrors.dateOfJoining = 'Date of joining is required';
     if (!formData.userId.trim()) newErrors.userId = 'User ID is required';
     if (!formData.password.trim()) newErrors.password = 'Password is required';
     else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
@@ -74,24 +113,90 @@ const Admin_Add_Faculty = ({ onLogout }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (validateForm()) {
-      // Here you would typically send data to your backend
-      alert('Faculty member added successfully!');
-      navigate('/admin/department/view_department');
+    if (!validateForm()) return;
+
+    if (!user?.token) {
+      setSubmitError('Please login to add coordinators');
+      return;
+    }
+
+    setLoading(true);
+    setSubmitError('');
+
+    try {
+      // Prepare data for coordinator creation
+      const coordinatorData = {
+        // User authentication details
+        userId: formData.userId,
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+
+        // Coordinator details
+        staffId: formData.staffId,
+        designation: formData.designation,
+        department: formData.department,
+        roles: ['coordinator'], // Default coordinator role
+        phone: formData.phone,
+        location: formData.location,
+        status: formData.status,
+        joinDate: formData.dateOfJoining ? new Date(formData.dateOfJoining).toISOString() : new Date().toISOString(),
+        personalInfo: {
+          dob: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null,
+          gender: formData.gender || null,
+          bloodGroup: formData.bloodGroup || null,
+          address: formData.address || null,
+        },
+        education: [],
+        experience: '',
+        publications: 0,
+        patents: 0,
+      };
+
+      const response = await fetch(`${API_BASE}/api/coordinators`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify(coordinatorData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        alert('Coordinator added successfully!');
+        navigate('/admin/department');
+      } else {
+        setSubmitError(data.message || 'Failed to create coordinator');
+      }
+    } catch (err) {
+      setSubmitError('Error creating coordinator');
+      console.error('Error creating coordinator:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCancel = () => {
     if (window.confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
-      navigate('/admin/department/view_department');
+      if (deptCode) {
+        navigate(`/admin/department/view_department/${deptCode}`);
+      } else {
+        navigate('/admin/department');
+      }
     }
   };
 
   const handleBack = () => {
-    navigate('/admin/department/view_department');
+    if (deptCode) {
+      navigate(`/admin/department/view_department/${deptCode}`);
+    } else {
+      navigate('/admin/department');
+    }
   };
 
   return (
@@ -107,14 +212,14 @@ const Admin_Add_Faculty = ({ onLogout }) => {
               <ArrowLeft size={16} /> Back to Department
             </button>
             <div className={styles.headerContent}>
-              <h1 className={styles.pageTitle}>Add New Faculty Member</h1>
+              <h1 className={styles.pageTitle}>Add New Coordinator</h1>
               <p className={styles.pageSubtitle}>Computer Science and Engineering Department</p>
             </div>
           </div>
 
-          {/* Add Faculty Form */}
+          {/* Add Coordinator Form */}
           <div className={styles.formCard}>
-            <form onSubmit={handleSubmit} className={styles.facultyForm}>
+            <form onSubmit={handleSubmit} className={styles.coordinatorForm}>
 
               {/* Personal Information Section */}
               <div className={styles.formSection}>
@@ -145,7 +250,7 @@ const Admin_Add_Faculty = ({ onLogout }) => {
                       value={formData.email}
                       onChange={handleInputChange}
                       className={`${styles.formInput} ${errors.email ? styles.inputError : ''}`}
-                      placeholder="e.g. faculty@ksrce.ac.in"
+                      placeholder="e.g. coordinator@ksrce.ac.in"
                     />
                     {errors.email && <span className={styles.errorText}>{errors.email}</span>}
                   </div>
@@ -280,8 +385,7 @@ const Admin_Add_Faculty = ({ onLogout }) => {
                     <input
                       type="text"
                       name="department"
-                      value={formData.department}
-                      onChange={handleInputChange}
+                      value={departmentName}
                       className={styles.formInput}
                       readOnly
                     />
@@ -362,6 +466,12 @@ const Admin_Add_Faculty = ({ onLogout }) => {
                 </div>
               </div>
 
+              {/* Error Display */}
+              {submitError && (
+                <div className={styles.errorMessage}>
+                  {submitError}
+                </div>
+              )}
 
               {/* Form Actions */}
               <div className={styles.formActions}>
@@ -369,6 +479,7 @@ const Admin_Add_Faculty = ({ onLogout }) => {
                   type="button"
                   className={styles.cancelBtn}
                   onClick={handleCancel}
+                  disabled={loading}
                 >
                   <X size={20} />
                   Cancel
@@ -376,15 +487,14 @@ const Admin_Add_Faculty = ({ onLogout }) => {
                 <button
                   type="submit"
                   className={styles.submitBtn}
+                  disabled={loading}
                 >
                   <Save size={20} />
-                  Save Faculty
+                  {loading ? 'Saving...' : 'Save Coordinator'}
                 </button>
-              </div>
-
+                </div>
             </form>
           </div>
-
         </div>
       </main>
     </div>

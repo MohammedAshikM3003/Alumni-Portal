@@ -31,19 +31,38 @@
   margin-left: 70px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
   height: 100vh;
   background-color: var(--bg-light);
+}
+
+/* Scrollbar(VolumeBar) */
+.mainContent::-webkit-scrollbar {
+  width: 12px;
+}
+
+.mainContent::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-left: 1px solid #e2e8f0;
+}
+
+.mainContent::-webkit-scrollbar-thumb {
+  background-color: #228B22;
+  border-radius: 10px;
+  border: 3px solid #f1f5f9;
+}
+
+.mainContent::-webkit-scrollbar-thumb:hover {
+  background-color: #1a6b1a;
 }
 
 
 /* Back Button */
 .backButton {
-  position: absolute;
-  top: 5px;
-  left: 75px;
   display: flex;
   align-items: center;
   gap: 4px;
+  margin: 20px 0px 0px 20px;
   color: #475569;
   cursor: pointer;
   transition: color 0.2s;
@@ -157,7 +176,6 @@
 /* --- Workspace Area --- */
 .workspaceWrapper {
   flex: 1;
-  overflow: hidden; /* Contains the scrollable areas */
 }
 
 .workspaceGrid {
@@ -165,8 +183,8 @@
   grid-template-columns: 1fr;
   gap: 2rem;
   margin: 0 auto;
-  height: 100%;
   padding: 2rem;
+  align-items: stretch;
 }
 
 @media (min-width: 1024px) {
@@ -176,34 +194,11 @@
   }
 }
 
-/* Left Column (Scrollable) */
+/* Left Column */
 .controlsCol {
-  height: 100%;
-  overflow-y: auto;
-  padding-right: 1rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-/* Volume Bar Style Scrollbar - Webkit (Chrome, Safari, Edge) */
-.controlsCol::-webkit-scrollbar {
-  width: 10px;
-}
-
-.controlsCol::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-left: 1px solid #e2e8f0;
-}
-
-.controlsCol::-webkit-scrollbar-thumb {
-  background-color: #228B22;
-  border-radius: 100px;
-  border: 3px solid #f1f5f9;
-}
-
-.controlsCol::-webkit-scrollbar-thumb:hover {
-  background-color: #1a6b1a;
 }
 
 
@@ -391,7 +386,6 @@
 
 /* Right Column (Preview) */
 .previewCol {
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -508,8 +502,7 @@
 
 /* Flyer Preview Image */
 .flyerImage {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  max-width: 100%;
+  height: auto;
   border-radius: 1rem;
 }

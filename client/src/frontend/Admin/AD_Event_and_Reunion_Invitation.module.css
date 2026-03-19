@@ -29,9 +29,8 @@
 /* ================== MAIN CONTENT ================== */
 .mainContent {
   margin-left: 60px;
-  padding: 1rem;
-  margin-right: auto;
   height: 100vh;
+  width: 100%;
   overflow-y: auto;
 }
 
@@ -67,6 +66,7 @@
   align-items: center;
   gap: 4px;
   color: #475569;
+  margin: 20px 0px 0px 20px;
   cursor: pointer;
   transition: color 0.2s;
 }
@@ -392,4 +392,66 @@
 
 .feedbackBtn span:first-child {
   font-size: 1.25rem;
+}
+
+/* --- States --- */
+.loadingState,
+.errorState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.errorState {
+  color: #ef4444;
+}
+
+/* --- Speaker Avatar Icon --- */
+.speakerAvatarIcon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  background-color: rgba(34, 139, 34, 0.1);
+  border: 2px solid rgba(34, 139, 34, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.speakerAvatarIcon span {
+  color: var(--primary);
+  font-size: 1.5rem;
+}
+
+/* --- Flyer Section --- */
+.flyerSection {
+  margin-bottom: 4rem;
+}
+
+.flyerCard {
+  background-color: var(--bg-white);
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-light);
+}
+
+@media (min-width: 768px) {
+  .flyerCard { padding: 2.5rem; }
+}
+
+.flyerImageWrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.flyerImage {
+  max-width: 100%;
+  max-height: 800px;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }

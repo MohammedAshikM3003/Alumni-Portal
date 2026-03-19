@@ -1,122 +1,105 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './AD_Donation_History.module.css';
 import { useNavigate } from 'react-router-dom';
 import { DateInput } from '../../components/Calendar';
+import { useAuth } from '../../context/authContext/authContext';
 
-const Admin_Donation_History = ( { onLogout } ) => {
+const API_BASE = import.meta.env.VITE_API_URL;
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+};
+
+const formatAmount = (amount) => {
+  return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+const getInitials = (name) => {
+  if (!name) return 'NA';
+  return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+};
+
+const Admin_Donation_History = ({ onLogout }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+  const [donationsData, setDonationsData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const entriesPerPage = 7;
 
-  // Table Data
-  const donationsData = [
-    {
-      id: 1,
-      initials: 'PV',
-      name: 'Priya Varma',
-      batch: 'Class of 2018 - CSE',
-      amount: '₹250.00',
-      date: 'Oct 24, 2023',
-      type: 'UPI',
-      typeClass: styles.typeUpi,
-    },
-    {
-      id: 2,
-      initials: 'RK',
-      name: 'Rahul Krishnan',
-      batch: 'Class of 2015 - MECH',
-      amount: '₹1,200.00',
-      date: 'Oct 22, 2023',
-      type: 'Net Banking',
-      typeClass: styles.typeNetBanking,
-    },
-    {
-      id: 3,
-      initials: 'AS',
-      name: 'Ananya Singh',
-      batch: 'Class of 2020 - ECE',
-      amount: '₹5,000.00',
-      date: 'Oct 20, 2023',
-      type: 'Credit Card',
-      typeClass: styles.typeCreditCard,
-    },
-    {
-      id: 4,
-      initials: 'JM',
-      name: 'James Michael',
-      batch: 'Class of 2012 - CIVIL',
-      amount: '₹750.00',
-      date: 'Oct 18, 2023',
-      type: 'Debit Card',
-      typeClass: styles.typeDebitCard,
-    },
-    {
-      id: 5,
-      initials: 'SK',
-      name: 'Suresh Kumar',
-      batch: 'Class of 2022 - IT',
-      amount: '₹500.00',
-      date: 'Oct 15, 2023',
-      type: 'UPI',
-      typeClass: styles.typeUpi,
-    },
-    {
-      id: 6,
-      initials: 'PV',
-      name: 'Priya Varma',
-      batch: 'Class of 2018 - CSE',
-      amount: '₹250.00',
-      date: 'Oct 24, 2023',
-      type: 'UPI',
-      typeClass: styles.typeUpi,
-    },
-    {
-      id: 7,
-      initials: 'RK',
-      name: 'Rahul Krishnan',
-      batch: 'Class of 2015 - MECH',
-      amount: '₹1,200.00',
-      date: 'Oct 22, 2023',
-      type: 'Net Banking',
-      typeClass: styles.typeNetBanking,
-    },
-    {
-      id: 8,
-      initials: 'AS',
-      name: 'Ananya Singh',
-      batch: 'Class of 2020 - ECE',
-      amount: '₹5,000.00',
-      date: 'Oct 20, 2023',
-      type: 'Credit Card',
-      typeClass: styles.typeCreditCard,
-    },
-    {
-      id: 9,
-      initials: 'JM',
-      name: 'James Michael',
-      batch: 'Class of 2012 - CIVIL',
-      amount: '₹750.00',
-      date: 'Oct 18, 2023',
-      type: 'Debit Card',
-      typeClass: styles.typeDebitCard,
-    },
-    {
-      id: 10,
-      initials: 'SK',
-      name: 'Suresh Kumar',
-      batch: 'Class of 2022 - IT',
-      amount: '₹500.00',
-      date: 'Oct 15, 2023',
-      type: 'UPI',
-      typeClass: styles.typeUpi,
-    },
-  ];
+  useEffect(() => {
+    const fetchPayments = async () => {
+      if (!user?.token) {
+        setError('Please login to view donations');
+        setLoading(false);
+        return;
+      }
 
-  const totalEntries = donationsData.length;
-  const totalPages = Math.ceil(totalEntries / entriesPerPage);
+      try {
+        const response = await fetch(`${API_BASE}/api/payments/all`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch donations');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.payments) {
+          const formattedData = data.payments
+            .filter(payment => payment.status === 'paid')
+            .map((payment) => ({
+              id: payment._id,
+              initials: getInitials(payment.user?.name),
+              name: payment.user?.name || 'Unknown',
+              batch: payment.purpose || 'General Donation',
+              amount: formatAmount(payment.amount),
+              rawAmount: payment.amount,
+              date: formatDate(payment.paidAt || payment.createdAt),
+              type: 'Online',
+              typeClass: styles.typeUpi,
+            }));
+
+          setDonationsData(formattedData);
+          setFilteredData(formattedData);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPayments();
+  }, [user]);
+
+  // Filter data based on search term
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredData(donationsData);
+    } else {
+      const term = searchTerm.toLowerCase();
+      const filtered = donationsData.filter(item =>
+        item.name.toLowerCase().includes(term) ||
+        item.batch.toLowerCase().includes(term)
+      );
+      setFilteredData(filtered);
+    }
+    setCurrentPage(1);
+  }, [searchTerm, donationsData]);
+
+  const totalEntries = filteredData.length;
+  const totalPages = Math.ceil(totalEntries / entriesPerPage) || 1;
   const startIndex = (currentPage - 1) * entriesPerPage;
-  const paginatedDonations = donationsData.slice(startIndex, startIndex + entriesPerPage);
+  const paginatedDonations = filteredData.slice(startIndex, startIndex + entriesPerPage);
   const rangeStart = totalEntries === 0 ? 0 : startIndex + 1;
   const rangeEnd = Math.min(startIndex + entriesPerPage, totalEntries);
 
@@ -138,16 +121,42 @@ const Admin_Donation_History = ( { onLogout } ) => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className={styles.pageContainer}>
+        <Sidebar onLogout={onLogout} currentView={'donation_history'} />
+        <main className={styles.mainContent}>
+          <div className={styles.contentWrapper}>
+            <div className={styles.loadingState}>Loading donations...</div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.pageContainer}>
+        <Sidebar onLogout={onLogout} currentView={'donation_history'} />
+        <main className={styles.mainContent}>
+          <div className={styles.contentWrapper}>
+            <div className={styles.errorState}>{error}</div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.pageContainer}>
-      
+
       {/* Sidebar */}
       <Sidebar onLogout={onLogout} currentView={'donation_history'} />
       {/* Main Content Area */}
       <main className={styles.mainContent}>
         {/* Page Content */}
         <div className={styles.contentWrapper}>
-          
+
           {/* Title and Export Action */}
           <div className={styles.pageHeader}>
             <h2 className={styles.pageTitle}>Alumni Donations Tracking</h2>
@@ -161,10 +170,12 @@ const Admin_Donation_History = ( { onLogout } ) => {
           <div className={styles.filterBar}>
             <div className={styles.searchWrapper}>
               <span className="material-symbols-outlined">search</span>
-              <input 
-                type="text" 
-                className={styles.searchInput} 
-                placeholder="Search by donor name..." 
+              <input
+                type="text"
+                className={styles.searchInput}
+                placeholder="Search by donor name or cause..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className={styles.dateFilterWrapper}>
@@ -183,7 +194,7 @@ const Admin_Donation_History = ( { onLogout } ) => {
                   <tr>
                     <th>S.NO</th>
                     <th>Donor Name</th>
-                    <th>Batch/Class</th>
+                    <th>Cause</th>
                     <th>Amount</th>
                     <th>Date</th>
                     <th className={styles.textCenter}>Type</th>
@@ -191,68 +202,78 @@ const Admin_Donation_History = ( { onLogout } ) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedDonations.map((row, index) => (
-                    <tr key={row.id}>
-                      <td className={styles.tdSno}>{startIndex + index + 1}</td>
-                      <td>
-                        <div className={styles.donorInfo}>
-                          <div className={styles.donorAvatar}>{row.initials}</div>
-                          <span className={styles.donorName}>{row.name}</span>
-                        </div>
-                      </td>
-                      <td className={styles.tdBatch}>{row.batch}</td>
-                      <td className={styles.tdAmount}>{row.amount}</td>
-                      <td className={styles.tdDate}>{row.date}</td>
-                      <td className={styles.textCenter}>
-                        <span className={`${styles.typePill} ${row.typeClass}`}>
-                          {row.type}
-                        </span>
-                      </td>
-                      <td className={styles.textRight}>
-                        <button className={styles.actionBtn} onClick={() => { navigate('/admin/view_donation') }} >
-                          <span className="material-symbols-outlined">visibility</span>
-                        </button>
+                  {paginatedDonations.length > 0 ? (
+                    paginatedDonations.map((row, index) => (
+                      <tr key={row.id}>
+                        <td className={styles.tdSno}>{startIndex + index + 1}</td>
+                        <td>
+                          <div className={styles.donorInfo}>
+                            <div className={styles.donorAvatar}>{row.initials}</div>
+                            <span className={styles.donorName}>{row.name}</span>
+                          </div>
+                        </td>
+                        <td className={styles.tdBatch}>{row.batch}</td>
+                        <td className={styles.tdAmount}>{row.amount}</td>
+                        <td className={styles.tdDate}>{row.date}</td>
+                        <td className={styles.textCenter}>
+                          <span className={`${styles.typePill} ${row.typeClass}`}>
+                            {row.type}
+                          </span>
+                        </td>
+                        <td className={styles.textRight}>
+                          <button className={styles.actionBtn} onClick={() => { navigate(`/admin/view_donation/${row.id}`) }} >
+                            <span className="material-symbols-outlined">visibility</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className={styles.emptyCell}>
+                        No donations found
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
 
             {/* Pagination */}
-            <div className={styles.paginationFooter}>
-              <p className={styles.paginationText}>
-                Showing {rangeStart} to {rangeEnd} of {totalEntries} entries
-              </p>
-              <div className={styles.paginationControls}>
-                <button
-                  className={styles.pageBtn}
-                  onClick={handlePrevPage}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
-                {Array.from({ length: totalPages }, (_, index) => {
-                  const page = index + 1;
-                  return (
-                    <button
-                      key={page}
-                      className={`${styles.pageBtn} ${currentPage === page ? styles.activePageBtn : ''}`}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-                <button
-                  className={styles.pageBtn}
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                >
-                  Next
-                </button>
+            {filteredData.length > 0 && (
+              <div className={styles.paginationFooter}>
+                <p className={styles.paginationText}>
+                  Showing {rangeStart} to {rangeEnd} of {totalEntries} entries
+                </p>
+                <div className={styles.paginationControls}>
+                  <button
+                    className={styles.pageBtn}
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, index) => {
+                    const page = index + 1;
+                    return (
+                      <button
+                        key={page}
+                        className={`${styles.pageBtn} ${currentPage === page ? styles.activePageBtn : ''}`}
+                        onClick={() => handlePageChange(page)}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                  <button
+                    className={styles.pageBtn}
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
         </div>

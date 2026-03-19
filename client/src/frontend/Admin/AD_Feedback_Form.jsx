@@ -1,40 +1,63 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './AD_Feedback_form.module.css';
+import { useAuth } from '../../context/authContext/authContext';
 
-const Admin_Feedback_Form = ( { onLogout } ) => {
+const API_BASE = import.meta.env.VITE_API_URL;
+
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+const Admin_Feedback_Form = ({ onLogout }) => {
+  const navigate = useNavigate();
   const formCardRef = useRef(null);
+  const { id } = useParams();
+  const { user } = useAuth();
+  const [feedback, setFeedback] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Assessment sections data to keep JSX clean
-  const assessments = [
-    {
-      id: 'vision_iv',
-      title: 'Section: Vision (IV)',
-      feedback: 'The institutional vision aligns perfectly with current engineering trends and community needs.',
-    },
-    {
-      id: 'mission_im',
-      title: 'Section: Mission (IM)',
-      feedback: 'The mission objectives are clearly defined and foster a holistic learning environment.',
-    },
-    {
-      id: 'vision_dv',
-      title: 'Section: Vision (DV)',
-      feedback: 'The department vision is forward-thinking and committed to producing ethical innovators.',
-    },
-    {
-      id: 'mission_dm',
-      title: 'Section: Mission (DM)',
-      feedback: 'Departmental missions effectively bridge the gap between academic rigor and industry requirements.',
-    },
-    {
-      id: 'peos',
-      title: 'Section: PEOs',
-      feedback: 'Program objectives are well-structured to ensure long-term career success for graduates.',
-    },
-  ];
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      if (!user?.token) {
+        setError('Please login to view feedback details');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/feedback/${id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch feedback details');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.feedback) {
+          setFeedback(data.feedback);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchFeedback();
+    }
+  }, [id, user]);
 
   const handleDownload = async () => {
     if (!formCardRef.current) return;
@@ -63,45 +86,112 @@ const Admin_Feedback_Form = ( { onLogout } ) => {
     const x = (pageWidth - imgWidth) / 2;
     const y = (pageHeight - imgHeight) / 2;
 
-    // Fit entire content onto exactly one A4 page.
     pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight, undefined, 'FAST');
 
     const date = new Date().toISOString().split('T')[0];
     pdf.save(`feedback-review-${date}.pdf`);
   };
 
+  if (loading) {
+    return (
+      <div className={styles.pageLayout}>
+        <Sidebar onLogout={onLogout} currentView={'feedback'} />
+        <main className={styles.mainContent}>
+          <div className={styles.loadingState}>Loading feedback details...</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.pageLayout}>
+        <Sidebar onLogout={onLogout} currentView={'feedback'} />
+        <main className={styles.mainContent}>
+          <div className={styles.errorState}>{error}</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!feedback) {
+    return (
+      <div className={styles.pageLayout}>
+        <Sidebar onLogout={onLogout} currentView={'feedback'} />
+        <main className={styles.mainContent}>
+          <div className={styles.errorState}>Feedback not found</div>
+        </main>
+      </div>
+    );
+  }
+
+  const assessments = [
+    {
+      id: 'vision_iv',
+      title: 'Section: Vision (IV)',
+      rating: feedback.visionIV?.rating,
+      comment: feedback.visionIV?.comment || '',
+    },
+    {
+      id: 'mission_im',
+      title: 'Section: Mission (IM)',
+      rating: feedback.missionIM?.rating,
+      comment: feedback.missionIM?.comment || '',
+    },
+    {
+      id: 'vision_dv',
+      title: 'Section: Vision (DV)',
+      rating: feedback.visionDV?.rating,
+      comment: feedback.visionDV?.comment || '',
+    },
+    {
+      id: 'mission_dm',
+      title: 'Section: Mission (DM)',
+      rating: feedback.missionDM?.rating,
+      comment: feedback.missionDM?.comment || '',
+    },
+    {
+      id: 'peos',
+      title: 'Section: PEOs',
+      rating: feedback.peos?.rating,
+      comment: feedback.peos?.comment || '',
+    },
+  ];
+
+  const signatureUrl = feedback.signature ? `${API_BASE}/api/feedback/image/${feedback.signature}` : null;
+
   return (
     <div className={styles.pageLayout}>
-      
+
       {/* Sidebar */}
-        <Sidebar onLogout={onLogout} currentView={'feedback'} />
+      <Sidebar onLogout={onLogout} currentView={'feedback'} />
 
       {/* BEGIN: Main Content Area */}
       <main className={styles.mainContent}>
         {/* Back Button */}
-        <div className={styles.backButton} onClick={() => window.history.back()}>
+
+        <div className={styles.backButton} onClick={() => navigate('/admin/feedback')} >
           <span className="material-symbols-outlined">arrow_back</span>
           <span>Back</span>
         </div>
-
         {/* BEGIN: Scrollable Feedback Container */}
         <div className={styles.scrollableContainer}>
           <div className={styles.formCard} ref={formCardRef}>
-            
+
             {/* BEGIN: Form Header */}
             <div className={styles.formHeader}>
               <h2 className={styles.collegeName}>K.S.R. COLLEGE OF ENGINEERING (Autonomous), TIRUCHENGODE – 637 215</h2>
               <h3 className={styles.departmentName}>DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING</h3>
               <p className={styles.programName}>PROGRAM NAME: B.E. Computer Science and Engineering</p>
-              
+
               <div className={styles.metaGrid}>
                 <div className={styles.inputGroup}>
                   <label>Reviewed By (Individual or committee name with Address):</label>
-                  <input readOnly type="text" defaultValue="Vadin Santhiya G" />
+                  <input readOnly type="text" value={feedback.reviewedBy || feedback.submittedBy?.name || ''} />
                 </div>
                 <div className={styles.inputGroup}>
                   <label>Date:</label>
-                  <input readOnly type="text" defaultValue="24/12/2025" />
+                  <input readOnly type="text" value={formatDate(feedback.date)} />
                 </div>
               </div>
             </div>
@@ -109,14 +199,14 @@ const Admin_Feedback_Form = ( { onLogout } ) => {
 
             {/* BEGIN: Form Columns */}
             <div className={styles.formColumns}>
-              
+
               {/* BEGIN: Left Column (Reference Data) */}
               <div className={styles.referenceColumn}>
                 <section className={styles.refSection}>
                   <h4>Vision of the Institution</h4>
                   <p>To become a globally prominent institution in engineering and management, offering value-based holistic education that fosters research, innovation and sustainable development.</p>
                 </section>
-                
+
                 <section className={styles.refSection}>
                   <h4>Mission of the Institution</h4>
                   <ul>
@@ -134,12 +224,12 @@ const Admin_Feedback_Form = ( { onLogout } ) => {
                     </li>
                   </ul>
                 </section>
-                
+
                 <section className={styles.refSection}>
                   <h4>Vision of the Department</h4>
                   <p>To produce globally competent learners and innovators in Computer Science and Engineering, committed to ethical values and sustainable development.</p>
                 </section>
-                
+
                 <section className={styles.refSection}>
                   <h4>Mission of the Department</h4>
                   <div className={styles.gridList}>
@@ -149,7 +239,7 @@ const Admin_Feedback_Form = ( { onLogout } ) => {
                     <p><span className={styles.boldGreen}>DM4:</span> To promote interdisciplinary innovation.</p>
                   </div>
                 </section>
-                
+
                 <section className={styles.refSection}>
                   <h4>Program Educational Objectives (PEOs)</h4>
                   <div className={styles.gridList}>
@@ -163,30 +253,30 @@ const Admin_Feedback_Form = ( { onLogout } ) => {
 
               {/* BEGIN: Right Column (Assessment Forms) */}
               <div className={styles.assessmentColumn}>
-                
+
                 {assessments.map((item) => (
                   <div key={item.id} className={styles.assessmentCard}>
                     <h5>{item.title}</h5>
                     <div className={styles.radioGroup}>
                       <label className={styles.radioLabel}>
-                        <input disabled name={item.id} type="radio" className={styles.radioInput} />
+                        <input disabled name={item.id} type="radio" className={styles.radioInput} checked={item.rating === 'needs_improvement'} readOnly />
                         <span>Needs improvement</span>
                       </label>
                       <label className={styles.radioLabel}>
-                        <input disabled name={item.id} type="radio" className={styles.radioInput} />
+                        <input disabled name={item.id} type="radio" className={styles.radioInput} checked={item.rating === 'satisfied'} readOnly />
                         <span>Satisfied</span>
                       </label>
                       <label className={styles.radioLabel}>
-                        <input disabled defaultChecked name={item.id} type="radio" className={styles.radioInput} />
+                        <input disabled name={item.id} type="radio" className={styles.radioInput} checked={item.rating === 'best'} readOnly />
                         <span>Best</span>
                       </label>
                     </div>
-                    <textarea 
+                    <textarea
                       readOnly
-                      className={styles.feedbackTextarea} 
-                      placeholder="Comments/Suggestions" 
+                      className={styles.feedbackTextarea}
+                      placeholder="Comments/Suggestions"
                       rows="2"
-                      defaultValue={item.feedback}
+                      value={item.comment}
                     ></textarea>
                   </div>
                 ))}
@@ -194,9 +284,13 @@ const Admin_Feedback_Form = ( { onLogout } ) => {
                 {/* Signature & Submission */}
                 <div className={styles.signatureSection}>
                   <div className={styles.signatureBox}>
-                    <p className={styles.signatureLabel}>Digital Signature (Upload E-Sign)</p>
+                    <p className={styles.signatureLabel}>Digital Signature</p>
                     <div className={styles.signatureDisplay}>
-                      <span className={styles.signatureFont}>Vadin S.</span>
+                      {signatureUrl ? (
+                        <img src={signatureUrl} alt="Signature" className={styles.signatureImage} />
+                      ) : (
+                        <span className={styles.signatureFont}>{feedback.submittedBy?.name?.split(' ')[0] || 'N/A'}</span>
+                      )}
                     </div>
                   </div>
                   <div className={styles.actionRow}>

@@ -1,11 +1,13 @@
 import Payment from '../models/payment.js';
 import { getRazorpayClient, verifyRazorpaySignature } from '../utils/razorpay.js';
 
-const ALLOWED_METHODS = new Set(['upi', 'card', 'netbanking']);
-
 export const createOrder = async (req, res) => {
 	try {
-		const { amount, method = 'upi', purpose = '' } = req.body;
+		if (!req.user?._id) {
+			return res.status(401).json({ success: false, message: 'Unauthorized request' });
+		}
+
+		const { amount, purpose = '' } = req.body;
 
 		const numericAmount = Number(amount);
 		if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
@@ -21,10 +23,6 @@ export const createOrder = async (req, res) => {
 			return res.status(400).json({ success: false, message: 'Donation purpose must be within 200 characters' });
 		}
 
-		if (!ALLOWED_METHODS.has(method)) {
-			return res.status(400).json({ success: false, message: 'Invalid payment method' });
-		}
-
 		const amountInPaise = Math.round(numericAmount * 100);
 		const razorpay = getRazorpayClient();
 		const shortUserId = String(req.user._id).slice(-8);
@@ -36,7 +34,6 @@ export const createOrder = async (req, res) => {
 			receipt,
 			notes: {
 				userId: String(req.user._id),
-				preferredMethod: method,
 				donationPurpose: trimmedPurpose,
 			},
 		});
@@ -45,7 +42,6 @@ export const createOrder = async (req, res) => {
 			user: req.user._id,
 			amount: numericAmount,
 			currency: 'INR',
-			method,
 			purpose: trimmedPurpose,
 			status: 'created',
 			razorpayOrderId: order.id,
@@ -59,6 +55,16 @@ export const createOrder = async (req, res) => {
 			currency: 'INR',
 		});
 	} catch (error) {
+		console.error('createOrder failed:', error);
+
+		if (error?.message === 'Razorpay keys are not configured') {
+			return res.status(500).json({ success: false, message: 'Payment gateway configuration is missing on server' });
+		}
+
+		if (error?.statusCode) {
+			return res.status(502).json({ success: false, message: error.error?.description || error.message || 'Payment gateway request failed' });
+		}
+
 		return res.status(500).json({ success: false, message: error.message || 'Failed to create order' });
 	}
 };
@@ -80,7 +86,7 @@ export const verifyPayment = async (req, res) => {
 			await Payment.findOneAndUpdate(
 				{ razorpayOrderId: orderId },
 				{ status: 'failed' },
-				{ new: true }
+				{ returnDocument: 'after' }
 			);
 
 			return res.status(400).json({ success: false, message: 'Invalid payment signature' });
@@ -94,7 +100,7 @@ export const verifyPayment = async (req, res) => {
 				razorpaySignature: signature,
 				paidAt: new Date(),
 			},
-			{ new: true }
+			{ returnDocument: 'after' }
 		);
 
 		return res.status(200).json({ success: true, message: 'Payment verified', payment });
@@ -109,5 +115,40 @@ export const getMyPayments = async (req, res) => {
 		return res.status(200).json({ success: true, payments });
 	} catch {
 		return res.status(500).json({ success: false, message: 'Failed to fetch payments' });
+	}
+};
+
+export const getAllPayments = async (req, res) => {
+	try {
+		if (!['coordinator', 'admin'].includes(req.user.role)) {
+			return res.status(403).json({ success: false, message: 'Access denied' });
+		}
+
+		const payments = await Payment.find()
+			.populate('user', 'name email userId')
+			.sort({ createdAt: -1 });
+
+		return res.status(200).json({ success: true, payments });
+	} catch {
+		return res.status(500).json({ success: false, message: 'Failed to fetch payments' });
+	}
+};
+
+export const getPaymentById = async (req, res) => {
+	try {
+		if (!['coordinator', 'admin'].includes(req.user.role)) {
+			return res.status(403).json({ success: false, message: 'Access denied' });
+		}
+
+		const payment = await Payment.findById(req.params.id)
+			.populate('user', 'name email userId');
+
+		if (!payment) {
+			return res.status(404).json({ success: false, message: 'Payment not found' });
+		}
+
+		return res.status(200).json({ success: true, payment });
+	} catch {
+		return res.status(500).json({ success: false, message: 'Failed to fetch payment details' });
 	}
 };

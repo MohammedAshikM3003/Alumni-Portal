@@ -376,3 +376,25 @@
   color: white;
   border-color: var(--primary);
 }
+
+/* ================== STATES ================== */
+.loadingState,
+.errorState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.errorState {
+  color: #ef4444;
+}
+
+.emptyCell {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-light);
+  font-size: 0.875rem;
+}

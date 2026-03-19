@@ -255,54 +255,20 @@ const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
     return lines;
   };
 
-  // Handle "Generate via Details" form submit — generates flyer and sends to MongoDB
-  const handleDetailsGenerate = async (e) => {
+  // Handle "Generate via Details" form submit — only generates flyer preview
+  const handleDetailsGenerate = (e) => {
     e.preventDefault();
     if (!eventName.trim()) {
       alert('Please enter an event name');
       return;
     }
-    setSending(true);
-    try {
-      const blob = await generateFlyer(eventName, eventDate, eventTime, eventLocation, '');
-      if (!blob) return;
-
-      const formData = new FormData();
-      formData.append('flyer', blob, 'invitation_flyer.png');
-      formData.append('eventName', eventName);
-      formData.append('alumniName', alumniName);
-      formData.append('date', eventDate);
-      formData.append('time', eventTime);
-      formData.append('location', eventLocation);
-
-      const res = await fetch(`${API_BASE}/api/invitation`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to send invitation');
-
-      alert('Invitation sent successfully!');
-      navigate('/admin/event_and_reunion_history');
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setSending(false);
-    }
+    generateFlyer(eventName, eventDate, eventTime, eventLocation, '');
   };
 
-  // Handle "Generate via Description" form submit
+  // Handle "Generate via Description" form submit — placeholder for AI implementation
   const handleDescGenerate = (e) => {
     e.preventDefault();
-    if (!eventDesc.trim()) {
-      alert('Please enter an event description');
-      return;
-    }
-    generateFlyer(eventName || 'Alumni Event', eventDate, eventTime, eventLocation, eventDesc);
+    alert('AI-powered description generation coming soon!');
   };
 
   // Send invitation — store flyer image in MongoDB via GridFS
@@ -311,17 +277,22 @@ const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
       alert('Please generate a flyer first');
       return;
     }
+    if (!eventLocation.trim()) {
+      alert('Please enter an event location');
+      return;
+    }
     setSending(true);
     try {
       const formData = new FormData();
       formData.append('flyer', flyerBlob, 'invitation_flyer.png');
-      formData.append('eventName', eventName);
-      formData.append('alumniName', alumniName);
-      formData.append('date', eventDate);
-      formData.append('time', eventTime);
-      formData.append('location', eventLocation);
+      formData.append('sender', alumniName || 'K.S.R. College of Engineering');
+      formData.append('subject', eventName || 'Alumni Event');
+      formData.append('eventDate', eventDate);
+      formData.append('eventTime', eventTime);
+      formData.append('venue', eventLocation);
+      formData.append('description', eventDesc || `You are cordially invited to ${eventName || 'our event'}. Join us for this special occasion.`);
 
-      const res = await fetch(`${API_BASE}/api/invitation`, {
+      const res = await fetch(`${API_BASE}/api/invitations`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${user.token}`,
@@ -418,7 +389,7 @@ const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
                   <span className="material-symbols-outlined">auto_awesome</span>
                   <h3>Generate via Description</h3>
                 </div>
-                <form className={styles.formGroup} onSubmit={handleDescGenerate}>
+                <form className={styles.formGroup}>
                   <div className={styles.inputWrapper}>
                     <label htmlFor="event-desc" className={styles.inputLabel}>Event Description</label>
                     <textarea 
@@ -430,7 +401,7 @@ const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
                       onChange={(e) => setEventDesc(e.target.value)}
                     ></textarea>
                   </div>
-                  <button type="submit" className={styles.generateBtn}>
+                  <button onClick={handleDescGenerate} className={styles.generateBtn}>
                   <span className="material-symbols-outlined">auto_awesome</span>
                     <span>Generate</span>
                   </button>
@@ -443,7 +414,7 @@ const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
                   <span className="material-symbols-outlined">edit_note</span>
                   <h3>Generate via Details</h3>
                 </div>
-                <form className={styles.formGroup} onSubmit={handleDetailsGenerate}>
+                <form className={styles.formGroup}>
                   <div className={styles.detailsGrid}>
                     <div className={styles.fullWidth}>
                       <label htmlFor="event-name" className={styles.inputLabel}>Event Name</label>
@@ -462,7 +433,7 @@ const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
                       <input id="event-location" type="text" className={styles.inputCustom} placeholder="e.g. Main Auditorium, K.S.R Campus" value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} />
                     </div>
                   </div>
-                  <button type="submit" className={styles.generateBtn}>
+                  <button onClick={handleDetailsGenerate} className={styles.generateBtn}>
                     Generate
                   </button>
                 </form>

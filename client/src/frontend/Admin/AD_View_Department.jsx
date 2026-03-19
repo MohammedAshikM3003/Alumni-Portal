@@ -1,40 +1,88 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Eye, Trash2, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './AD_View_Department.module.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
+import { useAuth } from '../../context/authContext/authContext';
+
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const Admin_View_Department = ( { onLogout } ) => {
 
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { deptCode } = useParams();
 
   // State for functionality
   const [filterName, setFilterName] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [department, setDepartment] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const ENTRIES_PER_PAGE = 10;
 
   // Complete Staff Data
-  const [staffList, setStaffList] = useState([
-    { id: 1, name: 'Dr. Vadin Santhiya G', designation: 'HOD & Professor', email: 'hod.cse@ksrce.ac.in', phone: '+91 98765 43210' },
-    { id: 2, name: 'Prof. Ramesh Kumar', designation: 'Associate Professor', email: 'ramesh.k@ksrce.ac.in', phone: '+91 98765 43211' },
-    { id: 3, name: 'Dr. Anita Sharma', designation: 'Assistant Professor', email: 'anita.s@ksrce.ac.in', phone: '+91 98765 43212' },
-    { id: 4, name: 'Mr. Karthik Raj', designation: 'Assistant Professor', email: 'karthik.r@ksrce.ac.in', phone: '+91 98765 43213' },
-    { id: 5, name: 'Mrs. Priya Dharshini', designation: 'Lab Administrator', email: 'priya.d@ksrce.ac.in', phone: '+91 98765 43214' },
-    { id: 6, name: 'Dr. Rajesh Mehta', designation: 'Professor', email: 'rajesh.m@ksrce.ac.in', phone: '+91 98765 43215' },
-    { id: 7, name: 'Prof. Sunitha Nair', designation: 'Associate Professor', email: 'sunitha.n@ksrce.ac.in', phone: '+91 98765 43216' },
-    { id: 8, name: 'Dr. Vikram Singh', designation: 'Assistant Professor', email: 'vikram.s@ksrce.ac.in', phone: '+91 98765 43217' },
-    { id: 9, name: 'Ms. Deepa Latha', designation: 'Assistant Professor', email: 'deepa.l@ksrce.ac.in', phone: '+91 98765 43218' },
-    { id: 10, name: 'Mr. Arjun Prasad', designation: 'Lab Administrator', email: 'arjun.p@ksrce.ac.in', phone: '+91 98765 43219' },
-    { id: 11, name: 'Dr. Kavitha Reddy', designation: 'Professor', email: 'kavitha.r@ksrce.ac.in', phone: '+91 98765 43220' },
-    { id: 12, name: 'Prof. Manoj Gupta', designation: 'Associate Professor', email: 'manoj.g@ksrce.ac.in', phone: '+91 98765 43221' },
-    { id: 13, name: 'Dr. Swathi Krishnan', designation: 'Assistant Professor', email: 'swathi.k@ksrce.ac.in', phone: '+91 98765 43222' },
-    { id: 14, name: 'Mr. Naveen Kumar', designation: 'Assistant Professor', email: 'naveen.k@ksrce.ac.in', phone: '+91 98765 43223' },
-    { id: 15, name: 'Mrs. Lakshmi Priya', designation: 'Lab Administrator', email: 'lakshmi.p@ksrce.ac.in', phone: '+91 98765 43224' },
-    { id: 16, name: 'Dr. Radhika Iyer', designation: 'Professor', email: 'radhika.i@ksrce.ac.in', phone: '+91 98765 43225' },
-    { id: 17, name: 'Prof. Suresh Babu', designation: 'Associate Professor', email: 'suresh.b@ksrce.ac.in', phone: '+91 98765 43226' },
-    { id: 18, name: 'Dr. Meera Joshi', designation: 'Assistant Professor', email: 'meera.j@ksrce.ac.in', phone: '+91 98765 43227' },
-  ]);
+  const [staffList, setStaffList] = useState([]);
+
+  // Fetch department and faculty data
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user?.token) {
+        setError('Please login to view department details');
+        setLoading(false);
+        return;
+      }
+
+      if (!deptCode) {
+        setError('Department code not provided');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch department details
+        const deptResponse = await fetch(`${API_BASE}/api/departments/code/${deptCode}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (deptResponse.ok) {
+          const deptData = await deptResponse.json();
+          if (deptData.success) {
+            setDepartment(deptData.department);
+          }
+        }
+
+        // Fetch coordinators by department
+        const coordinatorResponse = await fetch(`${API_BASE}/api/coordinators/department/${deptCode}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (!coordinatorResponse.ok) {
+          throw new Error('Failed to fetch coordinator data');
+        }
+
+        const coordinatorData = await coordinatorResponse.json();
+
+        if (coordinatorData.success && coordinatorData.coordinators) {
+          setStaffList(coordinatorData.coordinators);
+        } else {
+          setError('Failed to load coordinator data');
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user?.token, deptCode]);
 
   // Get unique designations for filter
   const designations = useMemo(() => {
@@ -79,16 +127,52 @@ const Admin_View_Department = ( { onLogout } ) => {
 
   // Modal handlers
   const handleOpenAddFaculty = () => {
-    navigate('/admin/department/add_faculty');
+    navigate(`/admin/department/${deptCode}/add_faculty`);
   };
 
-  const handleViewStaff = () => {
-    navigate('/admin/department/view_faculty');
+  const handleViewStaff = (staffId) => {
+    navigate(`/admin/department/view_faculty/${staffId}`);
   };
 
-  const handleDeleteDepartment = () => {
-    if (window.confirm('Are you sure you want to delete this department? This action cannot be undone.')) {
-      navigate('/admin/department');
+  const handleDeleteDepartment = async () => {
+    if (!window.confirm('Are you sure you want to delete this department? This action cannot be undone.')) {
+      return;
+    }
+
+    if (!department?._id) {
+      setError('Department information not available');
+      return;
+    }
+
+    if (!user?.token) {
+      setError('Please login to delete departments');
+      return;
+    }
+
+    setDeleting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/departments/${department._id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        alert('Department deleted successfully!');
+        navigate('/admin/department');
+      } else {
+        setError(data.message || 'Failed to delete department');
+      }
+    } catch (err) {
+      setError('Error deleting department');
+      console.error('Error deleting department:', err);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -111,10 +195,21 @@ const Admin_View_Department = ( { onLogout } ) => {
               <button className={styles.backBtn} onClick={handleBack}>
                 <ArrowLeft size={16} /> Back to Departments
               </button>
-              <h1 className={styles.pageTitle}>Computer Science and Engineering (CSE)</h1>
-              <p className={styles.pageSubtitle}>Manage staff, faculty, and administrators for this department.</p>
+              <h1 className={styles.pageTitle}>
+                {loading ? 'Loading...' :
+                 department ? `${department.branch} (${department.deptCode})` :
+                 deptCode ? `Department ${deptCode}` : 'Department Details'}
+              </h1>
+              <p className={styles.pageSubtitle}>Manage coordinators and administrators for this department.</p>
             </div>
           </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className={styles.errorMessage}>
+              {error}
+            </div>
+          )}
 
           {/* Toolbar: Name & Role Filters */}
           <div className={styles.actionBar}>
@@ -155,9 +250,13 @@ const Admin_View_Department = ( { onLogout } ) => {
                 Clear All Filters
               </button>
             </div>
-            <button className={styles.deleteDeptBtn} onClick={handleDeleteDepartment}>
+            <button
+              className={styles.deleteDeptBtn}
+              onClick={handleDeleteDepartment}
+              disabled={deleting}
+            >
               <Trash2 size={20} />
-              Delete Department
+              {deleting ? 'Deleting...' : 'Delete Department'}
             </button>
             <button className={styles.addStaffBtn} onClick={handleOpenAddFaculty}>
               <Plus size={20} />
@@ -166,6 +265,11 @@ const Admin_View_Department = ( { onLogout } ) => {
           </div>
 
           {/* Staff Table */}
+          {loading ? (
+            <div className={styles.loadingState}>
+              Loading coordinator data...
+            </div>
+          ) : (
           <div className={styles.tableCard}>
             <div className={styles.tableResponsive}>
               <table className={styles.dataTable}>
@@ -181,7 +285,7 @@ const Admin_View_Department = ( { onLogout } ) => {
                 </thead>
                 <tbody>
                   {paginatedStaff.map((staff, index) => (
-                    <tr key={staff.id}>
+                    <tr key={staff._id}>
                       <td className={styles.textMuted}>
                         {String((currentPage - 1) * ENTRIES_PER_PAGE + index + 1).padStart(2, '0')}
                       </td>
@@ -190,12 +294,12 @@ const Admin_View_Department = ( { onLogout } ) => {
                         <span className={styles.badgeRole}>{staff.designation}</span>
                       </td>
                       <td className={styles.textMuted}>{staff.email}</td>
-                      <td className={styles.fontMono}>{staff.phone}</td>
+                      <td className={styles.fontMono}>{staff.phone || 'N/A'}</td>
                       <td className={styles.textCenter}>
                         <div className={styles.actionGroup}>
                           <button
                             className={styles.viewBtn}
-                            onClick={() => handleViewStaff()}
+                            onClick={() => handleViewStaff(staff._id)}
                           >
                             <Eye size={16} />
                             View
@@ -204,7 +308,7 @@ const Admin_View_Department = ( { onLogout } ) => {
                       </td>
                     </tr>
                   ))}
-                  {filteredStaff.length === 0 && (
+                  {filteredStaff.length === 0 && !loading && (
                     <tr>
                       <td colSpan="6" className={styles.emptyState}>
                         No staff members found matching your search criteria.
@@ -263,6 +367,7 @@ const Admin_View_Department = ( { onLogout } ) => {
               </div>
             </div>
           </div>
+          )}
 
         </div>
       </main>

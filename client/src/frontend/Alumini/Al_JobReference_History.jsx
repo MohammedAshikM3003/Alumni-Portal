@@ -2,16 +2,126 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Al_JobReference_History.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
+import { useAuth } from '../../context/authContext/authContext';
+
+const API_BASE = import.meta.env.VITE_API_URL;
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+};
+
+const mapStatus = (status) => {
+  switch (status) {
+    case 'approved': return 'ACTIVE';
+    case 'pending': return 'PENDING';
+    case 'rejected': return 'CLOSED';
+    default: return 'PENDING';
+  }
+};
+
+const getIconForRole = (role, index) => {
+  const icons = ['work_outline', 'person_search', 'school', 'terminal', 'account_tree', 'support_agent', 'security', 'campaign'];
+  const iconClasses = [styles.iconBlue, styles.iconPurple, styles.iconPurpleAlt, styles.iconTeal, styles.iconPink, styles.iconLightBlue, styles.iconGreen, styles.iconOrange];
+
+  return {
+    icon: icons[index % icons.length],
+    iconClass: iconClasses[index % iconClasses.length]
+  };
+};
 
 const Alumini_JobReference_History = ({ onLogout }) => {
-  const [activeMenuId, setActiveMenuId] = useState(null);
+  const { user } = useAuth();
   const navigate = useNavigate();
   const menuRef = useRef(null);
 
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [jobsData, setJobsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchJobReferences = async () => {
+      if (!user?.token) {
+        setError('Please login to view job references');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/jobs/my`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch job references');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.jobReferences) {
+          const formattedData = data.jobReferences.map((job, index) => {
+            const { icon, iconClass } = getIconForRole(job.role, index);
+            return {
+              id: job._id,
+              title: job.role,
+              company: job.companyName,
+              date: formatDate(job.createdAt),
+              status: mapStatus(job.status),
+              icon,
+              iconClass,
+              targetBranch: job.targetBranch,
+              vacancies: job.vacancies,
+              location: job.location,
+              workMode: job.workMode,
+            };
+          });
+
+          setJobsData(formattedData);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobReferences();
+  }, [user]);
 
   const toggleCardMenu = (id, event) => {
     event.stopPropagation();
     setActiveMenuId(activeMenuId === id ? null : id);
+  };
+
+  const handleDelete = async (jobId) => {
+    if (!window.confirm('Are you sure you want to remove this job reference?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete job reference');
+      }
+
+      // Remove the job from the local state
+      setJobsData(prevJobs => prevJobs.filter(job => job.id !== jobId));
+      setActiveMenuId(null);
+      alert('Job reference removed successfully');
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   // Close dropdown when clicking outside
@@ -23,85 +133,31 @@ const Alumini_JobReference_History = ({ onLogout }) => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
-  // Mock data matching the screenshot
-  const jobsData = [
-    {
-      id: 1,
-      title: 'Senior Product Designer',
-      company: 'Tech Global Solutions',
-      date: 'Oct 24, 2023',
-      status: 'ACTIVE',
-      icon: 'work_outline',
-      iconClass: styles.iconBlue
-    },
-    {
-      id: 2,
-      title: 'Marketing Specialist',
-      company: 'Growth Partners Inc.',
-      date: 'Oct 20, 2023',
-      status: 'PENDING',
-      icon: 'person_search',
-      iconClass: styles.iconPurple
-    },
-    {
-      id: 3,
-      title: 'Research Assistant',
-      company: 'National Science Inst.',
-      date: 'Oct 15, 2023',
-      status: 'CLOSED',
-      icon: 'school',
-      iconClass: styles.iconPurpleAlt
-    },
-    {
-      id: 4,
-      title: 'Full Stack Developer',
-      company: 'Cloud Stream Systems',
-      date: 'Oct 12, 2023',
-      status: 'ACTIVE',
-      icon: 'terminal',
-      iconClass: styles.iconTeal
-    },
-    {
-      id: 5,
-      title: 'Data Scientist',
-      company: 'Insight Analytics Lab',
-      date: 'Oct 05, 2023',
-      status: 'ACTIVE',
-      icon: 'account_tree',
-      iconClass: styles.iconPink
-    },
-    {
-      id: 6,
-      title: 'Customer Success Lead',
-      company: 'Service First Corp',
-      date: 'Sep 28, 2023',
-      status: 'PENDING',
-      icon: 'support_agent',
-      iconClass: styles.iconLightBlue
-    },
-    {
-      id: 7,
-      title: 'Cyber Security Analyst',
-      company: 'Secure Network Hub',
-      date: 'Sep 20, 2023',
-      status: 'ACTIVE',
-      icon: 'security',
-      iconClass: styles.iconGreen
-    },
-    {
-      id: 8,
-      title: 'Content Strategist',
-      company: 'Creative Media Agency',
-      date: 'Sep 15, 2023',
-      status: 'CLOSED',
-      icon: 'campaign',
-      iconClass: styles.iconOrange
-    }
-  ];
+  if (loading) {
+    return (
+      <div className={styles.pageContainer}>
+        <Sidebar onLogout={onLogout} currentView="job_reference_history" />
+        <main className={styles.mainContent}>
+          <div className={styles.loadingState}>Loading job references...</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.pageContainer}>
+        <Sidebar onLogout={onLogout} currentView="job_reference_history" />
+        <main className={styles.mainContent}>
+          <div className={styles.errorState}>{error}</div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.pageContainer}>
@@ -133,51 +189,57 @@ const Alumini_JobReference_History = ({ onLogout }) => {
           </div>
 
           {/* Render Job Cards */}
-          {jobsData.map((job) => (
-            <div key={job.id} className={styles.jobCard}>
-              
-              {/* Card Header (Icon + Menu) */}
-              <div className={styles.cardHeader}>
-                <div className={`${styles.jobIcon} ${job.iconClass}`}>
-                  <span className="material-symbols-outlined">{job.icon}</span>
+          {jobsData.length > 0 ? (
+            jobsData.map((job) => (
+              <div key={job.id} className={styles.jobCard}>
+
+                {/* Card Header (Icon + Menu) */}
+                <div className={styles.cardHeader}>
+                  <div className={`${styles.jobIcon} ${job.iconClass}`}>
+                    <span className="material-symbols-outlined">{job.icon}</span>
+                  </div>
+
+                  <div className={styles.menuContainer}>
+                    <button
+                      className={`${styles.moreBtn} ${activeMenuId === job.id ? styles.moreBtnActive : ''}`}
+                      onClick={(e) => toggleCardMenu(job.id, e)}
+                    >
+                      <span className="material-symbols-outlined">more_vert</span>
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {activeMenuId === job.id && (
+                      <div className={styles.dropdownMenu}>
+                        <button className={styles.dropdownItem} onClick={() => handleDelete(job.id)}>
+                          <span className="material-symbols-outlined">delete</span>
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                
-                <div className={styles.menuContainer}>
-                  <button 
-                    className={`${styles.moreBtn} ${activeMenuId === job.id ? styles.moreBtnActive : ''}`} 
-                    onClick={(e) => toggleCardMenu(job.id, e)}
-                  >
-                    <span className="material-symbols-outlined">more_vert</span>
-                  </button>
-                  
-                  {/* Dropdown Menu */}
-                  {activeMenuId === job.id && (
-                    <div className={styles.dropdownMenu}>
-                      <button className={styles.dropdownItem}>
-                        <span className="material-symbols-outlined">delete</span>
-                        Remove
-                      </button>
-                    </div>
-                  )}
+
+                {/* Card Body (Title & Company) */}
+                <div className={styles.cardBody}>
+                  <h3 className={styles.jobTitle}>{job.title}</h3>
+                  <p className={styles.companyName}>{job.company}</p>
                 </div>
-              </div>
 
-              {/* Card Body (Title & Company) */}
-              <div className={styles.cardBody}>
-                <h3 className={styles.jobTitle}>{job.title}</h3>
-                <p className={styles.companyName}>{job.company}</p>
-              </div>
+                {/* Card Footer (Status & Date) */}
+                <div className={styles.cardFooter}>
+                  <span className={`${styles.statusBadge} ${styles[`status${job.status}`]}`}>
+                    {job.status}
+                  </span>
+                  <span className={styles.jobDate}>{job.date}</span>
+                </div>
 
-              {/* Card Footer (Status & Date) */}
-              <div className={styles.cardFooter}>
-                <span className={`${styles.statusBadge} ${styles[`status${job.status}`]}`}>
-                  {job.status}
-                </span>
-                <span className={styles.jobDate}>{job.date}</span>
               </div>
-
+            ))
+          ) : (
+            <div className={styles.emptyStateCard}>
+              <p>No job references yet. Post your first opportunity!</p>
             </div>
-          ))}
+          )}
 
         </div>
       </main>

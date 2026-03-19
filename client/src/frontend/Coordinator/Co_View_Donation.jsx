@@ -1,24 +1,118 @@
-import { Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import styles from './Co_View_Donation.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from './Components/BackButton/Back';
+import { useAuth } from '../../context/authContext/authContext';
 
-const CoordinatorViewDonation = ( { onLogout } ) => {
+const API_BASE = import.meta.env.VITE_API_URL;
+
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+};
+
+const formatAmount = (amount) => {
+    return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+const CoordinatorViewDonation = ({ onLogout }) => {
+    const { id } = useParams();
+    const { user } = useAuth();
+    const [donation, setDonation] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchPayment = async () => {
+            if (!user?.token) {
+                setError('Please login to view donation details');
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/payments/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch donation details');
+                }
+
+                const data = await response.json();
+
+                if (data.success && data.payment) {
+                    setDonation(data.payment);
+                }
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchPayment();
+        }
+    }, [id, user]);
+
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'paid':
+                return { bgColor: 'bg-emerald-50', textColor: 'text-emerald-600', label: 'Successful' };
+            case 'failed':
+                return { bgColor: 'bg-red-50', textColor: 'text-red-600', label: 'Failed' };
+            case 'created':
+                return { bgColor: 'bg-amber-50', textColor: 'text-amber-600', label: 'Pending' };
+            default:
+                return { bgColor: 'bg-slate-50', textColor: 'text-slate-600', label: status };
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
+                <Sidebar currentView="donation_history" onLogout={onLogout} />
+                <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden items-center justify-center">
+                    <div className="text-slate-600">Loading donation details...</div>
+                </main>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
+                <Sidebar currentView="donation_history" onLogout={onLogout} />
+                <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden items-center justify-center">
+                    <div className="text-red-600">{error}</div>
+                </main>
+            </div>
+        );
+    }
+
+    if (!donation) {
+        return (
+            <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
+                <Sidebar currentView="donation_history" onLogout={onLogout} />
+                <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden items-center justify-center">
+                    <div className="text-slate-600">Donation not found</div>
+                </main>
+            </div>
+        );
+    }
+
+    const statusStyle = getStatusStyle(donation.status);
+
     return (
         <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
             {/* Sidebar */}
             <Sidebar currentView="donation_history" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                {/* Banner */}
-                <div className="sticky top-0 z-10 shrink-0">
-                    <div className="bg-red-50 border-b border-red-100 px-6 py-3 flex items-center justify-center">
-                        <div className="flex items-center gap-2 text-sm font-medium text-red-600">
-                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
-                            <span>Recent: Suresh Kumar just donated ₹500 to the Alumni Fund!</span>
-                        </div>
-                    </div>
-                </div>
 
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
                     <Back to={'/coordinator/donation_history'} />
@@ -33,40 +127,52 @@ const CoordinatorViewDonation = ( { onLogout } ) => {
                                 <div className="flex justify-between items-start mb-10">
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 mb-1">Transaction Receipt</h3>
-                                        <p className="text-sm text-slate-500">Official record for your donation contribution</p>
+                                        <p className="text-sm text-slate-500">Official record for this donation contribution</p>
                                     </div>
                                     <div className="text-right">
-                                        <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Successful</span>
+                                        <span className={`${statusStyle.bgColor} ${statusStyle.textColor} px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider`}>
+                                            {statusStyle.label}
+                                        </span>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Donor Name</label>
-                                        <p className="text-base font-bold text-slate-900">Priya Varma</p>
+                                        <p className="text-base font-bold text-slate-900">{donation.user?.name || 'Unknown'}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Donor Email</label>
+                                        <p className="text-base font-bold text-slate-900">{donation.user?.email || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Cause</label>
-                                        <p className="text-base font-bold text-slate-900">Alumni Scholarship Fund</p>
+                                        <p className="text-base font-bold text-slate-900">{donation.purpose}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Payment Type</label>
                                         <div className="flex items-center gap-2">
                                             <span className="material-symbols-outlined text-blue-500 text-xl">account_balance_wallet</span>
-                                            <p className="text-base font-bold text-slate-900">UPI</p>
+                                            <p className="text-base font-bold text-slate-900">Online (Razorpay)</p>
                                         </div>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Transaction ID</label>
-                                        <p className="text-base font-bold text-slate-900 font-mono">#TRXN-98234102</p>
+                                        <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Order ID</label>
+                                        <p className="text-base font-bold text-slate-900 font-mono">{donation.razorpayOrderId || 'N/A'}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Payment ID</label>
+                                        <p className="text-base font-bold text-slate-900 font-mono">{donation.razorpayPaymentId || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Amount</label>
-                                        <p className="text-3xl font-bold text-slate-900">₹250.00</p>
+                                        <p className="text-3xl font-bold text-slate-900">{formatAmount(donation.amount)}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Transaction Date</label>
-                                        <p className="text-base font-bold text-slate-900">Oct 24, 2023</p>
+                                        <p className="text-base font-bold text-slate-900">
+                                            {donation.paidAt ? formatDate(donation.paidAt) : formatDate(donation.createdAt)}
+                                        </p>
                                     </div>
                                 </div>
 

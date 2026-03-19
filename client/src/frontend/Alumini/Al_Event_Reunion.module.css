@@ -248,3 +248,40 @@
   .subjectLine { white-space: normal; line-height: 1.5; }
   .viewDetailsBtn { width: 100%; margin-left: 0; text-align: center; }
 }
+
+/* Additional Avatar Colors */
+.avatarGreen {
+  background-color: #D1FAE5;
+  color: #059669;
+}
+
+.avatarPurple {
+  background-color: #EDE9FE;
+  color: #7C3AED;
+}
+
+/* Loading and Error States */
+.loadingState,
+.errorState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  font-size: 16px;
+  color: #6B7280;
+}
+
+.errorState {
+  color: #EF4444;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  color: #6B7280;
+  font-size: 15px;
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #F3F4F6;
+}

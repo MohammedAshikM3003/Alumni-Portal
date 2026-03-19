@@ -217,19 +217,19 @@ function App() {
           element={guard('admin', <Admin_Department onLogout={logout} />)}
         />
         <Route
-          path="/admin/department/view_department"
+          path="/admin/department/view_department/:deptCode"
           element={guard('admin', <Admin_View_Department onLogout={logout} />)}
         />
         <Route
-          path="/admin/department/add_faculty"
+          path="/admin/department/:deptCode/add_faculty"
           element={guard('admin', <Admin_Add_Faculty onLogout={logout} />)}
         />
         <Route
-          path="/admin/department/view_faculty"
+          path="/admin/department/view_faculty/:id"
           element={guard('admin', <Admin_View_Faculty onLogout={logout} />)}
         />
         <Route
-          path="/admin/department/edit_faculty"
+          path="/admin/department/edit_faculty/:id"
           element={guard('admin', <Admin_Edit_Faculty onLogout={logout} />)}
         />
 
@@ -241,7 +241,7 @@ function App() {
           element={guard('admin', <Admin_Job_and_Reference onLogout={logout} />)}
           />
         <Route
-          path="/admin/view_job_and_reference"
+          path="/admin/view_job_and_reference/:id"
           element={guard('admin', <Admin_View_Job_and_Reference onLogout={logout} />)}
           />
 
@@ -252,7 +252,7 @@ function App() {
           element={guard('admin', <Admin_Donation_History onLogout={logout} />)}
           />
         <Route
-          path="/admin/view_donation"
+          path="/admin/view_donation/:id"
           element={guard('admin', <Admin_View_Donation onLogout={logout} />)}
           />
 
@@ -262,7 +262,7 @@ function App() {
           element={guard('admin', <Admin_Event_and_Reunion_History onLogout={logout} />)}
           />
         <Route
-          path="/admin/event_and_reunion_invitation"
+          path="/admin/event_and_reunion_invitation/:id"
           element={guard('admin', <Admin_Event_and_Reunion_Invitation onLogout={logout} />)}
           />
         <Route
@@ -280,7 +280,7 @@ function App() {
           element={guard('admin', <Admin_Feedback onLogout={logout} />)}
         />
         <Route
-          path="/admin/feedback_form"
+          path="/admin/feedback_form/:id"
           element={guard('admin', <Admin_Feedback_Form onLogout={logout} />)}
         />
 
@@ -314,7 +314,7 @@ function App() {
           element={guard('coordinator', <CoordinatorJobHistory onLogout={logout} />)}
         />
         <Route
-          path="/coordinator/View_job_and_reference"
+          path="/coordinator/View_job_and_reference/:id"
           element={guard('coordinator', <CoordinatorViewJobForm onLogout={logout} />)}
         />
 
@@ -324,7 +324,7 @@ function App() {
           element={guard('coordinator', <CoordinatorDonationHistory onLogout={logout} />)}
         />
         <Route
-          path="/coordinator/View_donation"
+          path="/coordinator/View_donation/:id"
           element={guard('coordinator', <CoordinatorViewDonation onLogout={logout} />)}
         />
 
@@ -334,7 +334,7 @@ function App() {
           element={guard('coordinator', <CoordinatorInvitations onLogout={logout} />)}
         />
         <Route
-          path="/coordinator/view_invitations"
+          path="/coordinator/view_invitations/:id"
           element={guard('coordinator', <CoordinatorViewInvitation onLogout={logout} />)}
         />
 
@@ -344,7 +344,7 @@ function App() {
           element={guard('coordinator', <CoordinatorFeedbackHistory onLogout={logout} />)}
         />
         <Route
-          path="/coordinator/view_feedback"
+          path="/coordinator/view_feedback/:id"
           element={guard('coordinator', <CoordinatorFeedbackForm onLogout={logout} />)}
         />
 

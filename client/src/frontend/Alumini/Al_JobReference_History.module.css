@@ -326,3 +326,27 @@
   .pageTitle { font-size: 24px; }
   .pageSubtitle { line-height: 1.4; }
 }
+
+/* Loading and Error States */
+.loadingState,
+.errorState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  font-size: 16px;
+  color: #6B7280;
+}
+
+.errorState {
+  color: #EF4444;
+}
+
+/* Empty State */
+.emptyStateCard {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 24px;
+  color: #6B7280;
+  font-size: 15px;
+}

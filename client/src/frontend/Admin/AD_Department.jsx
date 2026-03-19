@@ -1,39 +1,22 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './AD_Department.module.css';
-import { LayoutDashboard, Mail, Users, Briefcase, Heart, Calendar, MessageSquare, Building2, Search, Plus, Eye, X } from 'lucide-react';
+import { Search, Plus, Eye, X } from 'lucide-react';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/authContext/authContext';
+
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const Admin_Department = ( { onLogout } ) => {
 
     const navigate = useNavigate();
-  // Navigation Links
-  const navLinks = [
-    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', active: false },
-    { icon: <Mail size={20} />, label: 'Mail', active: false },
-    { icon: <Users size={20} />, label: 'Alumni', active: false },
-    { icon: <Briefcase size={20} />, label: 'Job & Reference', active: false },
-    { icon: <Heart size={20} />, label: 'Donation', active: false },
-    { icon: <Calendar size={20} />, label: 'Events & Reunion', active: false },
-    { icon: <MessageSquare size={20} />, label: 'Feedback', active: false },
-    { icon: <Building2 size={20} />, label: 'Departments', active: true }, // Active Item
-  ];
+    const { user } = useAuth();
 
   // State Management
-  const [departments, setDepartments] = useState([
-    { id: 1, stream: 'B.E', branch: 'Computer Science and Engineering', deptCode: 'CSE', alumniCount: 1250 },
-    { id: 2, stream: 'B.Tech', branch: 'Information Technology', deptCode: 'IT', alumniCount: 840 },
-    { id: 3, stream: 'B.E', branch: 'Electronics and Communication', deptCode: 'ECE', alumniCount: 1100 },
-    { id: 4, stream: 'B.E', branch: 'Mechanical Engineering', deptCode: 'MECH', alumniCount: 1420 },
-    { id: 5, stream: 'B.E', branch: 'Computer Science and Engineering', deptCode: 'CSE', alumniCount: 1250 },
-    { id: 6, stream: 'B.Tech', branch: 'Information Technology', deptCode: 'IT', alumniCount: 840 },
-    { id: 7, stream: 'B.E', branch: 'Electronics and Communication', deptCode: 'ECE', alumniCount: 1100 },
-    { id: 8, stream: 'B.E', branch: 'Mechanical Engineering', deptCode: 'MECH', alumniCount: 1420 },
-    { id: 9, stream: 'B.E', branch: 'Computer Science and Engineering', deptCode: 'CSE', alumniCount: 1250 },
-    { id: 10, stream: 'B.Tech', branch: 'Information Technology', deptCode: 'IT', alumniCount: 840 },
-    { id: 11, stream: 'B.E', branch: 'Electronics and Communication', deptCode: 'ECE', alumniCount: 1100 },
-    { id: 12, stream: 'B.E', branch: 'Mechanical Engineering', deptCode: 'MECH', alumniCount: 1420 },
-  ]);
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -41,6 +24,44 @@ const Admin_Department = ( { onLogout } ) => {
     branch: '',
     deptCode: ''
   });
+
+  // Fetch departments from backend
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      if (!user?.token) {
+        setError('Please login to view departments');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/departments`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch departments');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.departments) {
+          setDepartments(data.departments);
+        } else {
+          setError('Failed to load departments');
+        }
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching departments:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDepartments();
+  }, [user?.token]);
 
   // Simple Modal Handlers
   const handleOpenModal = () => {
@@ -59,19 +80,46 @@ const Admin_Department = ( { onLogout } ) => {
   };
 
   // Add Department Only
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newDept = {
-      id: Date.now(),
-      ...formData,
-      alumniCount: 0
-    };
-    setDepartments([...departments, newDept]);
-    handleCloseModal();
+    setSubmitting(true);
+
+    if (!user?.token) {
+      setError('Please login to create departments');
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/departments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Update local state with new department
+        setDepartments([...departments, data.department]);
+        handleCloseModal();
+        setError(null);
+      } else {
+        setError(data.message || 'Failed to create department');
+      }
+    } catch (err) {
+      setError('Error creating department');
+      console.error('Error creating department:', err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleView = () => {
-    navigate('/admin/department/view_department'); 
+  const handleView = (deptCode) => {
+    navigate(`/admin/department/view_department/${deptCode}`);
   };
 
   return (
@@ -109,7 +157,7 @@ const Admin_Department = ( { onLogout } ) => {
               </div>
               <div className={styles.statCard}>
                 <div className={styles.statNumber}>{departments.reduce((total, dept) => total + dept.alumniCount, 0)}</div>
-                <div className={styles.statLabel}>Total Coordinators</div>
+                <div className={styles.statLabel}>Total Alumni</div>
               </div>
             <button className={styles.addBtn} onClick={handleOpenModal}>
               <Plus size={20} />
@@ -118,8 +166,19 @@ const Admin_Department = ( { onLogout } ) => {
             </div>
           </div>
 
+          {/* Error Display */}
+          {error && (
+            <div className={styles.errorMessage}>
+              {error}
+            </div>
+          )}
 
-          {/* Department Table */}
+          {/* Loading State */}
+          {loading ? (
+            <div className={styles.loadingState}>
+              Loading departments...
+            </div>
+          ) : (
           <div className={styles.tableCard}>
             <div className={styles.tableResponsive}>
               <table className={styles.dataTable}>
@@ -135,7 +194,7 @@ const Admin_Department = ( { onLogout } ) => {
                 </thead>
                 <tbody>
                   {departments.map((dept, index) => (
-                    <tr key={dept.id}>
+                    <tr key={dept._id}>
                       <td className={styles.textMuted}>{String(index + 1).padStart(2, '0')}</td>
                       <td className={styles.fontSemibold}>{dept.stream}</td>
                       <td>{dept.branch}</td>
@@ -157,7 +216,7 @@ const Admin_Department = ( { onLogout } ) => {
                       </td>
                     </tr>
                   ))}
-                  {departments.length === 0 && (
+                  {departments.length === 0 && !loading && (
                     <tr>
                       <td colSpan="6" className={styles.emptyState}>No departments found. Add a new one to get started.</td>
                     </tr>
@@ -166,6 +225,7 @@ const Admin_Department = ( { onLogout } ) => {
               </table>
             </div>
           </div>
+          )}
 
         </div>
       </main>
@@ -230,8 +290,8 @@ const Admin_Department = ( { onLogout } ) => {
                 <button type="button" className={styles.cancelBtn} onClick={handleCloseModal}>
                   Cancel
                 </button>
-                <button type="submit" className={styles.submitBtn}>
-                  Save Department
+                <button type="submit" className={styles.submitBtn} disabled={submitting}>
+                  {submitting ? 'Saving...' : 'Save Department'}
                 </button>
               </div>
             </form>

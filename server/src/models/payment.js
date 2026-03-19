@@ -17,11 +17,6 @@ const paymentSchema = new Schema(
 			type: String,
 			default: 'INR',
 		},
-		method: {
-			type: String,
-			enum: ['upi', 'card', 'netbanking'],
-			default: 'upi',
-		},
 		purpose: {
 			type: String,
 			required: true,
@@ -42,7 +37,6 @@ const paymentSchema = new Schema(
 		razorpayPaymentId: {
 			type: String,
 			default: null,
-			unique: true,
 			sparse: true,
 		},
 		razorpaySignature: {

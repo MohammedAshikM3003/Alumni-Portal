@@ -93,6 +93,26 @@ export const getAllFeedbacks = async (req, res) => {
   }
 };
 
+export const getFeedbackById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid feedback ID' });
+    }
+
+    const feedback = await Feedback.findById(id)
+      .populate('submittedBy', 'name email userId');
+
+    if (!feedback) {
+      return res.status(404).json({ success: false, message: 'Feedback not found' });
+    }
+
+    res.status(200).json({ success: true, feedback });
+  } catch {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 export const getSignatureImage = async (req, res) => {
   try {
     const { id } = req.params;

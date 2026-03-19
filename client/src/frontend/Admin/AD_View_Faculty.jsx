@@ -43,7 +43,7 @@ const Admin_View_Faculty = ( { onLogout } ) => {
   };
 
   const handleBack = () => {
-    navigate('/admin/department/view_department');
+    navigate('/admin/department');
   };
 
   const handleEdit = () => {

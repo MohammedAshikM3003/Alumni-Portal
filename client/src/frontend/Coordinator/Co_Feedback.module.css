@@ -108,3 +108,188 @@
 .customSidebarScrollbar::-webkit-scrollbar-button {
     display: none;
 }
+
+/* ================== MAIN CONTENT ================== */
+.mainContent {
+  flex: 1;
+  margin-left: 70px;
+  padding: 2.5rem;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.contentWrapper {
+  width: 100%;
+}
+
+
+.mainContent::-webkit-scrollbar {
+  width: 12px;
+}
+
+.mainContent::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-left: 1px solid #e2e8f0;
+}
+
+.mainContent::-webkit-scrollbar-thumb {
+  background-color: #FF3D00;
+  border-radius: 10px;
+  border: 3px solid #f1f5f9;
+}
+
+.mainContent::-webkit-scrollbar-thumb:hover {
+  background-color: #E63600;
+}
+
+/* Header */
+.pageHeader {
+  margin-bottom: 2rem;
+}
+
+.pageTitle {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: 900; /* font-black */
+  letter-spacing: -0.025em;
+  color: #0f172a;
+  margin: 0;
+}
+
+.titleDivider {
+  height: 0.25rem;
+  width: 5rem;
+  background-color: #FF3D00;
+  margin-top: 0.5rem;
+  border-radius: 9999px;
+}
+
+/* ================== FEEDBACK GRID ================== */
+.feedbackGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .feedbackGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .feedbackGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Feedback Card */
+.feedbackCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.feedbackCard:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.cardBody {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+.authorName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.5rem 0;
+}
+
+.feedbackQuote {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.625;
+  margin: 0;
+}
+
+/* Card Footer */
+.cardFooter {
+  padding: 1rem 1.5rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dateBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.viewBtn {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #FF3D00;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+
+.viewBtn:hover {
+  opacity: 0.8;
+}
+
+.viewBtn span {
+  font-size: 0.75rem;
+}
+
+/* ================== STATES ================== */
+.loadingState,
+.errorState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  font-size: 1rem;
+  color: #475569;
+}
+
+.errorState {
+  color: #ef4444;
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  color: #64748b;
+}
+
+.emptyState span {
+  font-size: 3rem;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 1rem;
+}

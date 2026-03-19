@@ -1,10 +1,94 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Co_Invitations.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
-import Back from './Components/BackButton/Back';
+import { useAuth } from '../../context/authContext/authContext';
 
-const CoordinatorInvitations = ( { onLogout } ) => {
+const API_BASE = import.meta.env.VITE_API_URL;
+
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays === 1) return 'Yesterday';
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const getInitials = (name) => {
+    if (!name) return '??';
+    return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+};
+
+const CoordinatorInvitations = ({ onLogout }) => {
+    const { user } = useAuth();
+    const [invitations, setInvitations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchInvitations = async () => {
+            if (!user?.token) {
+                setError('Please login to view invitations');
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/invitations/all`, {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch invitations');
+                }
+
+                const data = await response.json();
+                if (data.success && data.invitations) {
+                    setInvitations(data.invitations);
+                }
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInvitations();
+    }, [user]);
+
+    if (loading) {
+        return (
+            <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
+                <Sidebar currentView="invitations" onLogout={onLogout} />
+                <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
+                    <div className="flex-1 flex items-center justify-center">
+                        <p className="text-slate-500">Loading invitations...</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
+                <Sidebar currentView="invitations" onLogout={onLogout} />
+                <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
+                    <div className="flex-1 flex items-center justify-center">
+                        <p className="text-red-500">{error}</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
             {/* Sidebar */}
@@ -12,7 +96,7 @@ const CoordinatorInvitations = ( { onLogout } ) => {
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-7 bg-[#F9FAFB]`}>
-                    <Back to={'/coordinator/dashboard'} />
+
                     <header className="flex justify-between items-start mb-10">
                         <div>
                             <h2 className="text-3xl font-bold text-slate-900">Welcome back, Coordinator!</h2>
@@ -28,112 +112,32 @@ const CoordinatorInvitations = ( { onLogout } ) => {
                             </div>
                         </div>
                         <div className="space-y-4">
-                            <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                                        OR
+                            {invitations.length > 0 ? (
+                                invitations.map((invitation) => (
+                                    <div key={invitation._id} className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                                                {getInitials(invitation.sender)}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-900">{invitation.sender || 'Unknown Sender'}</h4>
+                                                <p className="text-sm text-slate-500 mt-0.5">
+                                                    {invitation.subject || 'No subject'} - {(invitation.description || '').substring(0, 50)}...
+                                                    <span className="text-slate-400 ml-1">• {formatDate(invitation.createdAt)}</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Link className="bg-[#FF3D00] hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors text-sm shadow-lg shadow-red-500/20" to={`/coordinator/view_invitations/${invitation._id}`}>
+                                            View Details
+                                        </Link>
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900">Office of Alumni Relations</h4>
-                                        <p className="text-sm text-slate-500 mt-0.5">
-                                            Invitation: Annual Networking Gala 2024 - Join us for a night of memories...
-                                            <span className="text-slate-400 ml-1">• 2 hours ago</span>
-                                        </p>
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="bg-white p-10 rounded-xl border border-slate-100 shadow-sm text-center">
+                                    <span className="material-symbols-outlined text-4xl text-slate-300 mb-3">mail</span>
+                                    <p className="text-slate-500">No invitations received yet.</p>
                                 </div>
-                                <Link className="bg-[#FF3D00] hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors text-sm shadow-lg shadow-red-500/20" to="/coordinator/view_invitations">
-                                    View Details
-                                </Link>
-                            </div>
-
-                            <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-100">
-                                        <img alt="Sarah Jenkins" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVoT9erMx-rowGU4vWVRI_lqLfJwzYRdszGnQRpJWF9W5p6XTyzTO6FHQ9kIfR3PcAKch245m7Llg6caZGe4RVSaSFk_3HkOH0OPy1u_8jsSWGtu8hSWIN_lxhacskZ1ThMuZkJUDWHerov7a6wmFrL28HVM8bghfWGX5PAVHifd_lB7XwQ_8Nve_fk3k-z2O_kG-WeEBOgilMroJyWZhrLbpBIfD2p0ffFFu85E96L5A8nIa8CGxBWeaOjod2XMKur7dWJS3tSQof" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900">Sarah Jenkins (Class of '15)</h4>
-                                        <p className="text-sm text-slate-500 mt-0.5">
-                                            Career Mentorship Inquiry - I saw your profile and was wondering if you...
-                                            <span className="text-slate-400 ml-1">• Yesterday, 4:12 PM</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                <Link className="bg-[#FF3D00] hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors text-sm shadow-lg shadow-red-500/20" to="/coordinator/view_invitations">
-                                    View Details
-                                </Link>
-                            </div>
-
-                            <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-orange-600 font-bold">
-                                        CS
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900">Career Services Center</h4>
-                                        <p className="text-sm text-slate-500 mt-0.5">
-                                            New Job Referrals based on your profile - We found 3 new matches today...
-                                            <span className="text-slate-400 ml-1">• Nov 14, 2023</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                <Link className="bg-[#FF3D00] hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors text-sm shadow-lg shadow-red-500/20" to="/coordinator/view_invitations">
-                                    View Details
-                                </Link>
-                            </div>
-                            <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                                        OR
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900">Office of Alumni Relations</h4>
-                                        <p className="text-sm text-slate-500 mt-0.5">
-                                            Invitation: Annual Networking Gala 2024 - Join us for a night of memories...
-                                            <span className="text-slate-400 ml-1">• 2 hours ago</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                <Link className="bg-[#FF3D00] hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors text-sm shadow-lg shadow-red-500/20" to="/coordinator/view_invitations">
-                                    View Details
-                                </Link>
-                            </div>
-
-                            <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-100">
-                                        <img alt="Sarah Jenkins" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVoT9erMx-rowGU4vWVRI_lqLfJwzYRdszGnQRpJWF9W5p6XTyzTO6FHQ9kIfR3PcAKch245m7Llg6caZGe4RVSaSFk_3HkOH0OPy1u_8jsSWGtu8hSWIN_lxhacskZ1ThMuZkJUDWHerov7a6wmFrL28HVM8bghfWGX5PAVHifd_lB7XwQ_8Nve_fk3k-z2O_kG-WeEBOgilMroJyWZhrLbpBIfD2p0ffFFu85E96L5A8nIa8CGxBWeaOjod2XMKur7dWJS3tSQof" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900">Sarah Jenkins (Class of '15)</h4>
-                                        <p className="text-sm text-slate-500 mt-0.5">
-                                            Career Mentorship Inquiry - I saw your profile and was wondering if you...
-                                            <span className="text-slate-400 ml-1">• Yesterday, 4:12 PM</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                <Link className="bg-[#FF3D00] hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors text-sm shadow-lg shadow-red-500/20" to="/coordinator/view_invitations">
-                                    View Details
-                                </Link>
-                            </div>
-
-                            <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-orange-600 font-bold">
-                                        CS
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900">Career Services Center</h4>
-                                        <p className="text-sm text-slate-500 mt-0.5">
-                                            New Job Referrals based on your profile - We found 3 new matches today...
-                                            <span className="text-slate-400 ml-1">• Nov 14, 2023</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                <Link className="bg-[#FF3D00] hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors text-sm shadow-lg shadow-red-500/20" to="/coordinator/view_invitations">
-                                    View Details
-                                </Link>
-                            </div>
+                            )}
                         </div>
                     </section>
                 </div>
