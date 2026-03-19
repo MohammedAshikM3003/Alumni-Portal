@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 // Load environment variables from a .env file
 config();
@@ -23,6 +24,8 @@ connectDB();
 app.use('/api/auth', authRoutes);
 
 app.use('/api/feedback', feedbackRoutes);
+
+app.use('/api/payments', paymentRoutes);
 
 
 // --- Start the Server ---

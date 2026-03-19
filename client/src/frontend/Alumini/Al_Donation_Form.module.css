@@ -183,6 +183,26 @@
   border: none;
 }
 
+.purposeInput {
+  width: 100%;
+  max-width: 320px;
+  height: 52px;
+  background-color: #F8FAFC;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-size: 15px;
+  line-height: 52px;
+  color: #111827;
+  font-family: 'Inter', sans-serif;
+}
+
+.purposeInput:focus {
+  border-color: #0084D6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 132, 214, 0.12);
+}
+
 
 /* Hide number input spinners */
 .amountInput::-webkit-outer-spin-button,
@@ -254,6 +274,12 @@
 }
 .donateSubmitBtn:hover {
   background-color: #006BB5;
+}
+
+.donateSubmitBtn:disabled {
+  background-color: #94A3B8;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* SECURITY BADGES */
