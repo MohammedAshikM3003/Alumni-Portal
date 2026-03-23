@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: alumni-portal-backend
-    runtime: node
-    buildCommand: "npm --prefix server install"
-    startCommand: "npm --prefix server start"
-
