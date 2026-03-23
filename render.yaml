@@ -2,10 +2,6 @@ services:
   - type: web
     name: alumni-portal-backend
     runtime: node
-    region: ohio
-    plan: free
-    buildCommand: cd server && npm install && cd ../client && npm install && npm run build
-    startCommand: cd server && npm start
-    envVars:
-      - key: NODE_ENV
-        value: production
+    buildCommand: "npm --prefix server install"
+    startCommand: "npm --prefix server start"
+
