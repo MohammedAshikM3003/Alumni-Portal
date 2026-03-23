@@ -1,41 +1,113 @@
-import { useState } from 'react';
-import { ArrowLeft, Save, X, User, Book } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Save, X, User, Book, ShieldCheck } from 'lucide-react';
 import styles from './AD_Add_Faculty.module.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
+import { useAuth } from '../../context/authContext/authContext';
+
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const Admin_Edit_Faculty = ({ onLogout }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const { user } = useAuth();
 
-  // Pre-filled with existing faculty data
   const [formData, setFormData] = useState({
-    name: 'Dr. Vadin Santhiya G',
-    email: 'hod.cse@ksrce.ac.in',
-    phone: '+91 98765 43210',
-    location: 'Coimbatore, Tamil Nadu',
-    dateOfBirth: '1980-05-15',
-    gender: 'Female',
-    bloodGroup: 'O+',
-    address: '123, Faculty Quarters, KSRCE Campus, Tiruchengode - 637215',
-    designation: 'HOD & Professor',
+    // Personal Information
+    name: '',
+    email: '',
+    phone: '',
+    location: '',
+    dateOfBirth: '',
+    gender: '',
+    bloodGroup: '',
+    address: '',
+
+    // Professional Information
+    designation: '',
     status: 'Active',
-    department: 'Computer Science and Engineering',
-    staffId: 'FAC-2045',
-    dateOfJoining: '2015-08-12'
+    department: '',
+    staffId: '',
+    dateOfJoining: '',
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [submitError, setSubmitError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  // Fetch coordinator details on mount
+  useEffect(() => {
+    const fetchCoordinator = async () => {
+      if (!id || !user?.token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/coordinators/${id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch coordinator details');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.coordinator) {
+          const coord = data.coordinator;
+          setFormData({
+            name: coord.name || '',
+            email: coord.email || '',
+            phone: coord.phone || '',
+            location: coord.location || '',
+            dateOfBirth: coord.personalInfo?.dob ? coord.personalInfo.dob.split('T')[0] : '',
+            gender: coord.personalInfo?.gender || '',
+            bloodGroup: coord.personalInfo?.bloodGroup || '',
+            address: coord.personalInfo?.address || '',
+            designation: coord.designation || '',
+            status: coord.status || 'Active',
+            department: coord.department || '',
+            staffId: coord.staffId || '',
+            dateOfJoining: coord.joinDate ? coord.joinDate.split('T')[0] : '',
+          });
+        } else {
+          setSubmitError('Coordinator not found');
+        }
+      } catch (err) {
+        console.error('Error fetching coordinator:', err);
+        setSubmitError(err.message || 'Error loading coordinator data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCoordinator();
+  }, [id, user?.token]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+
+    // Clear success message when editing
+    if (successMessage) {
+      setSuccessMessage('');
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
+
+    // Required fields validation
     if (!formData.name.trim()) newErrors.name = 'Name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
@@ -43,11 +115,13 @@ const Admin_Edit_Faculty = ({ onLogout }) => {
     if (!formData.designation) newErrors.designation = 'Designation is required';
     if (!formData.staffId.trim()) newErrors.staffId = 'Staff ID is required';
 
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email && !emailRegex.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
+    // Phone validation
     const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
     if (formData.phone && !phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
       newErrors.phone = 'Please enter a valid phone number';
@@ -57,23 +131,89 @@ const Admin_Edit_Faculty = ({ onLogout }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      alert('Faculty profile updated successfully!');
-      navigate('/admin/department/view_faculty');
+
+    if (!validateForm()) return;
+
+    if (!user?.token) {
+      setSubmitError('Please login to update coordinator');
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError('');
+    setSuccessMessage('');
+
+    try {
+      // Prepare data for coordinator update
+      const coordinatorData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        location: formData.location,
+        designation: formData.designation,
+        status: formData.status,
+        department: formData.department,
+        staffId: formData.staffId,
+        joinDate: formData.dateOfJoining ? new Date(formData.dateOfJoining).toISOString() : new Date().toISOString(),
+        personalInfo: {
+          dob: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null,
+          gender: formData.gender || null,
+          bloodGroup: formData.bloodGroup || null,
+          address: formData.address || null,
+        },
+      };
+
+      const response = await fetch(`${API_BASE}/api/coordinators/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify(coordinatorData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setSuccessMessage('Coordinator updated successfully!');
+        setTimeout(() => {
+          navigate(`/admin/department/view_faculty/${id}`);
+        }, 1500);
+      } else {
+        setSubmitError(data.message || 'Failed to update coordinator');
+      }
+    } catch (err) {
+      setSubmitError('Error updating coordinator');
+      console.error('Error updating coordinator:', err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleCancel = () => {
     if (window.confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
-      navigate('/admin/department/view_faculty');
+      navigate(`/admin/department/view_faculty/${id}`);
     }
   };
 
   const handleBack = () => {
-    navigate('/admin/department/view_faculty');
+    navigate(`/admin/department/view_faculty/${id}`);
   };
+
+  if (loading) {
+    return (
+      <div className={styles.dashboardWrapper}>
+        <Sidebar onLogout={onLogout} currentView={'department'} />
+        <main className={styles.mainContent}>
+          <div className={styles.dashboardContent}>
+            <p>Loading coordinator details...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.dashboardWrapper}>
@@ -85,17 +225,17 @@ const Admin_Edit_Faculty = ({ onLogout }) => {
           {/* Page Header */}
           <div className={styles.pageHeader}>
             <button className={styles.backBtn} onClick={handleBack}>
-              <ArrowLeft size={16} /> Back to Faculty Profile
+              <ArrowLeft size={16} /> Back to Coordinator Profile
             </button>
             <div className={styles.headerContent}>
-              <h1 className={styles.pageTitle}>Edit Faculty Profile</h1>
-              <p className={styles.pageSubtitle}>Computer Science and Engineering Department</p>
+              <h1 className={styles.pageTitle}>Edit Coordinator Profile</h1>
+              <p className={styles.pageSubtitle}>{formData.designation || 'Coordinator'}</p>
             </div>
           </div>
 
-          {/* Edit Faculty Form */}
+          {/* Edit Coordinator Form */}
           <div className={styles.formCard}>
-            <form onSubmit={handleSubmit} className={styles.facultyForm}>
+            <form onSubmit={handleSubmit} className={styles.coordinatorForm}>
 
               {/* Personal Information Section */}
               <div className={styles.formSection}>
@@ -126,7 +266,7 @@ const Admin_Edit_Faculty = ({ onLogout }) => {
                       value={formData.email}
                       onChange={handleInputChange}
                       className={`${styles.formInput} ${errors.email ? styles.inputError : ''}`}
-                      placeholder="e.g. faculty@ksrce.ac.in"
+                      placeholder="e.g. coordinator@ksrce.ac.in"
                     />
                     {errors.email && <span className={styles.errorText}>{errors.email}</span>}
                   </div>
@@ -262,8 +402,9 @@ const Admin_Edit_Faculty = ({ onLogout }) => {
                       type="text"
                       name="department"
                       value={formData.department}
+                      onChange={handleInputChange}
                       className={styles.formInput}
-                      readOnly
+                      placeholder="Department"
                     />
                   </div>
 
@@ -293,21 +434,42 @@ const Admin_Edit_Faculty = ({ onLogout }) => {
                 </div>
               </div>
 
+              {/* Success Message */}
+              {successMessage && (
+                <div className={styles.successMessage}>
+                  ✓ {successMessage}
+                </div>
+              )}
+
+              {/* Error Display */}
+              {submitError && (
+                <div className={styles.errorMessage}>
+                  {submitError}
+                </div>
+              )}
+
               {/* Form Actions */}
               <div className={styles.formActions}>
-                <button type="button" className={styles.cancelBtn} onClick={handleCancel}>
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={handleCancel}
+                  disabled={submitting}
+                >
                   <X size={20} />
                   Cancel
                 </button>
-                <button type="submit" className={styles.submitBtn}>
+                <button
+                  type="submit"
+                  className={styles.submitBtn}
+                  disabled={submitting}
+                >
                   <Save size={20} />
-                  Update Faculty
+                  {submitting ? 'Updating...' : 'Update Coordinator'}
                 </button>
               </div>
-
             </form>
           </div>
-
         </div>
       </main>
     </div>

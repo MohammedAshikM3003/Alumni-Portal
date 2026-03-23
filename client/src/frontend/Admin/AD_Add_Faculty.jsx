@@ -91,11 +91,11 @@ const Admin_Add_Faculty = ({ onLogout }) => {
     if (!formData.location.trim()) newErrors.location = 'Location is required';
     if (!formData.designation) newErrors.designation = 'Designation is required';
     if (!formData.staffId.trim()) newErrors.staffId = 'Staff ID is required';
-    if (!formData.dateOfJoining.trim()) newErrors.dateOfJoining = 'Date of joining is required';
     if (!formData.userId.trim()) newErrors.userId = 'User ID is required';
     if (!formData.password.trim()) newErrors.password = 'Password is required';
     else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
     if (formData.confirmPassword !== formData.password) newErrors.confirmPassword = 'Passwords do not match';
+    if (!formData.dateOfJoining.trim()) newErrors.dateOfJoining = 'Date of joining is required';
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -130,31 +130,33 @@ const Admin_Add_Faculty = ({ onLogout }) => {
       // Prepare data for coordinator creation
       const coordinatorData = {
         // User authentication details
-        userId: formData.userId,
-        name: formData.name,
-        email: formData.email,
+        userId: formData.userId.trim(),
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
         password: formData.password,
 
         // Coordinator details
-        staffId: formData.staffId,
+        staffId: formData.staffId.trim(),
         designation: formData.designation,
         department: formData.department,
-        roles: ['coordinator'], // Default coordinator role
-        phone: formData.phone,
-        location: formData.location,
-        status: formData.status,
+        roles: ['coordinator'],
+        phone: formData.phone.trim(),
+        location: formData.location.trim(),
+        status: formData.status || 'Active',
         joinDate: formData.dateOfJoining ? new Date(formData.dateOfJoining).toISOString() : new Date().toISOString(),
         personalInfo: {
           dob: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null,
           gender: formData.gender || null,
           bloodGroup: formData.bloodGroup || null,
-          address: formData.address || null,
+          address: formData.address ? formData.address.trim() : null,
         },
         education: [],
         experience: '',
         publications: 0,
         patents: 0,
       };
+
+      console.log('Sending coordinator data:', coordinatorData);
 
       const response = await fetch(`${API_BASE}/api/coordinators`, {
         method: 'POST',
@@ -167,14 +169,16 @@ const Admin_Add_Faculty = ({ onLogout }) => {
 
       const data = await response.json();
 
+      console.log('Response:', response.status, data);
+
       if (response.ok && data.success) {
         alert('Coordinator added successfully!');
         navigate('/admin/department');
       } else {
-        setSubmitError(data.message || 'Failed to create coordinator');
+        setSubmitError(data.message || 'Failed to create coordinator. Please check all fields and try again.');
       }
     } catch (err) {
-      setSubmitError('Error creating coordinator');
+      setSubmitError('Error creating coordinator: ' + err.message);
       console.error('Error creating coordinator:', err);
     } finally {
       setLoading(false);

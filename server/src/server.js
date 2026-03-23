@@ -11,7 +11,6 @@ import coordinatorRoutes from './routes/coordinatorRoutes.js';
 import departmentRoutes from './routes/departmentRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
-import facultyRoutes from './routes/facultyRoutes.js';
 
 // Load environment variables from a .env file
 config();
@@ -48,8 +47,6 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/users', userRoutes);
 
 app.use('/api/ai', aiRoutes);
-
-app.use('/api/faculty', facultyRoutes);
 
 
 // --- Start the Server ---

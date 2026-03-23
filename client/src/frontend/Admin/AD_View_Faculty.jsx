@@ -25,33 +25,33 @@ const Admin_View_Faculty = ({ onLogout }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useAuth();
-  const [facultyData, setFacultyData] = useState(null);
+  const [coordinatorData, setCoordinatorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchFaculty = async () => {
+    const fetchCoordinator = async () => {
       if (!user?.token) {
-        setError('Please login to view faculty details');
+        setError('Please login to view coordinator details');
         setLoading(false);
         return;
       }
 
       try {
-        const response = await fetch(`${API_BASE}/api/faculty/${id}`, {
+        const response = await fetch(`${API_BASE}/api/coordinators/${id}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch faculty details');
+          throw new Error('Failed to fetch coordinator details');
         }
 
         const data = await response.json();
 
-        if (data.success && data.faculty) {
-          setFacultyData(data.faculty);
+        if (data.success && data.coordinator) {
+          setCoordinatorData(data.coordinator);
         }
       } catch (err) {
         setError(err.message);
@@ -61,7 +61,7 @@ const Admin_View_Faculty = ({ onLogout }) => {
     };
 
     if (id) {
-      fetchFaculty();
+      fetchCoordinator();
     }
   }, [id, user]);
 
@@ -71,6 +71,33 @@ const Admin_View_Faculty = ({ onLogout }) => {
 
   const handleEdit = () => {
     navigate(`/admin/department/edit_faculty/${id}`);
+  };
+
+  const handleDeactivate = async () => {
+    if (!window.confirm('Are you sure you want to deactivate this coordinator?\n\nThis will:\n- Deactivate the coordinator profile\n- Delete the associated user account\n\nThis action can be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/coordinators/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        alert('Coordinator profile and user account deactivated successfully');
+        navigate('/admin/department');
+      } else {
+        alert(data.message || 'Failed to deactivate coordinator');
+      }
+    } catch (err) {
+      alert('Error deactivating coordinator: ' + err.message);
+      console.error('Error deactivating coordinator:', err);
+    }
   };
 
   if (loading) {
@@ -102,13 +129,13 @@ const Admin_View_Faculty = ({ onLogout }) => {
     );
   }
 
-  if (!facultyData) {
+  if (!coordinatorData) {
     return (
       <div className={styles.dashboardWrapper}>
         <Sidebar currentView={'department'} onLogout={onLogout} />
         <main className={styles.mainContent}>
           <div className={styles.dashboardContent}>
-            <p>Faculty not found</p>
+            <p>Coordinator not found</p>
             <button className={styles.backBtn} onClick={handleBack}>
               <ArrowLeft size={16} /> Back to Department
             </button>
@@ -118,7 +145,7 @@ const Admin_View_Faculty = ({ onLogout }) => {
     );
   }
 
-  const profileInitial = facultyData.name.replace('Dr. ', '').trim().charAt(0).toUpperCase();
+  const profileInitial = coordinatorData.name.replace('Dr. ', '').trim().charAt(0).toUpperCase();
 
   return (
     <div className={styles.dashboardWrapper}>
@@ -135,13 +162,13 @@ const Admin_View_Faculty = ({ onLogout }) => {
               <button className={styles.backBtn} onClick={handleBack}>
                 <ArrowLeft size={16} /> Back to Department
               </button>
-              <h1 className={styles.pageTitle}>Faculty Profile</h1>
+              <h1 className={styles.pageTitle}>Coordinator Profile</h1>
             </div>
             <div className={styles.headerActions}>
               <button className={styles.editBtn} onClick={handleEdit}>
                 <Edit size={18} /> Edit Profile
               </button>
-              <button className={styles.deleteBtn}>
+              <button className={styles.deleteBtn} onClick={handleDeactivate}>
                 <Trash2 size={18} /> Deactivate
               </button>
             </div>
@@ -157,21 +184,21 @@ const Admin_View_Faculty = ({ onLogout }) => {
               </div>
               <div className={styles.profileIntro}>
                 <div className={styles.introTop}>
-                  <h2>{facultyData.name}</h2>
-                  <span className={styles.badgeActive}>{facultyData.status}</span>
+                  <h2>{coordinatorData.name}</h2>
+                  <span className={styles.badgeActive}>{coordinatorData.status}</span>
                 </div>
-                <p className={styles.designation}>{facultyData.designation}</p>
-                <p className={styles.department}>{facultyData.department}</p>
+                <p className={styles.designation}>{coordinatorData.designation}</p>
+                <p className={styles.department}>{coordinatorData.department}</p>
 
                 <div className={styles.quickContact}>
                   <div className={styles.contactItem}>
-                    <Mail size={16} /> <span>{facultyData.email}</span>
+                    <Mail size={16} /> <span>{coordinatorData.email}</span>
                   </div>
                   <div className={styles.contactItem}>
-                    <Phone size={16} /> <span>{facultyData.phone || 'N/A'}</span>
+                    <Phone size={16} /> <span>{coordinatorData.phone || 'N/A'}</span>
                   </div>
                   <div className={styles.contactItem}>
-                    <MapPin size={16} /> <span>{facultyData.location || 'N/A'}</span>
+                    <MapPin size={16} /> <span>{coordinatorData.location || 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -188,27 +215,27 @@ const Admin_View_Faculty = ({ onLogout }) => {
                 <div className={styles.cardBody}>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Staff ID</span>
-                    <span className={styles.infoValue}>{facultyData.staffId}</span>
+                    <span className={styles.infoValue}>{coordinatorData.staffId}</span>
                   </div>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Date of Birth</span>
-                    <span className={styles.infoValue}>{formatDate(facultyData.personalInfo?.dob)}</span>
+                    <span className={styles.infoValue}>{formatDate(coordinatorData.personalInfo?.dob)}</span>
                   </div>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Gender</span>
-                    <span className={styles.infoValue}>{facultyData.personalInfo?.gender || 'N/A'}</span>
+                    <span className={styles.infoValue}>{coordinatorData.personalInfo?.gender || 'N/A'}</span>
                   </div>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Blood Group</span>
-                    <span className={styles.infoValue}>{facultyData.personalInfo?.bloodGroup || 'N/A'}</span>
+                    <span className={styles.infoValue}>{coordinatorData.personalInfo?.bloodGroup || 'N/A'}</span>
                   </div>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Date of Joining</span>
-                    <span className={styles.infoValue}>{formatDate(facultyData.joinDate)}</span>
+                    <span className={styles.infoValue}>{formatDate(coordinatorData.joinDate)}</span>
                   </div>
                   <div className={`${styles.infoRow} ${styles.fullWidth}`}>
                     <span className={styles.infoLabel}>Residential Address</span>
-                    <span className={styles.infoValue}>{facultyData.personalInfo?.address || 'N/A'}</span>
+                    <span className={styles.infoValue}>{coordinatorData.personalInfo?.address || 'N/A'}</span>
                   </div>
                 </div>
               </div>

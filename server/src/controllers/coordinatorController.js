@@ -202,7 +202,7 @@ export const updateCoordinator = async (req, res) => {
 	}
 };
 
-// Soft delete coordinator
+// Soft delete coordinator and associated user
 export const deleteCoordinator = async (req, res) => {
 	try {
 		const { id } = req.params;
@@ -210,21 +210,31 @@ export const deleteCoordinator = async (req, res) => {
 			return res.status(400).json({ success: false, message: 'Invalid coordinator ID' });
 		}
 
-		const coordinator = await Coordinator.findByIdAndUpdate(
-			id,
-			{ isActive: false },
-			{ new: true }
-		);
+		// Find the coordinator to get the associated userId
+		const coordinator = await Coordinator.findById(id);
 
 		if (!coordinator) {
 			return res.status(404).json({ success: false, message: 'Coordinator not found' });
 		}
 
+		// Deactivate the coordinator
+		await Coordinator.findByIdAndUpdate(
+			id,
+			{ isActive: false },
+			{ new: true }
+		);
+
+		// Also delete/deactivate the associated user
+		if (coordinator.userId) {
+			await User.findByIdAndDelete(coordinator.userId);
+		}
+
 		res.status(200).json({
 			success: true,
-			message: 'Coordinator deleted successfully',
+			message: 'Coordinator and associated user account deleted successfully',
 		});
-	} catch {
+	} catch (error) {
+		console.error('Error deleting coordinator:', error);
 		res.status(500).json({ success: false, message: 'Server error' });
 	}
 };
