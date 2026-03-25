@@ -733,21 +733,45 @@
 .copyAddressWrapper {
   display: flex;
   justify-content: flex-start;
-  padding-top: 16px;
+  padding: 16px 20px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-top: 16px;
 }
 
 .checkboxLabel {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   font-size: 14px;
   color: #374151;
   cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.checkboxLabel:hover {
+  color: #1f2937;
 }
 
 .checkboxLabel input[type="checkbox"] {
   margin: 0;
   cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: #3b82f6;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.checkboxLabel input[type="checkbox"]:hover {
+  transform: scale(1.05);
+}
+
+.checkboxLabel input[type="checkbox"]:checked {
+  background-color: #3b82f6;
 }
 
 /* ================== QUALIFICATION TABLE ================== */

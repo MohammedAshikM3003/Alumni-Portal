@@ -87,7 +87,7 @@ const Admin_Dashboard = ( { onLogout } ) => {
               <div className={styles.cardBody}>
                 <div className={styles.donationTitle}>Latest Department Donation</div>
                 <div className={styles.donationAmount}>₹50,000</div>
-                <div className={styles.donationDept}>Computer Science Dept</div>
+                <div className={styles.donationDept}>Computer Science Department</div>
                 <div className={styles.donationTime}>Received 2 hours ago</div>
               </div>
               <button className={styles.cardActionPrimary} onClick={() => { navigate('/admin/donation_history') }} >View History</button>

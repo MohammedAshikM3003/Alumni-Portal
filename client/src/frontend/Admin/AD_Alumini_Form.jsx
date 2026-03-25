@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styles from './AD_Alumini_form.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { DateInput } from '../../components/Calendar';
@@ -54,6 +54,7 @@ const Admin_Alumini_Form = ({ onLogout }) => {
       pinCode: '',
       mobile: '',
     },
+    sameAsPermanent: false,
     hasCompetitiveExams: false,
     exams: {
       GRE: '',
@@ -95,6 +96,38 @@ const Admin_Alumini_Form = ({ onLogout }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState({ type: '', text: '' });
 
+  // Departments state for dynamic dropdowns
+  const [departments, setDepartments] = useState([]);
+
+  // Fetch departments for degree and branch dropdowns
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      if (!user?.token) return;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/departments`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.departments) {
+            setDepartments(data.departments);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+      }
+    };
+
+    fetchDepartments();
+  }, [user?.token]);
+
+  // Get unique streams (degrees) from departments
+  const uniqueStreams = [...new Set(departments.map(dept => dept.stream))];
+
   const endYear = formData.yearFrom ? parseInt(formData.yearFrom) + 4 : '';
 
   // Handle form field changes
@@ -135,6 +168,15 @@ const Admin_Alumini_Form = ({ onLogout }) => {
         ...prev.othersExam,
         [field]: value,
       },
+    }));
+  };
+
+  // Copy permanent address to present address
+  const handleCopyAddress = (checked) => {
+    setFormData(prev => ({
+      ...prev,
+      sameAsPermanent: checked,
+      presentAddress: checked ? { ...prev.permanentAddress } : prev.presentAddress
     }));
   };
 
@@ -580,13 +622,9 @@ const Admin_Alumini_Form = ({ onLogout }) => {
                     onChange={(e) => handleInputChange('degree', e.target.value)}
                   >
                     <option value="">Select Degree</option>
-                    <option value="B.E">B.E</option>
-                    <option value="B.Tech">B.Tech</option>
-                    <option value="M.E">M.E</option>
-                    <option value="M.Tech">M.Tech</option>
-                    <option value="MBA">MBA</option>
-                    <option value="MCA">MCA</option>
-                    <option value="Ph.D">Ph.D</option>
+                    {uniqueStreams.map((stream) => (
+                      <option key={stream} value={stream}>{stream}</option>
+                    ))}
                   </select>
                 </div>
                 <div className={styles.inputGroup}>
@@ -597,58 +635,18 @@ const Admin_Alumini_Form = ({ onLogout }) => {
                     onChange={(e) => handleInputChange('branch', e.target.value)}
                   >
                     <option value="">Select Course / Branch</option>
-                    <option value="Computer Science and Engineering">Computer Science and Engineering (CSE)</option>
-                    <option value="Information Technology">Information Technology (IT)</option>
-                    <option value="Electronics and Communication Engineering">Electronics and Communication Engineering (ECE)</option>
-                    <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering (EEE)</option>
-                    <option value="Mechanical Engineering">Mechanical Engineering (MECH)</option>
-                    <option value="Civil Engineering">Civil Engineering (CIVIL)</option>
-                    <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science (AIDS)</option>
+                    {departments
+                      .filter(dept => !formData.degree || dept.stream === formData.degree)
+                      .map((dept) => (
+                        <option key={dept._id} value={dept.branch}>
+                          {dept.branch} ({dept.deptCode})
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>
 
               <div className={`${styles.gridTwoCol} ${styles.addressSection}`}>
-                {/* Present Address */}
-                <div className={styles.addressBox}>
-                  <div className={styles.addressHeader}>
-                    <span className="material-symbols-outlined">location_on</span>
-                    <span>Present Address</span>
-                  </div>
-                  <div className={styles.addressFields}>
-                    <input
-                      type="text"
-                      className={styles.textInput}
-                      placeholder="Street Address"
-                      value={formData.presentAddress.street}
-                      onChange={(e) => handleNestedChange('presentAddress', 'street', e.target.value)}
-                    />
-                    <div className={styles.gridTwoColSmall}>
-                      <input
-                        type="text"
-                        className={styles.textInput}
-                        placeholder="City"
-                        value={formData.presentAddress.city}
-                        onChange={(e) => handleNestedChange('presentAddress', 'city', e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        className={styles.textInput}
-                        placeholder="PIN Code"
-                        value={formData.presentAddress.pinCode}
-                        onChange={(e) => handleNestedChange('presentAddress', 'pinCode', e.target.value)}
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      className={styles.textInput}
-                      placeholder="Mobile Number"
-                      value={formData.presentAddress.mobile}
-                      onChange={(e) => handleNestedChange('presentAddress', 'mobile', e.target.value)}
-                    />
-                  </div>
-                </div>
-
                 {/* Permanent Address */}
                 <div className={styles.addressBox}>
                   <div className={styles.addressHeader}>
@@ -685,6 +683,61 @@ const Admin_Alumini_Form = ({ onLogout }) => {
                       placeholder="Mobile Number"
                       value={formData.permanentAddress.mobile}
                       onChange={(e) => handleNestedChange('permanentAddress', 'mobile', e.target.value)}
+                    />
+                  </div>
+                  {/* Copy Address Checkbox */}
+                  <div className={styles.copyAddressWrapper}>
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        checked={formData.sameAsPermanent}
+                        onChange={(e) => handleCopyAddress(e.target.checked)}
+                      />
+                      <span>Copy permanent address to present address</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Present Address */}
+                <div className={styles.addressBox}>
+                  <div className={styles.addressHeader}>
+                    <span className="material-symbols-outlined">location_on</span>
+                    <span>Present Address</span>
+                  </div>
+                  <div className={styles.addressFields}>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Street Address"
+                      value={formData.presentAddress.street}
+                      onChange={(e) => handleNestedChange('presentAddress', 'street', e.target.value)}
+                      disabled={formData.sameAsPermanent}
+                    />
+                    <div className={styles.gridTwoColSmall}>
+                      <input
+                        type="text"
+                        className={styles.textInput}
+                        placeholder="City"
+                        value={formData.presentAddress.city}
+                        onChange={(e) => handleNestedChange('presentAddress', 'city', e.target.value)}
+                        disabled={formData.sameAsPermanent}
+                      />
+                      <input
+                        type="text"
+                        className={styles.textInput}
+                        placeholder="PIN Code"
+                        value={formData.presentAddress.pinCode}
+                        onChange={(e) => handleNestedChange('presentAddress', 'pinCode', e.target.value)}
+                        disabled={formData.sameAsPermanent}
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      placeholder="Mobile Number"
+                      value={formData.presentAddress.mobile}
+                      onChange={(e) => handleNestedChange('presentAddress', 'mobile', e.target.value)}
+                      disabled={formData.sameAsPermanent}
                     />
                   </div>
                 </div>

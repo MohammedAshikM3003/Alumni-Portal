@@ -91,6 +91,7 @@ const Admin_Department = ( { onLogout } ) => {
   const handleOpenModal = () => {
     setIsModalOpen(true);
     setFormData({ stream: '', branch: '', deptCode: '' });
+    setError(null);
   };
 
   const handleCloseModal = () => {
@@ -211,7 +212,7 @@ const Admin_Department = ( { onLogout } ) => {
                     <th>S.No</th>
                     <th>Stream</th>
                     <th>Branch Name</th>
-                    <th>Dept Code</th>
+                    <th>Department Code</th>
                     <th className={styles.textCenter}>Alumni Records</th>
                     <th className={styles.textCenter}>Actions</th>
                   </tr>
@@ -266,22 +267,29 @@ const Admin_Department = ( { onLogout } ) => {
             </div>
 
             <form onSubmit={handleSubmit} className={styles.modalForm}>
+              {error && (
+                <div className={styles.errorMessage} style={{
+                  color: '#dc2626',
+                  backgroundColor: '#fef2f2',
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  marginBottom: '16px',
+                  fontSize: '14px'
+                }}>
+                  {error}
+                </div>
+              )}
               <div className={styles.formGroup}>
                 <label>Stream</label>
-                <select
+                <input
+                  type="text"
                   name="stream"
                   value={formData.stream}
                   onChange={handleInputChange}
+                  placeholder="e.g. B.E, B.Tech, M.E, MBA, MCA"
                   required
                   className={styles.formInput}
-                >
-                  <option value="">Select Stream</option>
-                  <option value="B.E">B.E</option>
-                  <option value="B.Tech">B.Tech</option>
-                  <option value="M.E">M.E</option>
-                  <option value="MBA">MBA</option>
-                  <option value="MCA">MCA</option>
-                </select>
+                />
               </div>
 
               <div className={styles.formGroup}>

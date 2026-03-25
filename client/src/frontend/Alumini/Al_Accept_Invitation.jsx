@@ -561,57 +561,6 @@ export default function Al_Accept_Invitation() {
                   </div>
 
                   <div className={styles.addressGrid}>
-                    {/* Present Address */}
-                    <div className={styles.addressCard}>
-                      <h4 className={styles.addressCardTitle}>Present Address</h4>
-                      <div className={styles.addressInputs}>
-                        <div className={styles.inputGroup}>
-                          <label className={styles.inputLabel}>Street Address</label>
-                          <input
-                            type="text"
-                            className={styles.inputField}
-                            placeholder="Enter street address"
-                            value={formData.presentAddress.street}
-                            onChange={(e) => handleAddressChange('presentAddress', 'street', e.target.value)}
-                            disabled={loading || formData.sameAsPermanent}
-                          />
-                        </div>
-                        <div className={styles.inputGroup}>
-                          <label className={styles.inputLabel}>City</label>
-                          <input
-                            type="text"
-                            className={styles.inputField}
-                            placeholder="Enter city"
-                            value={formData.presentAddress.city}
-                            onChange={(e) => handleAddressChange('presentAddress', 'city', e.target.value)}
-                            disabled={loading || formData.sameAsPermanent}
-                          />
-                        </div>
-                        <div className={styles.inputGroup}>
-                          <label className={styles.inputLabel}>PIN Code</label>
-                          <input
-                            type="text"
-                            className={styles.inputField}
-                            placeholder="Enter PIN code"
-                            value={formData.presentAddress.pinCode}
-                            onChange={(e) => handleAddressChange('presentAddress', 'pinCode', e.target.value)}
-                            disabled={loading || formData.sameAsPermanent}
-                          />
-                        </div>
-                        <div className={styles.inputGroup}>
-                          <label className={styles.inputLabel}>Mobile</label>
-                          <input
-                            type="tel"
-                            className={styles.inputField}
-                            placeholder="Enter mobile number"
-                            value={formData.presentAddress.mobile}
-                            onChange={(e) => handleAddressChange('presentAddress', 'mobile', e.target.value)}
-                            disabled={loading || formData.sameAsPermanent}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Permanent Address */}
                     <div className={styles.addressCard}>
                       <h4 className={styles.addressCardTitle}>Permanent Address</h4>
@@ -658,6 +607,57 @@ export default function Al_Accept_Invitation() {
                             value={formData.permanentAddress.mobile}
                             onChange={(e) => handleAddressChange('permanentAddress', 'mobile', e.target.value)}
                             disabled={loading}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Present Address */}
+                    <div className={styles.addressCard}>
+                      <h4 className={styles.addressCardTitle}>Present Address</h4>
+                      <div className={styles.addressInputs}>
+                        <div className={styles.inputGroup}>
+                          <label className={styles.inputLabel}>Street Address</label>
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            placeholder="Enter street address"
+                            value={formData.presentAddress.street}
+                            onChange={(e) => handleAddressChange('presentAddress', 'street', e.target.value)}
+                            disabled={loading || formData.sameAsPermanent}
+                          />
+                        </div>
+                        <div className={styles.inputGroup}>
+                          <label className={styles.inputLabel}>City</label>
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            placeholder="Enter city"
+                            value={formData.presentAddress.city}
+                            onChange={(e) => handleAddressChange('presentAddress', 'city', e.target.value)}
+                            disabled={loading || formData.sameAsPermanent}
+                          />
+                        </div>
+                        <div className={styles.inputGroup}>
+                          <label className={styles.inputLabel}>PIN Code</label>
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            placeholder="Enter PIN code"
+                            value={formData.presentAddress.pinCode}
+                            onChange={(e) => handleAddressChange('presentAddress', 'pinCode', e.target.value)}
+                            disabled={loading || formData.sameAsPermanent}
+                          />
+                        </div>
+                        <div className={styles.inputGroup}>
+                          <label className={styles.inputLabel}>Mobile</label>
+                          <input
+                            type="tel"
+                            className={styles.inputField}
+                            placeholder="Enter mobile number"
+                            value={formData.presentAddress.mobile}
+                            onChange={(e) => handleAddressChange('presentAddress', 'mobile', e.target.value)}
+                            disabled={loading || formData.sameAsPermanent}
                           />
                         </div>
                       </div>

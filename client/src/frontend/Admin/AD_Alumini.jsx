@@ -26,8 +26,6 @@ const Admin_Alumini = ( { onLogout } ) => {
   // Search/Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [designationFilter, setDesignationFilter] = useState('');
-  const [locationFilter, setLocationFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
   const [batchFilter, setBatchFilter] = useState('');
 
   // Pagination states
@@ -82,19 +80,6 @@ const Admin_Alumini = ( { onLogout } ) => {
       );
     }
 
-    if (locationFilter) {
-      result = result.filter((a) =>
-        a.companyAddress?.toLowerCase().includes(locationFilter.toLowerCase()) ||
-        a.presentAddress?.toLowerCase().includes(locationFilter.toLowerCase())
-      );
-    }
-
-    if (typeFilter) {
-      result = result.filter((a) =>
-        a.placementType?.toLowerCase().includes(typeFilter.toLowerCase())
-      );
-    }
-
     if (batchFilter) {
       const [yearFrom, yearTo] = batchFilter.split('-');
       result = result.filter(
@@ -104,7 +89,7 @@ const Admin_Alumini = ( { onLogout } ) => {
 
     setFilteredData(result);
     setCurrentPage(1);
-  }, [searchTerm, designationFilter, locationFilter, typeFilter, batchFilter, alumniData]);
+  }, [searchTerm, designationFilter, batchFilter, alumniData]);
 
   // Get badge class based on placement type
   const getBadgeClass = (type) => {
@@ -163,22 +148,6 @@ const Admin_Alumini = ( { onLogout } ) => {
                   placeholder="Search by Designation"
                   value={designationFilter}
                   onChange={(e) => setDesignationFilter(e.target.value)}
-                />
-                <input
-                  type="text"
-                  className={styles.filterInput}
-                  placeholder="Search by Location"
-                  value={locationFilter}
-                  onChange={(e) => setLocationFilter(e.target.value)}
-                />
-              </div>
-              <div className={styles.filterGridRow}>
-                <input
-                  type="text"
-                  className={styles.filterInput}
-                  placeholder="Search by Type"
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
                 />
                 <select
                   className={styles.filterSelect}

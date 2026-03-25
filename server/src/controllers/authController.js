@@ -46,7 +46,7 @@ export const login = async (req, res) => {
         const { default: Coordinator } = await import('../models/coordinator.js');
         const coordinator = await Coordinator.findOne({ userId: user._id });
         if (coordinator) {
-          userResponse.department = coordinator.department; // This will be "CSE", "ECE", etc.
+          userResponse.department = coordinator.department; // Full branch name e.g., "Computer Science and Engineering"
           userResponse.designation = coordinator.designation;
           userResponse.staffId = coordinator.staffId;
         }
@@ -113,7 +113,7 @@ export const googleLogin = async (req, res) => {
         const { default: Coordinator } = await import('../models/coordinator.js');
         const coordinator = await Coordinator.findOne({ userId: user._id });
         if (coordinator) {
-          userResponse.department = coordinator.department; // This will be "CSE", "ECE", etc.
+          userResponse.department = coordinator.department; // Full branch name e.g., "Computer Science and Engineering"
           userResponse.designation = coordinator.designation;
           userResponse.staffId = coordinator.staffId;
         }

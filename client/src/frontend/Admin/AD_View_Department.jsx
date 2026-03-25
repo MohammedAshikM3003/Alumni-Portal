@@ -135,7 +135,7 @@ const Admin_View_Department = ( { onLogout } ) => {
   };
 
   const handleDeleteDepartment = async () => {
-    if (!window.confirm('Are you sure you want to delete this department? This action cannot be undone.')) {
+    if (!window.confirm('Are you sure you want to delete this department?\n\nWARNING: All faculty members in this department will also be deleted and their accounts will be removed. This action cannot be undone.')) {
       return;
     }
 
@@ -163,7 +163,7 @@ const Admin_View_Department = ( { onLogout } ) => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        alert('Department deleted successfully!');
+        alert(data.message || 'Department deleted successfully!');
         navigate('/admin/department');
       } else {
         setError(data.message || 'Failed to delete department');

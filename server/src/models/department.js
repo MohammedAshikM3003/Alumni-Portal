@@ -4,8 +4,7 @@ const departmentSchema = new Schema({
   stream: {
     type: String,
     required: true,
-    trim: true,
-    enum: ['B.E', 'B.Tech', 'M.E', 'MBA', 'MCA']
+    trim: true
   },
   branch: {
     type: String,
