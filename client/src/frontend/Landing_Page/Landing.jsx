@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import styles from './Landing.module.css';
 import NavBar from '../../components/Navbar/NavBar';
+import collegeLogoSvg from '../../assets/KSR_College_Banner.svg';
 
 export default function Landing() {
 
@@ -269,10 +270,10 @@ export default function Landing() {
         <div className={styles.containerStandard}>
           <div className={styles.footerGrid}>
             <div className={styles.footerBrand}>
-              <img 
-                alt="Logo" 
+              <img
+                alt="Logo"
                 className={styles.footerLogo}
-                src="src/assets/KSR_College_Banner.svg"
+                src={collegeLogoSvg}
               />
               <p className={styles.footerDescription}>
                 Building a bridge between our glorious past and an innovative future. K.S.R. College of Engineering Alumni Association.
