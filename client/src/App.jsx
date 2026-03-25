@@ -1,5 +1,5 @@
 import './App.css'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/authContext/authContext';
 import LandingPage from './frontend/Landing_Page/Landing';
 import LoginGateway from './frontend/Auth/LoginGateway';
@@ -23,7 +23,6 @@ import Alumini_Profile from './frontend/Alumini/Al_Profile';
 
 // Admin Imports
 import Admin_Mail from './frontend/Admin/AD_Mail';
-import Admin_CreateMail from './frontend/Admin/AD_CreateMail';
 import Admin_Draft_History from './frontend/Admin/AD_Draft_History';
 import Admin_Draft from './frontend/Admin/AD_Draft';
 import Admin_Job_and_Reference from './frontend/Admin/AD_Job_and_Reference';
@@ -41,6 +40,7 @@ import Admin_Alumini_Form from './frontend/Admin/AD_Alumini_Form';
 import Admin_Dashboard from './frontend/Admin/AD_Dashboard';
 import Admin_ViewMail from './frontend/Admin/AD_ViewMail';
 import Admin_Profile from './frontend/Admin/AD_Profile';
+import Admin_BroadcastMessage from './frontend/Admin/AD_BroadcastMessage';
 
 // Co-Oridinator Imports
 import Coordinator_Dashboard from './frontend/Coordinator/Co_Dashboard';
@@ -61,6 +61,20 @@ import Admin_View_Department from './frontend/Admin/AD_View_Department';
 import Admin_View_Faculty from './frontend/Admin/AD_View_Faculty';
 import Admin_Add_Faculty from './frontend/Admin/AD_Add_Faculty';
 import Admin_Edit_Faculty from './frontend/Admin/AD_Edit_Faculty';
+
+// Token-based Components (No authentication required)
+import TokenAuthProvider from './context/tokenAuthContext/tokenAuthContext';
+import Al_Accept_Invitation from './frontend/Alumini/Al_Accept_Invitation';
+import Al_Reject_Invitation from './frontend/Alumini/Al_Reject_Invitation';
+
+// Token Auth Layout - wraps all token-based routes
+function TokenAuthLayout() {
+  return (
+    <TokenAuthProvider>
+      <Outlet />
+    </TokenAuthProvider>
+  );
+}
 
 function App() {
   const { user, isLoggedIn, logout, loading } = useAuth();
@@ -103,9 +117,19 @@ function App() {
         <Route 
           path="/send-otp" 
           element={isLoggedIn ? <Navigate to={getDashboardPath()} replace /> : <SendOtp />} />
-        <Route 
-          path="/update-password" 
+        <Route
+          path="/update-password"
           element={isLoggedIn ? <Navigate to={getDashboardPath()} replace /> : <UpdatePassword />} />
+
+{/* Token-based Mail Access Routes - NO AUTHENTICATION REQUIRED */}
+        <Route element={<TokenAuthLayout />}>
+          <Route
+            path="/mail/token/:token/accept"
+            element={<Al_Accept_Invitation />} />
+          <Route
+            path="/mail/token/:token/reject"
+            element={<Al_Reject_Invitation />} />
+        </Route>
 
 
 {/* Alumini Routes */}
@@ -185,8 +209,8 @@ function App() {
           element={guard('admin', <Admin_Mail onLogout={logout} />)}
         />
         <Route
-          path="/admin/mail/create_mail"
-          element={guard('admin', <Admin_CreateMail onLogout={logout} />)}
+          path="/admin/mail/broadcast_message"
+          element={guard('admin', <Admin_BroadcastMessage onLogout={logout} adminName={user?.name} adminEmail={user?.email} />)}
         />
         <Route
           path="/admin/mail/view_mail"
@@ -232,6 +256,7 @@ function App() {
           path="/admin/department/edit_faculty/:id"
           element={guard('admin', <Admin_Edit_Faculty onLogout={logout} />)}
         />
+
 
 
 

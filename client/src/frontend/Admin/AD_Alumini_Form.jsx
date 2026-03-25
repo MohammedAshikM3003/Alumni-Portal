@@ -597,13 +597,13 @@ const Admin_Alumini_Form = ({ onLogout }) => {
                     onChange={(e) => handleInputChange('branch', e.target.value)}
                   >
                     <option value="">Select Course / Branch</option>
-                    <option value="CSE">Computer Science and Engineering (CSE)</option>
-                    <option value="IT">Information Technology (IT)</option>
-                    <option value="ECE">Electronics and Communication Engineering (ECE)</option>
-                    <option value="EEE">Electrical and Electronics Engineering (EEE)</option>
-                    <option value="MECH">Mechanical Engineering (MECH)</option>
-                    <option value="CIVIL">Civil Engineering (CIVIL)</option>
-                    <option value="AIDS">Artificial Intelligence and Data Science (AIDS)</option>
+                    <option value="Computer Science and Engineering">Computer Science and Engineering (CSE)</option>
+                    <option value="Information Technology">Information Technology (IT)</option>
+                    <option value="Electronics and Communication Engineering">Electronics and Communication Engineering (ECE)</option>
+                    <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering (EEE)</option>
+                    <option value="Mechanical Engineering">Mechanical Engineering (MECH)</option>
+                    <option value="Civil Engineering">Civil Engineering (CIVIL)</option>
+                    <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science (AIDS)</option>
                   </select>
                 </div>
               </div>

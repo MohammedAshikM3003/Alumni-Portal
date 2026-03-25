@@ -7,6 +7,13 @@ import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+// Helper function to format address object to string
+const formatAddress = (address) => {
+  if (!address || typeof address !== 'object') return '-';
+  const parts = [address.street, address.city, address.pinCode].filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : '-';
+};
+
 const Admin_Alumini = ( { onLogout } ) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -236,7 +243,7 @@ const Admin_Alumini = ( { onLogout } ) => {
                             <td className={styles.fontSemibold}>{row.name}</td>
                             <td>{row.designation || '-'}</td>
                             <td className={styles.fontMono}>{row.yearFrom}-{row.yearTo}</td>
-                            <td>{row.companyAddress || row.presentAddress || '-'}</td>
+                            <td>{formatAddress(row.companyAddress || row.presentAddress)}</td>
                             <td className={styles.textCenter}>
                               <span className={`${styles.badge} ${getBadgeClass(row.placementType)}`}>
                                 {row.placementType || 'N/A'}

@@ -202,3 +202,68 @@
 .viewBtn .material-symbols-outlined {
   font-size: 1.25rem;
 }
+
+.dateText {
+  font-size: 0.875rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.loadingState p {
+  margin-top: 1rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid #e2e8f0;
+  border-top-color: #228B22;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.emptyState .material-symbols-outlined {
+  font-size: 4rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.emptyState p {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.emptyState small {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}

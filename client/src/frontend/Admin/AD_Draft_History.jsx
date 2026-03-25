@@ -1,148 +1,129 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './AD_Draft_History.module.css';
 
-const Admin_Draft_History = ( {onLogout} ) => {
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+const Admin_Draft_History = ({ onLogout }) => {
   const navigate = useNavigate();
+  const [drafts, setDrafts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Drafts list data
-  const drafts = [
-    {
-      id: 1,
-      recipient: 'Dr. Arul Kumar',
-      icon: 'person',
-      iconStyle: 'slate',
-      subject: 'Guest Lecture Invitation - Dept of IT',
-      snippet: 'Dear Dr. Arul, We would like to formally invite you to share your expertise...',
-      date: '2 hours ago',
-      faded: false,
-    },
-    {
-      id: 2,
-      recipient: 'Batch of 2015',
-      icon: 'groups',
-      iconStyle: 'primary',
-      subject: 'Annual Meetup Coordination',
-      snippet: "Hi everyone, looking forward to our 10-year reunion next year. Let's start...",
-      date: 'Yesterday',
-      faded: false,
-    },
-    {
-      id: 3,
-      recipient: 'Placement Cell',
-      icon: 'domain',
-      iconStyle: 'slate',
-      subject: 'Internship Opportunities for Juniors',
-      snippet: 'I am writing to share a few internship openings at my current firm that would...',
-      date: 'Oct 24, 2023',
-      faded: false,
-    },
-    {
-      id: 4,
-      recipient: 'Prof. Sundaram',
-      icon: 'person',
-      iconStyle: 'slate',
-      subject: 'Project Review Documents',
-      snippet: 'Sending over the final documentation for the research project we discussed...',
-      date: 'Oct 20, 2023',
-      faded: true,
-    },
-    {
-      id: 5,
-      recipient: 'Dr. Arul Kumar',
-      icon: 'person',
-      iconStyle: 'slate',
-      subject: 'Guest Lecture Invitation - Dept of IT',
-      snippet: 'Dear Dr. Arul, We would like to formally invite you to share your expertise...',
-      date: '2 hours ago',
-      faded: false,
-    },
-    {
-      id: 6,
-      recipient: 'Batch of 2015',
-      icon: 'groups',
-      iconStyle: 'primary',
-      subject: 'Annual Meetup Coordination',
-      snippet: "Hi everyone, looking forward to our 10-year reunion next year. Let's start...",
-      date: 'Yesterday',
-      faded: false,
-    },
-    {
-      id: 7,
-      recipient: 'Placement Cell',
-      icon: 'domain',
-      iconStyle: 'slate',
-      subject: 'Internship Opportunities for Juniors',
-      snippet: 'I am writing to share a few internship openings at my current firm that would...',
-      date: 'Oct 24, 2023',
-      faded: false,
-    },
-    {
-      id: 8,
-      recipient: 'Prof. Sundaram',
-      icon: 'person',
-      iconStyle: 'slate',
-      subject: 'Project Review Documents',
-      snippet: 'Sending over the final documentation for the research project we discussed...',
-      date: 'Oct 20, 2023',
-      faded: true,
-    },
-  ];
+  useEffect(() => {
+    fetchDrafts();
+  }, []);
+
+  const fetchDrafts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/drafts/all`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setDrafts(data.drafts);
+      }
+    } catch (err) {
+      console.error('Error fetching drafts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffHours < 1) {
+      return 'Just now';
+    } else if (diffHours < 24) {
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+  };
+
+  const getIconStyle = (index) => {
+    return index % 2 === 0 ? 'slate' : 'primary';
+  };
 
   return (
     <div className={styles.pageLayout}>
-      {/* Sidebar */}
       <Sidebar onLogout={onLogout} currentView={'mail'} />
 
-
-      {/* Main Content Area */}
       <main className={styles.mainContent}>
-        {/* Back Button */}
-          <div className={styles.backButton} onClick={() => navigate('/admin/mail')} >
-            <span className="material-symbols-outlined">arrow_back</span>
-            <span>Back</span>
-          </div>
+        <div className={styles.backButton} onClick={() => navigate('/admin/mail')}>
+          <span className="material-symbols-outlined">arrow_back</span>
+          <span>Back</span>
+        </div>
         <div className={styles.contentWrapper}>
-        
-
-          {/* Drafts List Header */}
           <div className={styles.listHeader}>
             <div className={styles.colRecipient}>Recipient</div>
             <div className={styles.colSubject}>Subject Line</div>
             <div className={styles.colDate}>Last Saved</div>
           </div>
 
-          {/* Drafts List */}
-          <div className={styles.draftsList}>
-            {drafts.map((draft) => (
-              <div 
-                key={draft.id} 
-                className={`${styles.draftCard} ${draft.faded ? styles.fadedCard : ''}`}
-              >
-                <div className={styles.colRecipient}>
-                  <div className={`${styles.avatar} ${draft.iconStyle === 'primary' ? styles.avatarPrimary : styles.avatarSlate}`}>
-                    <span className="material-symbols-outlined">{draft.icon}</span>
+          {loading ? (
+            <div className={styles.loadingState}>
+              <div className={styles.spinner}></div>
+              <p>Loading drafts...</p>
+            </div>
+          ) : drafts.length === 0 ? (
+            <div className={styles.emptyState}>
+              <span className="material-symbols-outlined">drafts</span>
+              <p>No drafts yet</p>
+              <small>Saved drafts will appear here</small>
+            </div>
+          ) : (
+            <div className={styles.draftsList}>
+              {drafts.map((draft, index) => (
+                <div
+                  key={draft._id}
+                  className={styles.draftCard}
+                >
+                  <div className={styles.colRecipient}>
+                    <div className={`${styles.avatar} ${getIconStyle(index) === 'primary' ? styles.avatarPrimary : styles.avatarSlate}`}>
+                      <span className="material-symbols-outlined">person</span>
+                    </div>
+                    <span className={styles.recipientName}>{draft.recipientName || 'No recipient'}</span>
                   </div>
-                  <span className={styles.recipientName}>{draft.recipient}</span>
-                </div>
-                
-                <div className={styles.colSubject}>
-                  <p className={styles.subjectTitle}>{draft.subject}</p>
-                  <p className={styles.snippetText}>{draft.snippet}</p>
-                </div>
-                
-                <div className={styles.colDate}>
-                  <div className={styles.actionGroup}>
-                    <button className={styles.viewBtn} title="View" onClick={() => { navigate('/admin/mail/draft') }} >
-                      <span>View</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
 
+                  <div className={styles.colSubject}>
+                    <p className={styles.subjectTitle}>{draft.title || 'No subject'}</p>
+                    <p className={styles.snippetText}>
+                      {draft.content
+                        ? draft.content.length > 80
+                          ? draft.content.substring(0, 80) + '...'
+                          : draft.content
+                        : 'No content'}
+                    </p>
+                  </div>
+
+                  <div className={styles.colDate}>
+                    <div className={styles.actionGroup}>
+                      <span className={styles.dateText}>{formatDate(draft.updatedAt)}</span>
+                      <button
+                        className={styles.viewBtn}
+                        title="View"
+                        onClick={() => navigate('/admin/mail/draft', { state: { draftId: draft._id } })}
+                      >
+                        <span>View</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>

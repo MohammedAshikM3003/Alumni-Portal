@@ -1,29 +1,70 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './Al_ViewMail.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const Alumini_ViewMail = ({ onLogout }) => {
+  const [mailData, setMailData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const [showDeclinePopup, setShowDeclinePopup] = useState(false);
-  const [declineReason, setDeclineReason] = useState('');
+  const location = useLocation();
 
-  const handleOpenDeclinePopup = () => {
-    setShowDeclinePopup(true);
-  };
+  const mailId = location.state?.mailId;
+  const passedMailData = location.state?.mailData;
 
-  const handleCloseDeclinePopup = () => {
-    setShowDeclinePopup(false);
-    setDeclineReason('');
-  };
-
-  const handleSendDecline = () => {
-    if (!declineReason.trim()) {
-      return;
+  useEffect(() => {
+    if (passedMailData) {
+      setMailData(passedMailData);
+      setLoading(false);
+    } else if (mailId) {
+      fetchMailDetails();
+    } else {
+      setLoading(false);
     }
+  }, [mailId, passedMailData]);
 
-    setShowDeclinePopup(false);
-    setDeclineReason('');
+  const fetchMailDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/mail/${mailId}`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setMailData(data.mail);
+      }
+    } catch (err) {
+      console.error('Error fetching mail:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No date';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'accept':
+        return '#22c55e'; // Green
+      case 'reject':
+        return '#ef4444'; // Red
+      case 'pending':
+      default:
+        return '#6b7280'; // Grey
+    }
   };
 
   return (
@@ -42,129 +83,176 @@ const Alumini_ViewMail = ({ onLogout }) => {
               <span>Back</span>
             </div>
 
-            {/* Mail Card */}
-            <div className={styles.mailCard}>
-              {/* Card Header Meta */}
-              <div className={styles.cardHeader}>
-                <div className={styles.headerLeft}>
-                  <div className={styles.iconBox}>
-                    <span className="material-symbols-outlined">corporate_fare</span>
-                  </div>
-                  <div className={styles.senderInfo}>
-                    <h2>Alumni Office</h2>
-                    <p>OFFICIAL COMMUNICATION</p>
-                  </div>
-                </div>
-                <div className={styles.headerRight}>
-                  <p>Oct 24, 2023</p>
-                  <p>09:12 AM</p>
-                </div>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF3D00] mb-4"></div>
+                <p className="text-slate-500">Loading mail details...</p>
               </div>
-
-              {/* Mail Body and PDF Container */}
-              <div className={styles.contentWithPdf}>
-                {/* Mail Subject & Body */}
-                <div className={styles.mailBody}>
-                  <h3 className={styles.mailSubject}>
-                    Invitation: Virtual Networking Session for Technology Professionals
-                  </h3>
-                  <div className={styles.mailContent}>
-                    <p>Dear Rahul,</p>
-                    <p>
-                      We are excited to invite you to our upcoming <strong>Virtual Networking Session</strong>. 
-                      This event is specifically designed for technology professionals to connect, share insights, 
-                      and explore new opportunities within our global alumni network.
-                    </p>
-                    <p>
-                      The technology landscape is evolving faster than ever. Whether you're working in AI, 
-                      Software Development, Cloud Architecture, or Cybersecurity, this session will provide 
-                      a platform to engage with fellow pioneers from KSRCE who are shaping the industry worldwide.
-                    </p>
-                    <div className={styles.eventDetails}>
-                      <h4>
-                        <span className="material-symbols-outlined">event</span> Event Details
-                      </h4>
-                      <ul>
-                        <li><span>Date:</span> Saturday, November 12, 2023</li>
-                        <li><span>Time:</span> 6:00 PM - 7:30 PM IST</li>
-                        <li><span>Platform:</span> Zoom Virtual Meeting</li>
-                      </ul>
+            ) : mailData ? (
+              <div className={styles.mailCard}>
+                {/* Card Header Meta */}
+                <div className={styles.cardHeader}>
+                  <div className={styles.headerLeft}>
+                    <div className={styles.iconBox}>
+                      <span className="material-symbols-outlined">corporate_fare</span>
                     </div>
-                    <p>
-                      We look forward to your participation and the valuable perspective you bring to our community. 
-                      Together, we can strengthen the KSRCE legacy of excellence.
-                    </p>
-                    <p>
-                      Best regards,<br />
-                      <span className={styles.signature}>The Alumni Relations Team</span>
-                    </p>
+                    <div className={styles.senderInfo}>
+                      <h2>{mailData.senderName}</h2>
+                      <p>{mailData.isBroadcast ? 'BROADCAST COMMUNICATION' : 'OFFICIAL COMMUNICATION'}</p>
+                    </div>
+                  </div>
+                  <div className={styles.headerRight}>
+                    <p>{formatDate(mailData.createdAt)}</p>
                   </div>
                 </div>
 
-                {/* PDF Preview Section - Right Side */}
-                <div className={styles.pdfSection}>
-                  <div className={styles.pdfHeader}>
-                    <div className={styles.pdfInfo}>
-                      <span className="material-symbols-outlined">description</span>
-                      <div>
-                        <p className={styles.pdfTitle}>Event_Brochure.pdf</p>
-                        <p className={styles.pdfSize}>2.4 MB • PDF Document</p>
+                {/* Mail Body and PDF Container */}
+                <div className={styles.contentWithPdf}>
+                  {/* Mail Subject & Body */}
+                  <div className={styles.mailBody}>
+                    <h3 className={styles.mailSubject}>
+                      {mailData.title || 'No Subject'}
+                    </h3>
+                    <div className={styles.mailContent}>
+                      <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                        {mailData.content}
+                      </div>
+                      <br />
+                      <p>
+                        Best regards,<br />
+                        <span className={styles.signature}>{mailData.senderName}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* PDF Preview Section - Right Side (Placeholder for now) */}
+                  <div className={styles.pdfSection}>
+                    <div className={styles.pdfHeader}>
+                      <div className={styles.pdfInfo}>
+                        <span className="material-symbols-outlined">description</span>
+                        <div>
+                          <p className={styles.pdfTitle}>Attachment.pdf</p>
+                          <p className={styles.pdfSize}>No attachment available</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.pdfPreview}>
+                      <div className={styles.pdfPlaceholder}>
+                        <span className="material-symbols-outlined">picture_as_pdf</span>
+                        <p>No PDF Attachment</p>
+                        <span className={styles.pdfText}>No files attached</span>
                       </div>
                     </div>
                   </div>
-                  <div className={styles.pdfPreview}>
-                    <div className={styles.pdfPlaceholder}>
-                      <span className="material-symbols-outlined">picture_as_pdf</span>
-                      <p>PDF Preview</p>
-                      <span className={styles.pdfText}>Event_Brochure.pdf</span>
-                    </div>
-                  </div>
-                  <div className={styles.pdfDownloadContainer}>
-                    <button className={styles.downloadButton}>
-                      <span className="material-symbols-outlined">download</span>
-                      Download PDF
-                    </button>
+                </div>
+
+
+                {/* Mail Stats */}
+                <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: '600' }}>Mail Information</h4>
+                  <div style={{ fontSize: '12px', color: '#666' }}>
+                    <p><strong>Sender Email:</strong> {mailData.senderEmail}</p>
+                    <p><strong>Recipients:</strong> {mailData.recipientCount} recipient{mailData.recipientCount > 1 ? 's' : ''}</p>
+                    <p><strong>Type:</strong> {mailData.isBroadcast ? 'Broadcast Mail' : 'Direct Mail'}</p>
+                    <p><strong>Sent:</strong> {formatDate(mailData.createdAt)}</p>
+                    <p><strong>Status:</strong>
+                      <span style={{
+                        marginLeft: '5px',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        backgroundColor: getStatusColor(mailData.responseStatus),
+                        color: 'white'
+                      }}>
+                        {mailData.responseStatus || 'pending'}
+                      </span>
+                    </p>
                   </div>
                 </div>
-              </div>
 
-              {/* Action Footer */}
-              <div className={styles.actionFooter}>
-                <button className={styles.declineButton} onClick={handleOpenDeclinePopup}>
-                  Decline
-                </button>
-                <button className={styles.acceptButton} onClick={() => {navigate('/alumini/mail/viewmail/acceptmail')}}>
-                  Accept Invitation
-                </button>
+                {/* Response Details Section */}
+                {mailData.responseStatus === 'accept' && mailData.responseData && (
+                  <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f0f9f0', borderRadius: '8px', border: '1px solid #22c55e' }}>
+                    <h4 style={{ margin: '0 0 15px 0', fontSize: '14px', fontWeight: '600', color: '#22c55e' }}>
+                      ✅ Accepted - Your Response
+                    </h4>
+                    <div style={{ fontSize: '12px', color: '#166534' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                        {mailData.responseData.fullName && (
+                          <p><strong>Full Name:</strong> {mailData.responseData.fullName}</p>
+                        )}
+                        {mailData.responseData.designation && (
+                          <p><strong>Designation:</strong> {mailData.responseData.designation}</p>
+                        )}
+                        {mailData.responseData.companyName && (
+                          <p><strong>Company:</strong> {mailData.responseData.companyName}</p>
+                        )}
+                        {mailData.responseData.mobileNo && (
+                          <p><strong>Mobile:</strong> {mailData.responseData.mobileNo}</p>
+                        )}
+                        {mailData.responseData.personalEmail && (
+                          <p><strong>Personal Email:</strong> {mailData.responseData.personalEmail}</p>
+                        )}
+                        {mailData.responseData.officialEmail && (
+                          <p><strong>Official Email:</strong> {mailData.responseData.officialEmail}</p>
+                        )}
+                        {mailData.responseData.location && (
+                          <p><strong>Location:</strong> {mailData.responseData.location}</p>
+                        )}
+                      </div>
+                      {mailData.submittedAt && (
+                        <p style={{ marginTop: '10px', fontStyle: 'italic' }}>
+                          <strong>Submitted:</strong> {formatDate(mailData.submittedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {mailData.responseStatus === 'reject' && mailData.responseData && (
+                  <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #ef4444' }}>
+                    <h4 style={{ margin: '0 0 15px 0', fontSize: '14px', fontWeight: '600', color: '#ef4444' }}>
+                      ❌ Declined - Your Response
+                    </h4>
+                    <div style={{ fontSize: '12px', color: '#991b1b' }}>
+                      {mailData.responseData.rejectionReason ? (
+                        <div>
+                          <p><strong>Reason:</strong></p>
+                          <p style={{
+                            marginTop: '5px',
+                            padding: '8px',
+                            backgroundColor: '#fee2e2',
+                            borderRadius: '4px',
+                            fontStyle: 'italic'
+                          }}>
+                            "{mailData.responseData.rejectionReason}"
+                          </p>
+                        </div>
+                      ) : (
+                        <p style={{ fontStyle: 'italic' }}>No reason provided</p>
+                      )}
+                      {mailData.submittedAt && (
+                        <p style={{ marginTop: '10px', fontStyle: 'italic' }}>
+                          <strong>Submitted:</strong> {formatDate(mailData.submittedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16">
+                <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">mail</span>
+                <h3 className="text-lg font-semibold text-slate-600 mb-2">No Mail Selected</h3>
+                <p className="text-slate-500">Please select a mail from the mail history to view details.</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
 
-      {showDeclinePopup && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalCard}>
-            <h3 className={styles.modalTitle}>Reason for Declining</h3>
-            <p className={styles.modalText}>Please provide a reason before sending your response.</p>
-            <textarea
-              className={styles.reasonTextarea}
-              rows="4"
-              placeholder="Enter your reason here"
-              value={declineReason}
-              onChange={(e) => setDeclineReason(e.target.value)}
-            />
-            <div className={styles.modalActions}>
-              <button className={styles.cancelButton} onClick={handleCloseDeclinePopup}>
-                Cancel
-              </button>
-              <button className={styles.sendButton} onClick={handleSendDecline}>
-                Send
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,165 +1,118 @@
-
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Components/Sidebar/Sidebar";
 import styles from "./AD_Mail.module.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const MailData = [
-  {
-    id: 1,
-    type: "new",
-    sender: "New mail",
-    subject: "New Mail Card",
-    message: "Click to compose a new message to alumni members",
-    time: "",
-    buttonClass: "new",
-  },
-  {
-    id: 2,
-    sender: "Alumni Office",
-    subject: "Invitation",
-    message: "Invitation: Virtual Networking Session for Technology Professionals scheduled for next Friday. Register via the link.",
-    time: "09:12 AM",
-    buttonClass: "green-solid",
-  },
-  {
-    id: 3,
-    sender: "Admin Portal",
-    subject: "Verification",
-    message: "Your profile verification has been completed successfully. Welcome to the official KSRCE network.",
-    time: "Oct 24",
-    buttonClass: "red-solid",
-  },
-  {
-    id: 4,
-    sender: "Placement Cell",
-    subject: "Guidelines",
-    message: "New Internship guidelines for alumni-led startups are now available for download.",
-    time: "Oct 20",
-    buttonClass: "grey-outline",
-  },
-  {
-    id: 5,
-    sender: "Career Cell",
-    subject: "Job Openings",
-    message: "Exciting news! We have three new SDE-1 openings at top product firms specifically looking for our alumni.",
-    time: "Oct 18",
-    buttonClass: "green-outline",
-  },
-  {
-    id: 6,
-    sender: "Events Team",
-    subject: "Reunion",
-    message: "Early bird registration for Grand Reunion 2024 is now open. Book your tickets before Nov 1st.",
-    time: "Oct 15",
-    buttonClass: "red-outline",
-  },
-  {
-    id: 7,
-    sender: "Scholarship Board",
-    subject: "Scholarship",
-    message: "Applications for the Merit Scholarship 2025 are now being accepted. Refer potential candidates.",
-    time: "Oct 12",
-    buttonClass: "grey-outline",
-  },
-  {
-    id: 8,
-    sender: "Library Admin",
-    subject: "Library Access",
-    message: "Alumni access to digital library archives has been extended for another year.",
-    time: "Oct 10",
-    buttonClass: "green-solid",
-  },
-  {
-    id: 9,
-    sender: "Tech Support",
-    subject: "Maintenance",
-    message: "Maintenance notice: The alumni portal will be undergoing scheduled updates this Sunday.",
-    time: "Oct 05",
-    buttonClass: "red-solid",
-  },
-  {
-    id: 10,
-    sender: "Alumni Survey",
-    subject: "Survey",
-    message: "Help us improve! Please fill out the 5-minute career growth survey.",
-    time: "Sep 28",
-    buttonClass: "grey-outline",
-  },
-  {
-    id: 11,
-    sender: "Sports Dept",
-    subject: "Cricket Match",
-    message: "Invitation: Annual Alumni vs Students Cricket Match this Sunday at the Main Ground.",
-    time: "Sep 25",
-    buttonClass: "green-outline",
-  },
-  {
-    id: 12,
-    sender: "Chapter Meet",
-    subject: "Dinner Meet",
-    message: "The Bangalore Chapter is hosting a dinner meet at Indiranagar this Friday. RSVP now.",
-    time: "Sep 20",
-    buttonClass: "red-outline",
-  },
-  {
-    id: 13,
-    sender: "Health & Wellness",
-    subject: "Yoga Retreat",
-    message: "Join the Alumni Yoga Retreat this weekend. Limited spots available.",
-    time: "Sep 15",
-    buttonClass: "grey-outline",
-  },
-  {
-    id: 14,
-    sender: "Career Mentorship",
-    subject: "Mentorship",
-    message: "Final call for mentor applications for the 2024-25 academic year mentoring program.",
-    time: "Sep 10",
-    buttonClass: "green-solid",
-  },
-  {
-    id: 15,
-    sender: "Notice Board",
-    subject: "Archive",
-    message: "Archive updates: Old graduation photos are being digitized for the portal gallery.",
-    time: "Sep 05",
-    buttonClass: "red-solid",
-  },
-];
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function Admin_Mail({ onLogout }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [mailData, setMailData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [draftCount, setDraftCount] = useState(0);
   const navigate = useNavigate();
+
+  // Fetch sent messages and draft count from backend
+  useEffect(() => {
+    fetchSentMessages();
+    fetchDraftCount();
+  }, []);
+
+  const fetchSentMessages = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${API_BASE_URL}/api/mail/all`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMailData(data.mails);
+      }
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDraftCount = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/drafts/count`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setDraftCount(data.count);
+      }
+    } catch (err) {
+      console.error('Error fetching draft count:', err);
+    }
+  };
 
   const handleRefresh = () => {
     setSearchQuery("");
+    fetchSentMessages();
+    fetchDraftCount();
   };
 
-  const getButtonClass = (buttonClass) => {
-    const classMap = {
-      "grey-solid": styles.btnViewGreySolid,
-      "grey-outline": styles.btnViewGreyOutline,
-      "green-solid": styles.btnViewGreenSolid,
-      "green-outline": styles.btnViewGreenOutline,
-      "red-solid": styles.btnViewRedSolid,
-      "red-outline": styles.btnViewRedOutline,
-    };
-    return classMap[buttonClass] || "";
+  // Format date to display like original mock data
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    } else if (diffDays < 7) {
+      return date.toLocaleDateString('en-US', { weekday: 'short' });
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
   };
 
-  const getCardBorderClass = (index) => {
-    const remainder = (index + 1) % 3;
-    if (remainder === 1) return styles.borderGrey;
-    if (remainder === 2) return styles.borderGreen;
-    return styles.borderRed;
+  const getButtonClassByStatus = (dominantStatus) => {
+    switch (dominantStatus) {
+      case 'accept':
+        return styles.btnViewGreenOutline;
+      case 'reject':
+        return styles.btnViewRedOutline;
+      case 'pending':
+      default:
+        return styles.btnViewGreyOutline;
+    }
   };
+
+  const getCardBorderByStatus = (dominantStatus) => {
+    switch (dominantStatus) {
+      case 'accept':
+        return styles.borderGreen;
+      case 'reject':
+        return styles.borderRed;
+      case 'pending':
+      default:
+        return styles.borderGrey;
+    }
+  };
+
+  // Filter messages based on search query
+  const filteredMails = mailData.filter(mail =>
+    mail.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    mail.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    mail.senderName?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className={styles.bodyContainer}>
         {/* Sidebar Component */}
         <Sidebar onLogout={onLogout} currentView={'mail'} />
-      
+
       <main className={styles.mainContent}>
         <div className={styles.contentWrapper}>
           <div className={styles.headerSection}>
@@ -172,7 +125,7 @@ export default function Admin_Mail({ onLogout }) {
                 <button className={styles.draftsBtn}>
                   <span className="material-symbols-outlined">drafts</span>
                   <span>Drafts</span>
-                  <span className={styles.badge}>12</span>
+                  <span className={styles.badge}>{draftCount}</span>
                 </button>
               </div>
               <div className={styles.searchWrapper}>
@@ -185,42 +138,69 @@ export default function Admin_Mail({ onLogout }) {
                 />
                 <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
               </div>
-              <button className={styles.refreshBtn} onClick={handleRefresh}>
+              <button className={styles.refreshBtn} onClick={handleRefresh} disabled={loading}>
                 <span className="material-symbols-outlined">refresh</span>
               </button>
             </div>
           </div>
 
-          <div className={styles.mailGrid}>
-            {MailData.map((mail, index) => (
-              mail.type === "new" ? (
-                <div key={mail.id} className={`${styles.mailCard} ${styles.mailCardNew} ${styles.newmailborder}`} onClick={() => navigate('/admin/mail/create_mail') }>
-                  <div className={styles.newMailContainer}>
-                    <span className={`material-symbols-outlined ${styles.newMailIcon}`}>add</span>
-                    <span className={styles.newMailText1}>{mail.sender}</span>
-                    <p className={styles.mailMessage}>{mail.message}</p>
-                  </div>
+          {loading ? (
+            <div className={styles.loadingState}>
+              <div className={styles.spinner}></div>
+              <p>Loading messages...</p>
+            </div>
+          ) : (
+            <div className={styles.mailGrid}>
+              {/* New Mail Card - Always first */}
+              <div className={`${styles.mailCard} ${styles.mailCardNew} `} onClick={() => navigate('/admin/mail/broadcast_message') }>
+                <div className={styles.newMailContainer}>
+                  <span className={`material-symbols-outlined ${styles.newMailIcon}`}>add</span>
+                  <span className={styles.newMailText1}>New mail</span>
+                  <p className={styles.mailMessage}>Click to compose a new message to alumni members</p>
                 </div>
-              ) : (
-                <div key={mail.id} className={`${styles.mailCard} ${getCardBorderClass(index)}`}>
+              </div>
+
+              {/* Display sent messages from DB */}
+              {filteredMails.map((mail, index) => (
+                <div key={mail._id} className={`${styles.mailCard} ${getCardBorderByStatus(mail.dominantStatus)}`}>
                   <div className={styles.mailCardContent}>
                     <div className={styles.mailCardBody}>
                       <div className={styles.mailCardTop}>
-                        <span className={styles.mailSender}>{mail.sender}</span>
+                        <span className={styles.mailSender}>{mail.senderName}</span>
+                        {/* Response stats badge */}
+                        {mail.responseStats && (
+                          <div className={styles.statsContainer}>
+                            <span className={styles.statsBadge}>
+                              {mail.responseStats.accepted}A / {mail.responseStats.rejected}R / {mail.responseStats.pending}P
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <p className={styles.mailMessage}>{mail.message}</p>
+                      <p className={styles.mailMessage}>
+                        {mail.content.length > 120
+                          ? mail.content.substring(0, 120) + '...'
+                          : mail.content}
+                      </p>
                     </div>
                     <div className={styles.mailCardFooter}>
-                      <span className={styles.mailTime}>{mail.time}</span>
-                      <button className={`${styles.btnView} ${getButtonClass(mail.buttonClass)}`} onClick={() => { navigate('/admin/mail/view_mail') }} >
+                      <span className={styles.mailTime}>{formatDate(mail.createdAt)}</span>
+                      <button
+                        className={`${styles.btnView} ${getButtonClassByStatus(mail.dominantStatus)}`}
+                        onClick={() => navigate('/admin/mail/view_mail', {
+                          state: {
+                            mailId: mail._id,
+                            mailData: mail
+                          }
+                        })}
+                      >
                         View
                       </button>
                     </div>
                   </div>
                 </div>
-              )
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>

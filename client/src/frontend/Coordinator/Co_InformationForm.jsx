@@ -1,299 +1,370 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import styles from './Co_InformationForm.module.css';
-import ksrLogo from '../../assets/KSR_College_Logo.svg';
+import styles from './Co_ViewMail.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
-import Back from './Components/BackButton/Back';
-import { DateInput } from '../../components/Calendar';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/authContext/authContext';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+const Coordinator_ViewMail = ({ onLogout }) => {
+    const { user } = useAuth();
+    const [mail, setMail] = useState(null);
+    const [responses, setResponses] = useState([]);
+    const [responseStats, setResponseStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const location = useLocation();
+    const mailId = location.state?.mailId;
+    const passedMailData = location.state?.mailData;
+
+    useEffect(() => {
+        if (passedMailData) {
+            setMail(passedMailData);
+            setResponseStats(passedMailData.responseStats);
+            fetchMailResponses();
+        } else if (mailId) {
+            fetchMailDetails();
+        } else {
+            setLoading(false);
+        }
+    }, [mailId, passedMailData]);
+
+    const fetchMailDetails = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_BASE_URL}/api/mail/${mailId}`, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setMail(data.mail);
+                fetchMailResponses();
+            }
+        } catch (err) {
+            console.error('Error fetching mail:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchMailResponses = async () => {
+        try {
+            // Use department-specific endpoint if coordinator has department
+            let apiUrl;
+            if (user?.department) {
+                apiUrl = `${API_BASE_URL}/api/mail/${mailId}/responses/department/${encodeURIComponent(user.department)}`;
+                console.log('Fetching department-filtered responses for:', user.department);
+            } else {
+                // Fallback to general responses endpoint
+                apiUrl = `${API_BASE_URL}/api/mail/${mailId}/responses`;
+                console.log('No department found, using general responses endpoint');
+            }
+
+            const response = await fetch(apiUrl, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setResponses(data.responses || []);
+                if (!passedMailData) {
+                    setResponseStats(data.stats);
+                }
+                console.log('Fetched responses:', data.responses);
+
+                // Log department filtering info if available
+                if (data.message) {
+                    console.log('Department filter:', data.message);
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching mail responses:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'No date set';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    const formatDateTime = (dateString) => {
+        if (!dateString) return 'No date';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'accept':
+                return '#22c55e'; // Green
+            case 'reject':
+                return '#ef4444'; // Red
+            case 'pending':
+            default:
+                return '#6b7280'; // Grey
+        }
+    };
 
 
-const CoordinatorInformationForm = ( { onLogout } ) => {
+    if (loading) {
+        return (
+            <div className={styles.container}>
+                <Sidebar onLogout={onLogout} currentView={'mail'} />
+                <main className={styles.mainContent}>
+                    <div className={styles.backButton} onClick={() => window.history.back()}>
+                        <span className="material-symbols-outlined">arrow_back</span>
+                        <span>Back</span>
+                    </div>
+                    <div className={styles.pageHeader}>
+                        <h1>Loading...</h1>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    if (!mail) {
+        return (
+            <div className={styles.container}>
+                <Sidebar onLogout={onLogout} currentView={'mail'} />
+                <main className={styles.mainContent}>
+                    <div className={styles.backButton} onClick={() => window.history.back()}>
+                        <span className="material-symbols-outlined">arrow_back</span>
+                        <span>Back</span>
+                    </div>
+                    <div className={styles.pageHeader}>
+                        <h1>Mail not found</h1>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
     return (
-        <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
-            {/* Sidebar */}
-            <Sidebar currentView="mail" onLogout={onLogout} />
-            {/* Main Content Area */}
-            <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 pb-20`}>
-                <Back to={'/coordinator/mail'} />
-                    <div className="bg-white border border-slate-200 rounded-lg p-4 mb-8 flex items-center justify-between shadow-sm">
-                        <div className="flex items-center gap-4">
-                            <div className="text-[#FF3D00]">
-                                <span className="material-symbols-outlined">notifications</span>
-                            </div>
-                            <div>
-                                <span className="inline-block px-2 py-0.5 text-[10px] font-bold bg-[#FF3D00] text-white rounded uppercase mr-2">Update</span>
-                                <span className="text-sm font-bold text-slate-700">From: Alumni Office</span>
-                                <span className="mx-2 text-slate-300">|</span>
-                                <span className="text-sm text-slate-500 italic">Invitation: Virtual Networking Session</span>
-                            </div>
-                        </div>
-                        <button className="text-slate-400"><span className="material-symbols-outlined">expand_more</span></button>
-                    </div>
-
-                    <div className="w-full space-y-8">
-                        {/* Registration Status */}
-                        <section className={styles.formCard}>
-                            <h2 className={styles.formSectionTitle}>Registration Status</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 mb-3">Already a Member</label>
-                                    <div className="flex items-center gap-6">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input className="w-4 h-4 text-[#FF3D00] border-slate-300 focus:ring-[#FF3D00]" name="member" type="radio" />
-                                            <span className="text-sm text-slate-700">Yes</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input className="w-4 h-4 text-[#FF3D00] border-slate-300 focus:ring-[#FF3D00]" name="member" type="radio" />
-                                            <span className="text-sm text-slate-700">No</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 mb-2">New Registration</label>
-                                    <input className={styles.inputField} type="text" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 mb-2">Alumni Registration Number</label>
-                                    <input className={styles.inputField} type="text" />
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Personal Details */}
-                        <section className={styles.formCard}>
-                            <h2 className={styles.formSectionTitle}>Section 1: Personal Details</h2>
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-2">Full Name</label>
-                                        <input className={styles.inputField} placeholder="e.g. Alexander Pierce" type="text" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-2">Father/Guardian Name</label>
-                                        <input className={styles.inputField} placeholder="e.g. Robert Pierce" type="text" />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-2">Date of Birth</label>
-                                        <DateInput theme="coordinator" className={styles.inputField} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-2">Years of Study (From)</label>
-                                        <select className={styles.selectField}>
-                                            <option>Select Year</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-2">(To)</label>
-                                        <select className={styles.selectField}>
-                                            <option>Select Year</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-2">Course / Branch</label>
-                                        <input className={styles.inputField} placeholder="e.g. B.E Computer Science and Engineering" type="text" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-2">Nick name (optional)</label>
-                                        <input className={styles.inputField} placeholder="e.g. Alex" type="text" />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                                    <div className={styles.addressBox}>
-                                        <div className="flex items-center gap-2 mb-4 text-slate-700">
-                                            <span className="material-symbols-outlined text-lg text-[#FF3D00]">location_on</span>
-                                            <span className="text-sm font-bold">Present Address</span>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <input className={styles.inputField} placeholder="Street Address" type="text" />
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <input className={styles.inputField} placeholder="City" type="text" />
-                                                <input className={styles.inputField} placeholder="PIN Code" type="text" />
-                                            </div>
-                                            <input className={styles.inputField} placeholder="Mobile Number" type="text" />
-                                            <input className={styles.inputField} placeholder="Email Address" type="email" />
-                                        </div>
-                                    </div>
-                                    <div className={styles.addressBox}>
-                                        <div className="flex items-center gap-2 mb-4 text-slate-700">
-                                            <span className="material-symbols-outlined text-lg text-[#FF3D00]">home</span>
-                                            <span className="text-sm font-bold">Permanent Address</span>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <input className={styles.inputField} placeholder="Street Address" type="text" />
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <input className={styles.inputField} placeholder="City" type="text" />
-                                                <input className={styles.inputField} placeholder="PIN Code" type="text" />
-                                            </div>
-                                            <input className={styles.inputField} placeholder="Mobile Number" type="text" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Qualifications & Employment */}
-                        <section className={styles.formCard}>
-                            <h2 className={styles.formSectionTitle}>Section 2: Qualifications & Employment</h2>
-                            <div className="space-y-8">
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 mb-3">Competitive Exams Cleared</label>
-                                    <div className="flex items-center gap-6 mb-4">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input className="w-4 h-4 text-[#FF3D00] border-slate-300 focus:ring-[#FF3D00]" name="exam_cleared" type="radio" />
-                                            <span className="text-sm text-slate-700">Yes</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input className="w-4 h-4 text-[#FF3D00] border-slate-300 focus:ring-[#FF3D00]" name="exam_cleared" type="radio" />
-                                            <span className="text-sm text-slate-700">No</span>
-                                        </label>
-                                    </div>
-                                    <div className="space-y-4 mt-6 p-4 bg-slate-50 rounded-lg border border-slate-100">
-                                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-2">Exams and Marks/Score</p>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
-                                            {['GRE', 'TOEFL', 'UPSC', 'GATE', 'IAS', 'Others'].map(exam => (
-                                                <div key={exam} className="flex items-center gap-3">
-                                                    <span className="text-sm text-slate-700 min-w-[60px]">{exam}</span>
-                                                    <input className="h-8 w-24 border-slate-200 rounded text-xs px-2 focus:ring-1 focus:ring-[#FF3D00] focus:border-[#FF3D00]" placeholder="Marks" type="text" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 mb-3">College Qualifications</label>
-                                    <div className={styles.tableContainer}>
-                                        <table className="w-full text-left text-sm">
-                                            <thead className={styles.tableHeader}>
-                                                <tr>
-                                                    <th className="p-3 font-semibold text-slate-700">Course</th>
-                                                    <th className="p-3 font-semibold text-slate-700">Institution</th>
-                                                    <th className="p-3 font-semibold text-slate-700">Year of Passing</th>
-                                                    <th className="p-3 font-semibold text-slate-700">% of Marks</th>
-                                                    <th className="p-3 font-semibold text-slate-700">Board / University</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-100">
-                                                <tr>
-                                                    <td className="p-3"><input className="w-full bg-transparent border-none text-slate-500 text-sm focus:ring-0" type="text" defaultValue="e.g. B.E" /></td>
-                                                    <td className="p-3"><input className="w-full bg-transparent border-none text-slate-500 text-sm focus:ring-0" type="text" defaultValue="KSRCE" /></td>
-                                                    <td className="p-3"><input className="w-full bg-transparent border-none text-slate-500 text-sm focus:ring-0" type="text" defaultValue="2018" /></td>
-                                                    <td className="p-3"><input className="w-full bg-transparent border-none text-slate-500 text-sm focus:ring-0" type="text" defaultValue="85%" /></td>
-                                                    <td className="p-3"><input className="w-full bg-transparent border-none text-slate-500 text-sm focus:ring-0" type="text" defaultValue="Anna University" /></td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="p-3"><input className="w-full bg-transparent border-none text-sm focus:ring-0" placeholder="..." type="text" /></td>
-                                                    <td className="p-3"><input className="w-full bg-transparent border-none text-sm focus:ring-0" placeholder="..." type="text" /></td>
-                                                    <td className="p-3"><input className="w-full bg-transparent border-none text-sm focus:ring-0" placeholder="..." type="text" /></td>
-                                                    <td className="p-3"><input className="w-full bg-transparent border-none text-sm focus:ring-0" placeholder="..." type="text" /></td>
-                                                    <td className="p-3"><input className="w-full bg-transparent border-none text-sm focus:ring-0" placeholder="..." type="text" /></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-wider">Employment Details</p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 mb-3 uppercase">Placement Type</label>
-                                            <div className="flex flex-wrap items-center gap-4">
-                                                {['On-campus', 'Off-campus', 'Others', 'To be employed'].map(type => (
-                                                    <label key={type} className="flex items-center gap-2 cursor-pointer">
-                                                        <input className="w-4 h-4 text-[#FF3D00] border-slate-300 focus:ring-[#FF3D00]" name="placement" type="radio" />
-                                                        <span className="text-sm text-slate-700">{type}</span>
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase">Designation</label>
-                                            <input className={styles.inputField} placeholder="e.g. Software Engineer" type="text" />
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="space-y-2">
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase">Company Address</label>
-                                            <textarea className={styles.textArea} placeholder="Organization name and full address..." rows="3"></textarea>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase">Remarks</label>
-                                            <textarea className={styles.textArea} placeholder="Any specific remarks about employment..." rows="3"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Additional Info */}
-                        <section className={styles.formCard}>
-                            <h2 className={styles.formSectionTitle}>Section 3: Additional Info</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                <div className="space-y-6">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-3">Have you become an entrepreneur?</label>
-                                        <div className="flex items-center gap-4">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input className="w-4 h-4 text-[#FF3D00] border-slate-300 focus:ring-[#FF3D00]" name="entrepreneur" type="radio" />
-                                                <span className="text-sm text-slate-700">Yes</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input className="w-4 h-4 text-[#FF3D00] border-slate-300 focus:ring-[#FF3D00]" name="entrepreneur" type="radio" />
-                                                <span className="text-sm text-slate-700">No</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <input className={styles.inputField} placeholder="Name and Address of Organization" type="text" />
-                                    <input className={styles.inputField} placeholder="Nature of work / Product" type="text" />
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <input className={styles.inputField} placeholder="Annual Turnover" type="text" />
-                                        <input className={styles.inputField} placeholder="No. of Employees" type="text" />
-                                    </div>
-                                </div>
-                                <div className="space-y-6">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-3">Marital Status</label>
-                                        <div className="flex items-center gap-4">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input className="w-4 h-4 text-[#FF3D00] border-slate-300 focus:ring-[#FF3D00]" name="marital" type="radio" />
-                                                <span className="text-sm text-slate-700">Single</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input className="w-4 h-4 text-[#FF3D00] border-slate-300 focus:ring-[#FF3D00]" name="marital" type="radio" />
-                                                <span className="text-sm text-slate-700">Married</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <input className={styles.inputField} placeholder="Spouse Name" type="text" />
-                                    <input className={styles.inputField} placeholder="Spouse Qualification" type="text" />
-                                    <input className={styles.inputField} placeholder="No. of Children" type="text" />
-                                </div>
-                            </div>
-                            <div className="mt-10">
-                                <label className="block text-xs font-semibold text-slate-600 mb-2">Extra-Curricular Activities</label>
-                                <textarea className={styles.textArea} placeholder="List your activities and achievements during or after college..." rows="4"></textarea>
-                            </div>
-                            <div className="mt-10">
-                                <label className="block text-xs font-semibold text-slate-600 mb-2">Any Other Relevant Information</label>
-                                <textarea className={styles.textArea} placeholder="Provide any additional details you would like to share..." rows="4"></textarea>
-                            </div>
-                        </section>
-
-                        <div className="flex justify-center pt-8">
-                            <button className={styles.submitBtn} type="submit">
-                                Submit Information
-                                <span className="material-symbols-outlined text-xl">send</span>
-                            </button>
-                        </div>
-                    </div>
+        <div className={styles.container}>
+            <Sidebar onLogout={onLogout} currentView={'mail'} />
+            <main className={styles.mainContent}>
+                <div className={styles.backButton} onClick={() => window.history.back()}>
+                    <span className="material-symbols-outlined">arrow_back</span>
+                    <span>Back</span>
                 </div>
+
+                <div className={styles.pageHeader}>
+                    <h1>Alumni Mail</h1>
+                </div>
+
+                {/* Input Section */}
+                <section className={styles.inputSection}>
+                    <div className={styles.inputGroup}>
+                        <label htmlFor="coordinator-email">Coordinator Email</label>
+                        <input
+                            type="email"
+                            id="coordinator-email"
+                            className={styles.inputField}
+                            value={user?.email || 'Not specified'}
+                            readOnly
+                        />
+                    </div>
+                    <div className={styles.inputGroup}>
+                        <label htmlFor="coordinator-department">Department</label>
+                        <input
+                            type="text"
+                            id="coordinator-department"
+                            className={styles.inputField}
+                            value={user?.department || 'Not specified'}
+                            readOnly
+                        />
+                    </div>
+                    <div className={styles.inputGroup}>
+                        <label htmlFor="recipients">Recipients</label>
+                        <input
+                            type="text"
+                            id="recipients"
+                            className={styles.inputField}
+                            value={`${mail.recipientCount} recipient${mail.recipientCount > 1 ? 's' : ''}`}
+                            readOnly
+                        />
+                    </div>
+                </section>
+
+                {/* Event Card Section */}
+                <section className={styles.eventSection}>
+                    <div className={styles.eventCardWrapper}>
+                        <div className={styles.eventCard}>
+                            <div className={styles.eventHeader}>
+                                <h3>{mail.title || 'No Title'}</h3>
+                                {user?.department && (
+                                    <div className={styles.departmentBadge}>
+                                        {user.department} Department Only
+                                    </div>
+                                )}
+                            </div>
+                            <div className={styles.eventMetadata}>
+                                <div className={styles.metadataBlock}>
+                                    <span className={styles.metadataLabel}>Date</span>
+                                    <span className={styles.metadataValue}>{formatDate(mail.createdAt)}</span>
+                                </div>
+                                <div className={styles.metadataBlock}>
+                                    <span className={styles.metadataLabel}>Type</span>
+                                    <span className={styles.metadataValue}>{mail.isBroadcast ? 'Broadcast' : 'Direct Mail'}</span>
+                                </div>
+                            </div>
+                            <div className={styles.eventDescription}>
+                                <span className={styles.metadataLabel}>Message</span>
+                                <p style={{ whiteSpace: 'pre-wrap' }}>{mail.content || 'No message content.'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Individual Responses Section */}
+                {responses.length > 0 && (
+                    <section className={styles.eventSection}>
+                        <div className={styles.eventCardWrapper}>
+                            <div className={styles.eventCard}>
+                                <div className={styles.eventHeader}>
+                                    <h3>Individual Responses ({responses.length})</h3>
+                                    {user?.department && (
+                                        <div className={styles.departmentBadge}>
+                                            {user.department} Department
+                                        </div>
+                                    )}
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginTop: '20px' }}>
+                                    {responses.map((response, index) => (
+                                        <div key={index} style={{
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: '8px',
+                                            padding: '20px',
+                                            backgroundColor: '#ffffff'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                                <div style={{ fontSize: '16px', fontWeight: '600', color: '#374151' }}>
+                                                    {response.recipientEmail}
+                                                </div>
+                                                <div style={{
+                                                    padding: '6px 12px',
+                                                    borderRadius: '6px',
+                                                    fontSize: '12px',
+                                                    fontWeight: '600',
+                                                    textTransform: 'uppercase',
+                                                    backgroundColor: getStatusColor(response.action),
+                                                    color: 'white'
+                                                }}>
+                                                    {response.action}
+                                                </div>
+                                            </div>
+
+                                            {response.action === 'accept' && (response.responseData || response.alumniInfo) && (
+                                                <div style={{ marginBottom: '20px' }}>
+                                                    {/* Personal Information */}
+                                                    <div style={{ marginBottom: '15px' }}>
+                                                        <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                                                            Personal Information
+                                                        </h4>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
+                                                            {(response.responseData?.fullName || response.alumniInfo?.fullName) && (
+                                                                <div style={{ color: '#6b7280' }}>
+                                                                    <strong>Full Name:</strong> {response.responseData?.fullName || response.alumniInfo?.fullName}
+                                                                </div>
+                                                            )}
+                                                            {(response.responseData?.personalEmail || response.alumniInfo?.contactInfo?.personalEmail) && (
+                                                                <div style={{ color: '#6b7280' }}>
+                                                                    <strong>Personal Email:</strong> {response.responseData?.personalEmail || response.alumniInfo?.contactInfo?.personalEmail}
+                                                                </div>
+                                                            )}
+                                                            {(response.responseData?.mobileNo || response.alumniInfo?.contactInfo?.mobile) && (
+                                                                <div style={{ color: '#6b7280' }}>
+                                                                    <strong>Mobile:</strong> {response.responseData?.mobileNo || response.alumniInfo?.contactInfo?.mobile}
+                                                                </div>
+                                                            )}
+                                                            {(response.responseData?.batchYear || response.alumniInfo?.batch) && (
+                                                                <div style={{ color: '#6b7280' }}>
+                                                                    <strong>Batch:</strong> {
+                                                                        response.responseData?.batchYear ?
+                                                                            `${response.responseData.batchYear.startYear}-${response.responseData.batchYear.endYear}` :
+                                                                            `${response.alumniInfo?.batch?.startYear}-${response.alumniInfo?.batch?.endYear}`
+                                                                    }
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Professional Information */}
+                                                    {(response.responseData?.designation || response.responseData?.companyName || response.responseData?.officialEmail || response.responseData?.location ||
+                                                      response.alumniInfo?.designation || response.alumniInfo?.companyName || response.alumniInfo?.contactInfo?.officialEmail || response.alumniInfo?.contactInfo?.location) && (
+                                                        <div style={{ marginBottom: '15px' }}>
+                                                            <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                                                                Professional Information
+                                                            </h4>
+                                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
+                                                                {(response.responseData?.designation || response.alumniInfo?.designation) && (
+                                                                    <div style={{ color: '#6b7280' }}>
+                                                                        <strong>Designation:</strong> {response.responseData?.designation || response.alumniInfo?.designation}
+                                                                    </div>
+                                                                )}
+                                                                {(response.responseData?.companyName || response.alumniInfo?.companyName) && (
+                                                                    <div style={{ color: '#6b7280' }}>
+                                                                        <strong>Company:</strong> {response.responseData?.companyName || response.alumniInfo?.companyName}
+                                                                    </div>
+                                                                )}
+                                                                {(response.responseData?.officialEmail || response.alumniInfo?.contactInfo?.officialEmail) && (
+                                                                    <div style={{ color: '#6b7280' }}>
+                                                                        <strong>Official Email:</strong> {response.responseData?.officialEmail || response.alumniInfo?.contactInfo?.officialEmail}
+                                                                    </div>
+                                                                )}
+                                                                {(response.responseData?.location || response.alumniInfo?.contactInfo?.location) && (
+                                                                    <div style={{ color: '#6b7280', gridColumn: '1 / -1' }}>
+                                                                        <strong>Location:</strong> {response.responseData?.location || response.alumniInfo?.contactInfo?.location}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {response.action === 'reject' && (response.responseData?.rejectionReason || response.rejectionReason) && (
+                                                <div style={{ marginBottom: '20px' }}>
+                                                    <div style={{
+                                                        fontSize: '12px',
+                                                        color: '#991b1b',
+                                                        backgroundColor: '#fee2e2',
+                                                        padding: '10px',
+                                                        borderRadius: '6px',
+                                                        fontStyle: 'italic'
+                                                    }}>
+                                                        <strong>Reason:</strong> "{response.responseData?.rejectionReason || response.rejectionReason}"
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div style={{ fontSize: '11px', color: '#9ca3af', fontStyle: 'italic', borderTop: '1px solid #f3f4f6', paddingTop: '10px' }}>
+                                                Submitted: {formatDateTime(response.submittedAt)}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                )}
             </main>
         </div>
     );
 };
 
-export default CoordinatorInformationForm;
+export default Coordinator_ViewMail;

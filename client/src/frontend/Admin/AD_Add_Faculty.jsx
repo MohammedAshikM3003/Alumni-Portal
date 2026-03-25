@@ -60,7 +60,7 @@ const Admin_Add_Faculty = ({ onLogout }) => {
           const data = await response.json();
           if (data.success && data.department) {
             setDepartmentName(data.department.branch);
-            setFormData(prev => ({ ...prev, department: data.department.deptCode }));
+            setFormData(prev => ({ ...prev, department: data.department.branch })); // Store full name, not code
           }
         }
       } catch (error) {
@@ -362,7 +362,7 @@ const Admin_Add_Faculty = ({ onLogout }) => {
                       className={`${styles.formInput} ${errors.designation ? styles.inputError : ''}`}
                     >
                       <option value="">Select Designation</option>
-                      <option value="HOD & Professor">HOD & Professor</option>
+                      <option value="HOD">HOD</option>
                       <option value="Professor">Professor</option>
                       <option value="Associate Professor">Associate Professor</option>
                       <option value="Assistant Professor">Assistant Professor</option>

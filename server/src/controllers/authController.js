@@ -31,17 +31,35 @@ export const login = async (req, res) => {
     // Generate JWT
     const token = generateToken({ id: user._id, role: user.role });
 
+    // Base user response
+    let userResponse = {
+      id: user._id,
+      userId: user.userId,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+
+    // If coordinator, fetch department information
+    if (user.role === 'coordinator') {
+      try {
+        const { default: Coordinator } = await import('../models/coordinator.js');
+        const coordinator = await Coordinator.findOne({ userId: user._id });
+        if (coordinator) {
+          userResponse.department = coordinator.department; // This will be "CSE", "ECE", etc.
+          userResponse.designation = coordinator.designation;
+          userResponse.staffId = coordinator.staffId;
+        }
+      } catch (error) {
+        console.warn('Could not fetch coordinator details:', error.message);
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: 'Authenticated successfully',
       token,
-      user: {
-        id: user._id,
-        userId: user.userId,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user: userResponse,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -80,17 +98,35 @@ export const googleLogin = async (req, res) => {
     // Generate JWT
     const token = generateToken({ id: user._id, role: user.role });
 
+    // Base user response
+    let userResponse = {
+      id: user._id,
+      userId: user.userId,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+
+    // If coordinator, fetch department information
+    if (user.role === 'coordinator') {
+      try {
+        const { default: Coordinator } = await import('../models/coordinator.js');
+        const coordinator = await Coordinator.findOne({ userId: user._id });
+        if (coordinator) {
+          userResponse.department = coordinator.department; // This will be "CSE", "ECE", etc.
+          userResponse.designation = coordinator.designation;
+          userResponse.staffId = coordinator.staffId;
+        }
+      } catch (error) {
+        console.warn('Could not fetch coordinator details:', error.message);
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: 'Authenticated successfully',
       token,
-      user: {
-        id: user._id,
-        userId: user.userId,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user: userResponse,
     });
   } catch (error) {
     console.error('Google login error:', error);

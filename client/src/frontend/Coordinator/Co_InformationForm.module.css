@@ -11,6 +11,15 @@
     text-decoration: none;
 }
 
+.timestamp {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
 .formSectionTitle {
     position: relative;
     padding-left: 1rem;
