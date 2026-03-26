@@ -91,6 +91,7 @@ export const sendRegistrationLinks = async (req, res) => {
 		const failed = [];
 
 		for (const [index, email] of emails.entries()) {
+			let tokenRecord = null;
 			try {
 				logStep(traceId, 'send-links', 5, { index, email, message: 'Processing recipient' });
 				// Check if user already exists
@@ -115,7 +116,7 @@ export const sendRegistrationLinks = async (req, res) => {
 				}
 
 				// Create new token (2-day expiry)
-				const tokenRecord = await RegistrationToken.createToken(email.toLowerCase());
+				tokenRecord = await RegistrationToken.createToken(email.toLowerCase());
 				logStep(traceId, 'send-links', 8, {
 					index,
 					email,
@@ -181,6 +182,24 @@ export const sendRegistrationLinks = async (req, res) => {
 
 				sent.push(email);
 			} catch (error) {
+				if (tokenRecord?._id) {
+					try {
+						await RegistrationToken.findByIdAndDelete(tokenRecord._id);
+						logStep(traceId, 'send-links', 9.1, {
+							index,
+							email,
+							message: 'Rolled back token after failed send',
+							tokenId: tokenRecord._id,
+						});
+					} catch (rollbackError) {
+						console.error(`[RegistrationMail:${traceId}][send-links][BREAK at Step 9.2] Token rollback failed`, {
+							index,
+							email,
+							tokenId: tokenRecord._id,
+							...getErrorDebugInfo(rollbackError),
+						});
+					}
+				}
 				console.error(`[RegistrationMail:${traceId}][send-links][BREAK at Step 9] Failed to send`, {
 					index,
 					email,
@@ -224,6 +243,7 @@ export const sendRegistrationLinks = async (req, res) => {
  */
 export const sendSingleRegistrationLink = async (req, res) => {
 	const traceId = createTraceId();
+	let tokenRecord = null;
 	try {
 		const { email } = req.body;
 		logStep(traceId, 'send-single-link', 1, {
@@ -276,7 +296,7 @@ export const sendSingleRegistrationLink = async (req, res) => {
 
 		// Create new token (2-day expiry)
 		logStep(traceId, 'send-single-link', 6, { email, message: 'Creating token' });
-		const tokenRecord = await RegistrationToken.createToken(email.toLowerCase());
+		tokenRecord = await RegistrationToken.createToken(email.toLowerCase());
 		logStep(traceId, 'send-single-link', 7, {
 			email,
 			tokenPrefix: tokenRecord.token?.slice(0, 8),
@@ -350,6 +370,21 @@ export const sendSingleRegistrationLink = async (req, res) => {
 			step: 10,
 		});
 	} catch (error) {
+		if (tokenRecord?._id) {
+			try {
+				await RegistrationToken.findByIdAndDelete(tokenRecord._id);
+				logStep(traceId, 'send-single-link', 9.1, {
+					email: tokenRecord.email,
+					message: 'Rolled back token after failed send',
+					tokenId: tokenRecord._id,
+				});
+			} catch (rollbackError) {
+				console.error(`[RegistrationMail:${traceId}][send-single-link][BREAK at Step 9.2] Token rollback failed`, {
+					tokenId: tokenRecord._id,
+					...getErrorDebugInfo(rollbackError),
+				});
+			}
+		}
 		const debug = getErrorDebugInfo(error);
 		console.error(`[RegistrationMail:${traceId}][send-single-link][BREAK at Step 11] Error sending registration link`, debug);
 		res.status(500).json({
@@ -369,6 +404,7 @@ export const sendSingleRegistrationLink = async (req, res) => {
  */
 export const sendPrefilledRegistrationLink = async (req, res) => {
 	const traceId = createTraceId();
+	let tokenRecord = null;
 	try {
 		const { email, prefilledData } = req.body;
 		logStep(traceId, 'send-prefilled-link', 1, {
@@ -427,7 +463,7 @@ export const sendPrefilledRegistrationLink = async (req, res) => {
 
 		// Create new token with pre-filled data (2-day expiry)
 		logStep(traceId, 'send-prefilled-link', 7, { email, message: 'Creating token' });
-		const tokenRecord = await RegistrationToken.createToken(email.toLowerCase(), prefilledData);
+		tokenRecord = await RegistrationToken.createToken(email.toLowerCase(), prefilledData);
 		logStep(traceId, 'send-prefilled-link', 8, {
 			email,
 			tokenPrefix: tokenRecord.token?.slice(0, 8),
@@ -501,6 +537,21 @@ export const sendPrefilledRegistrationLink = async (req, res) => {
 			step: 11,
 		});
 	} catch (error) {
+		if (tokenRecord?._id) {
+			try {
+				await RegistrationToken.findByIdAndDelete(tokenRecord._id);
+				logStep(traceId, 'send-prefilled-link', 10.1, {
+					email: tokenRecord.email,
+					message: 'Rolled back token after failed send',
+					tokenId: tokenRecord._id,
+				});
+			} catch (rollbackError) {
+				console.error(`[RegistrationMail:${traceId}][send-prefilled-link][BREAK at Step 10.2] Token rollback failed`, {
+					tokenId: tokenRecord._id,
+					...getErrorDebugInfo(rollbackError),
+				});
+			}
+		}
 		const debug = getErrorDebugInfo(error);
 		console.error(`[RegistrationMail:${traceId}][send-prefilled-link][BREAK at Step 12] Error sending pre-filled registration link`, debug);
 		res.status(500).json({

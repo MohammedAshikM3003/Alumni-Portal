@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 import Mail from '../models/mail.js';
-import { generateTokensForMail } from './tokenController.js';
+import MailToken from '../models/mailToken.js';
 
 const escapeHtml = (value = '') => String(value)
     .replace(/&/g, '&amp;')
@@ -86,23 +87,12 @@ export const sendMail = async (req, res) => {
         const savedMail = await mailRecord.save();
         console.log(`📧 Mail record created with ID: ${savedMail._id}`);
 
-        // Generate tokens for all recipients
-        let tokens;
-        try {
-            tokens = await generateTokensForMail(savedMail._id, recipientEmails);
-            console.log(`🔑 Tokens generated for ${tokens.length} recipients`);
-        } catch (tokenError) {
-            console.error('❌ Failed to generate tokens:', tokenError.message);
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to generate secure tokens for mail'
-            });
-        }
-
-        // Send email to each recipient with their unique token
-        for (const tokenData of tokens) {
+        // Send email first, then persist token only for successful deliveries
+        const tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+        for (const recipientEmail of recipientEmails) {
             try {
-                const { email: recipientEmail, token } = tokenData;
+                // Step 1: Create a token in memory (not persisted yet)
+                const token = crypto.randomBytes(32).toString('hex');
 
                 // Single token, two different paths for accept/reject
                 const acceptUrl = `${portalBaseUrl}/mail/token/${token}/accept`;
@@ -141,20 +131,31 @@ export const sendMail = async (req, res) => {
                     `
                 };
 
+                // Step 2: Send email with token link
                 await transporter.sendMail(mailOptions);
+
+                // Step 3: Persist token only after send success
+                await MailToken.create({
+                    token,
+                    mailId: savedMail._id,
+                    recipientEmail,
+                    isTokenValid: true,
+                    expiresAt: tokenExpiry,
+                });
+
                 emailsSentCount++;
-                console.log(`✅ Email sent to: ${recipientEmail}`);
+                console.log(`✅ Email sent and token stored for: ${recipientEmail}`);
             } catch (emailError) {
-                console.error(`❌ Failed to send to ${tokenData.email}:`, emailError.message);
-                failedEmails.push(tokenData.email);
+                console.error(`❌ Failed to process ${recipientEmail}:`, emailError.message);
+                failedEmails.push(recipientEmail);
             }
         }
 
         // Update mail record with final counts
         savedMail.recipientCount = emailsSentCount;
         savedMail.recipientEmails = recipientEmails.filter(e => !failedEmails.includes(e));
-        savedMail.hasTokens = true;
-        savedMail.tokenGeneratedAt = new Date();
+        savedMail.hasTokens = emailsSentCount > 0;
+        savedMail.tokenGeneratedAt = emailsSentCount > 0 ? new Date() : null;
         await savedMail.save();
 
         console.log(`📧 Mail record updated with ${emailsSentCount} successful recipients`);

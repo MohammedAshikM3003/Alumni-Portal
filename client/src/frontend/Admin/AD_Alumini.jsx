@@ -147,6 +147,7 @@ const Admin_Alumini = ( { onLogout } ) => {
         logClientStep(clientTraceId, 'send-links', 6, {
           sent: data.sent,
           failedCount: data.failed?.length || 0,
+          failedDetails: data.failed || [],
           serverTraceId: data?.traceId,
           serverStep: data?.step,
         });
