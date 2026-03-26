@@ -21,16 +21,6 @@ const Admin_Dashboard = ( { onLogout } ) => {
             </h1>
           </div>
           <div className={styles.headerRight}>
-            <div className={styles.searchContainer}>
-              <input
-                type="text"
-                placeholder="Search alumni, jobs..."
-                className={styles.searchInput}
-              />
-              <span className={`material-symbols-outlined ${styles.searchIcon}`}>
-                search
-              </span>
-            </div>
             <div className={styles.headerFlexContainer}>
               <button className={styles.notificationBtn}>
                 <span className="material-symbols-outlined">notifications</span>

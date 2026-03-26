@@ -51,23 +51,30 @@ export const createDepartment = async (req, res) => {
   }
 };
 
-// Get all departments with dynamic alumni count
+// Get all departments with dynamic alumni and coordinator count
 export const getAllDepartments = async (_, res) => {
   try {
     const departments = await Department.find({ isActive: true })
       .sort({ stream: 1, branch: 1 })
       .lean();
 
-    // Get alumni count for each department based on branch name
+    // Get alumni count and coordinator count for each department based on branch name
     const departmentsWithCount = await Promise.all(
       departments.map(async (dept) => {
-        const alumniCount = await Alumni.countDocuments({
-          branch: dept.branch,
-          isActive: true
-        });
+        const [alumniCount, coordinatorCount] = await Promise.all([
+          Alumni.countDocuments({
+            branch: dept.branch,
+            isActive: true
+          }),
+          Coordinator.countDocuments({
+            department: dept.branch,
+            isActive: true
+          })
+        ]);
         return {
           ...dept,
-          alumniCount
+          alumniCount,
+          coordinatorCount
         };
       })
     );

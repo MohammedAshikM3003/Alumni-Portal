@@ -79,37 +79,7 @@
   font-family: 'Inter', sans-serif;
   white-space: nowrap;
 }
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-.searchContainer {
-  position: relative;
-}
-.searchInput {
-  width: 16rem;
-  padding-left: 2.5rem;
-  padding-right: 1rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  outline: none;
-}
-.searchInput:focus {
-  box-shadow: 0 0 0 2px #0284c7;
-  border-color: transparent;
-}
-.searchIcon {
-  position: absolute;
-  left: 0.75rem;
-  top: 0.625rem;
-  color: #94a3b8;
-  font-size: 1.25rem;
-}
+
 .headerFlexContainer {
   display: flex;
   align-items: center;
@@ -281,9 +251,6 @@
   display: flex;
   align-items: center;
   gap: 24px;
-  margin-left: auto;
-  min-width: 380px;
-  margin-right: 50px;
 }
 .notificationBtn {
   position: relative;

@@ -14,7 +14,6 @@ const Admin_Department = ( { onLogout } ) => {
 
   // State Management
   const [departments, setDepartments] = useState([]);
-  const [coordinatorCount, setCoordinatorCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -25,6 +24,9 @@ const Admin_Department = ( { onLogout } ) => {
     branch: '',
     deptCode: ''
   });
+
+  // Calculate total coordinator count from departments
+  const totalCoordinatorCount = departments.reduce((sum, dept) => sum + (dept.coordinatorCount || 0), 0);
 
   // Fetch departments from backend
   useEffect(() => {
@@ -61,30 +63,7 @@ const Admin_Department = ( { onLogout } ) => {
       }
     };
 
-    const fetchCoordinatorCount = async () => {
-      if (!user?.token) return;
-
-      try {
-        const response = await fetch(`${API_BASE}/api/coordinators/all`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.coordinators) {
-            setCoordinatorCount(data.coordinators.length);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching coordinator count:', err);
-        // Don't show error for coordinator count, just keep it as 0
-      }
-    };
-
     fetchDepartments();
-    fetchCoordinatorCount();
   }, [user?.token]);
 
   // Simple Modal Handlers
@@ -181,7 +160,7 @@ const Admin_Department = ( { onLogout } ) => {
                 <div className={styles.statLabel}>Total Departments</div>
               </div>
               <div className={styles.statCard}>
-                <div className={styles.statNumber}>{coordinatorCount}</div>
+                <div className={styles.statNumber}>{totalCoordinatorCount}</div>
                 <div className={styles.statLabel}>Total Co-Ordinators</div>
               </div>
             <button className={styles.addBtn} onClick={handleOpenModal}>
@@ -213,7 +192,7 @@ const Admin_Department = ( { onLogout } ) => {
                     <th>Stream</th>
                     <th>Branch Name</th>
                     <th>Department Code</th>
-                    <th className={styles.textCenter}>Alumni Records</th>
+                    <th className={styles.textCenter}>Coordinators</th>
                     <th className={styles.textCenter}>Actions</th>
                   </tr>
                 </thead>
@@ -227,8 +206,8 @@ const Admin_Department = ( { onLogout } ) => {
                         <span className={styles.badgeCode}>{dept.deptCode}</span>
                       </td>
                       <td className={styles.textCenter}>
-                        <span className={dept.alumniCount > 0 ? styles.badgeSuccess : styles.badgeEmpty}>
-                          {dept.alumniCount} Records
+                        <span className={dept.coordinatorCount > 0 ? styles.badgeSuccess : styles.badgeEmpty}>
+                          {dept.coordinatorCount || 0} Records
                         </span>
                       </td>
                       <td>
