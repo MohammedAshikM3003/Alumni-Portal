@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import RegistrationToken from '../models/registrationToken.js';
 import User from '../models/user.js';
 import Alumni from '../models/alumni.js';
@@ -91,7 +92,6 @@ export const sendRegistrationLinks = async (req, res) => {
 		const failed = [];
 
 		for (const [index, email] of emails.entries()) {
-			let tokenRecord = null;
 			try {
 				logStep(traceId, 'send-links', 5, { index, email, message: 'Processing recipient' });
 				// Check if user already exists
@@ -115,17 +115,19 @@ export const sendRegistrationLinks = async (req, res) => {
 					continue;
 				}
 
-				// Create new token (2-day expiry)
-				tokenRecord = await RegistrationToken.createToken(email.toLowerCase());
+				// Prepare token in memory. Persist only after successful mail send.
+				const token = crypto.randomBytes(32).toString('hex');
+				const expiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
 				logStep(traceId, 'send-links', 8, {
 					index,
 					email,
-					tokenPrefix: tokenRecord.token?.slice(0, 8),
-					expiresAt: tokenRecord.expiresAt,
+					tokenPrefix: token.slice(0, 8),
+					expiresAt,
+					message: 'Token prepared in memory (not yet stored)',
 				});
 
 				// Create registration link
-				const registrationUrl = `${portalBaseUrl}/register/alumni/${tokenRecord.token}`;
+				const registrationUrl = `${portalBaseUrl}/register/alumni/${token}`;
 
 				// Email content
 				const emailHtml = `
@@ -180,26 +182,20 @@ export const sendRegistrationLinks = async (req, res) => {
 					messageId: mailInfo?.messageId,
 				});
 
+				const storedToken = await RegistrationToken.create({
+					token,
+					email: email.toLowerCase(),
+					expiresAt,
+				});
+				logStep(traceId, 'send-links', 10.1, {
+					index,
+					email,
+					tokenId: storedToken._id,
+					message: 'Token stored after successful mail send',
+				});
+
 				sent.push(email);
 			} catch (error) {
-				if (tokenRecord?._id) {
-					try {
-						await RegistrationToken.findByIdAndDelete(tokenRecord._id);
-						logStep(traceId, 'send-links', 9.1, {
-							index,
-							email,
-							message: 'Rolled back token after failed send',
-							tokenId: tokenRecord._id,
-						});
-					} catch (rollbackError) {
-						console.error(`[RegistrationMail:${traceId}][send-links][BREAK at Step 9.2] Token rollback failed`, {
-							index,
-							email,
-							tokenId: tokenRecord._id,
-							...getErrorDebugInfo(rollbackError),
-						});
-					}
-				}
 				console.error(`[RegistrationMail:${traceId}][send-links][BREAK at Step 9] Failed to send`, {
 					index,
 					email,
@@ -243,7 +239,6 @@ export const sendRegistrationLinks = async (req, res) => {
  */
 export const sendSingleRegistrationLink = async (req, res) => {
 	const traceId = createTraceId();
-	let tokenRecord = null;
 	try {
 		const { email } = req.body;
 		logStep(traceId, 'send-single-link', 1, {
@@ -294,13 +289,15 @@ export const sendSingleRegistrationLink = async (req, res) => {
 			);
 		}
 
-		// Create new token (2-day expiry)
-		logStep(traceId, 'send-single-link', 6, { email, message: 'Creating token' });
-		tokenRecord = await RegistrationToken.createToken(email.toLowerCase());
+		// Prepare token in memory. Persist only after successful mail send.
+		logStep(traceId, 'send-single-link', 6, { email, message: 'Preparing token in memory' });
+		const token = crypto.randomBytes(32).toString('hex');
+		const expiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
 		logStep(traceId, 'send-single-link', 7, {
 			email,
-			tokenPrefix: tokenRecord.token?.slice(0, 8),
-			expiresAt: tokenRecord.expiresAt,
+			tokenPrefix: token.slice(0, 8),
+			expiresAt,
+			message: 'Token prepared in memory (not yet stored)',
 		});
 
 		logStep(traceId, 'send-single-link', 8, { message: 'Creating transporter' });
@@ -308,7 +305,7 @@ export const sendSingleRegistrationLink = async (req, res) => {
 		const portalBaseUrl = process.env.PORTAL_URL || 'http://localhost:5173';
 
 		// Create registration link
-		const registrationUrl = `${portalBaseUrl}/register/alumni/${tokenRecord.token}`;
+		const registrationUrl = `${portalBaseUrl}/register/alumni/${token}`;
 
 		// Email content
 		const emailHtml = `
@@ -362,37 +359,33 @@ export const sendSingleRegistrationLink = async (req, res) => {
 			messageId: mailInfo?.messageId,
 		});
 
+		const storedToken = await RegistrationToken.create({
+			token,
+			email: email.toLowerCase(),
+			expiresAt,
+		});
+		logStep(traceId, 'send-single-link', 11, {
+			email,
+			tokenId: storedToken._id,
+			message: 'Token stored after successful mail send',
+		});
+
 		res.status(200).json({
 			success: true,
 			message: `Registration link sent successfully to ${email}`,
 			traceId,
 			flow: 'send-single-link',
-			step: 10,
+			step: 11,
 		});
 	} catch (error) {
-		if (tokenRecord?._id) {
-			try {
-				await RegistrationToken.findByIdAndDelete(tokenRecord._id);
-				logStep(traceId, 'send-single-link', 9.1, {
-					email: tokenRecord.email,
-					message: 'Rolled back token after failed send',
-					tokenId: tokenRecord._id,
-				});
-			} catch (rollbackError) {
-				console.error(`[RegistrationMail:${traceId}][send-single-link][BREAK at Step 9.2] Token rollback failed`, {
-					tokenId: tokenRecord._id,
-					...getErrorDebugInfo(rollbackError),
-				});
-			}
-		}
 		const debug = getErrorDebugInfo(error);
-		console.error(`[RegistrationMail:${traceId}][send-single-link][BREAK at Step 11] Error sending registration link`, debug);
+		console.error(`[RegistrationMail:${traceId}][send-single-link][BREAK at Step 12] Error sending registration link`, debug);
 		res.status(500).json({
 			success: false,
 			message: debug.message || 'Server error',
 			traceId,
 			flow: 'send-single-link',
-			step: 11,
+			step: 12,
 			debug,
 		});
 	}
@@ -404,7 +397,6 @@ export const sendSingleRegistrationLink = async (req, res) => {
  */
 export const sendPrefilledRegistrationLink = async (req, res) => {
 	const traceId = createTraceId();
-	let tokenRecord = null;
 	try {
 		const { email, prefilledData } = req.body;
 		logStep(traceId, 'send-prefilled-link', 1, {
@@ -461,13 +453,15 @@ export const sendPrefilledRegistrationLink = async (req, res) => {
 			);
 		}
 
-		// Create new token with pre-filled data (2-day expiry)
-		logStep(traceId, 'send-prefilled-link', 7, { email, message: 'Creating token' });
-		tokenRecord = await RegistrationToken.createToken(email.toLowerCase(), prefilledData);
+		// Prepare token in memory. Persist only after successful mail send.
+		logStep(traceId, 'send-prefilled-link', 7, { email, message: 'Preparing token in memory' });
+		const token = crypto.randomBytes(32).toString('hex');
+		const expiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
 		logStep(traceId, 'send-prefilled-link', 8, {
 			email,
-			tokenPrefix: tokenRecord.token?.slice(0, 8),
-			expiresAt: tokenRecord.expiresAt,
+			tokenPrefix: token.slice(0, 8),
+			expiresAt,
+			message: 'Token prepared in memory (not yet stored)',
 		});
 
 		logStep(traceId, 'send-prefilled-link', 9, { message: 'Creating transporter' });
@@ -475,7 +469,7 @@ export const sendPrefilledRegistrationLink = async (req, res) => {
 		const portalBaseUrl = process.env.PORTAL_URL || 'http://localhost:5173';
 
 		// Create registration link
-		const registrationUrl = `${portalBaseUrl}/register/alumni/${tokenRecord.token}`;
+		const registrationUrl = `${portalBaseUrl}/register/alumni/${token}`;
 
 		// Email content
 		const emailHtml = `
@@ -529,37 +523,34 @@ export const sendPrefilledRegistrationLink = async (req, res) => {
 			messageId: mailInfo?.messageId,
 		});
 
+		const storedToken = await RegistrationToken.create({
+			token,
+			email: email.toLowerCase(),
+			expiresAt,
+			prefilledData,
+		});
+		logStep(traceId, 'send-prefilled-link', 12, {
+			email,
+			tokenId: storedToken._id,
+			message: 'Token stored after successful mail send',
+		});
+
 		res.status(200).json({
 			success: true,
 			message: `Registration link with pre-filled data sent successfully to ${email}`,
 			traceId,
 			flow: 'send-prefilled-link',
-			step: 11,
+			step: 12,
 		});
 	} catch (error) {
-		if (tokenRecord?._id) {
-			try {
-				await RegistrationToken.findByIdAndDelete(tokenRecord._id);
-				logStep(traceId, 'send-prefilled-link', 10.1, {
-					email: tokenRecord.email,
-					message: 'Rolled back token after failed send',
-					tokenId: tokenRecord._id,
-				});
-			} catch (rollbackError) {
-				console.error(`[RegistrationMail:${traceId}][send-prefilled-link][BREAK at Step 10.2] Token rollback failed`, {
-					tokenId: tokenRecord._id,
-					...getErrorDebugInfo(rollbackError),
-				});
-			}
-		}
 		const debug = getErrorDebugInfo(error);
-		console.error(`[RegistrationMail:${traceId}][send-prefilled-link][BREAK at Step 12] Error sending pre-filled registration link`, debug);
+		console.error(`[RegistrationMail:${traceId}][send-prefilled-link][BREAK at Step 13] Error sending pre-filled registration link`, debug);
 		res.status(500).json({
 			success: false,
 			message: debug.message || 'Server error',
 			traceId,
 			flow: 'send-prefilled-link',
-			step: 12,
+			step: 13,
 			debug,
 		});
 	}
