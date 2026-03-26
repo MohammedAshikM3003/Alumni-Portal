@@ -92,6 +92,27 @@ export const getAllDepartments = async (_, res) => {
   }
 };
 
+// Get all departments (public - no counts, for registration form)
+export const getPublicDepartments = async (_, res) => {
+  try {
+    const departments = await Department.find({ isActive: true })
+      .select('stream branch deptCode')
+      .sort({ stream: 1, branch: 1 })
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      departments
+    });
+  } catch (error) {
+    console.error('Error fetching public departments:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 // Get department by ID
 export const getDepartmentById = async (req, res) => {
   try {

@@ -373,11 +373,7 @@ export default function Al_Accept_Invitation() {
 
         // Log in the user with returned credentials
         if (response.data.user && response.data.token) {
-          const userData = {
-            ...response.data.user,
-            token: response.data.token
-          };
-          saveUser(userData);
+          saveUser(response.data.user, response.data.token);
           console.log('✅ User logged in:', response.data.user.email);
 
           // Show success alert

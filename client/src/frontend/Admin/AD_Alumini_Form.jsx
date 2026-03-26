@@ -423,13 +423,16 @@ const Admin_Alumini_Form = ({ onLogout }) => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/alumni`, {
+      const response = await fetch(`${API_BASE_URL}/api/registration/send-prefilled-link`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          email: formData.email,
+          prefilledData: payload
+        }),
       });
 
       const data = await response.json();
@@ -447,7 +450,7 @@ const Admin_Alumini_Form = ({ onLogout }) => {
       if (response.ok && data.success) {
         setSubmitMessage({
           type: 'success',
-          text: 'Alumni created successfully! A user account has been created with Register Number as User ID and DOB as password.',
+          text: `Registration link with pre-filled data sent successfully to ${formData.email}!`,
         });
         // Reset form
         setFormData({
@@ -1262,7 +1265,7 @@ const Admin_Alumini_Form = ({ onLogout }) => {
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Information'}
+              {isSubmitting ? 'Sending...' : 'Send Registration Link'}
               <span className="material-symbols-outlined">{isSubmitting ? 'hourglass_empty' : 'send'}</span>
             </button>
           </div>

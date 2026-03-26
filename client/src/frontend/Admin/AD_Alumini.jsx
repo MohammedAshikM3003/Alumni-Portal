@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './AD_Alumini.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
-import { Search, UserPlus, Eye } from 'lucide-react';
+import { Search, UserPlus, Eye, Send, X, Plus, Trash2, Mail } from 'lucide-react';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -31,6 +31,100 @@ const Admin_Alumini = ( { onLogout } ) => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Registration link popup states
+  const [showEmailPopup, setShowEmailPopup] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [emailList, setEmailList] = useState([]);
+  const [emailError, setEmailError] = useState('');
+  const [sendingEmails, setSendingEmails] = useState(false);
+
+  // Add email to list
+  const handleAddEmail = () => {
+    const email = emailInput.trim().toLowerCase();
+
+    if (!email) {
+      setEmailError('Please enter an email address');
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError('Invalid email format');
+      return;
+    }
+
+    if (emailList.includes(email)) {
+      setEmailError('Email already added');
+      return;
+    }
+
+    setEmailList([...emailList, email]);
+    setEmailInput('');
+    setEmailError('');
+  };
+
+  // Handle Enter key in input
+  const handleEmailKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddEmail();
+    }
+  };
+
+  // Remove email from list
+  const handleRemoveEmail = (emailToRemove) => {
+    setEmailList(emailList.filter(email => email !== emailToRemove));
+  };
+
+  // Send registration links
+  const handleSendRegistrationLinks = async () => {
+    if (emailList.length === 0) {
+      setEmailError('Please add at least one email');
+      return;
+    }
+
+    setSendingEmails(true);
+    setEmailError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/registration/send-links`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ emails: emailList }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        let message = `Successfully sent ${data.sent} registration link(s)!`;
+        if (data.failed?.length > 0) {
+          message += `\n\nFailed:\n${data.failed.map(f => `${f.email}: ${f.reason}`).join('\n')}`;
+        }
+        alert(message);
+        setShowEmailPopup(false);
+        setEmailList([]);
+        setEmailInput('');
+      } else {
+        setEmailError(data.message || 'Failed to send links');
+      }
+    } catch (error) {
+      setEmailError('Failed to send registration links. Please try again.');
+      console.error('Error sending registration links:', error);
+    } finally {
+      setSendingEmails(false);
+    }
+  };
+
+  // Close popup and reset
+  const handleClosePopup = () => {
+    setShowEmailPopup(false);
+    setEmailList([]);
+    setEmailInput('');
+    setEmailError('');
+  };
 
   // Fetch alumni data
   useEffect(() => {
@@ -121,8 +215,18 @@ const Admin_Alumini = ( { onLogout } ) => {
         {/* Content Header */}
         <header className={styles.contentHeader}>
           <div className={styles.pageTitleWrapper}>
-            <h1 className={styles.pageTitle}>Alumni Directory</h1>
-            <p className={styles.pageSubtitle}>Manage and track your institution's global alumni network.</p>
+            <div className={styles.pageHeader}>
+              <div>
+                <h1 className={styles.pageTitle}>Alumni Directory</h1>
+                <p className={styles.pageSubtitle}>Manage and track your institution's global alumni network.</p>
+              </div>
+              <div className={styles.pageActionButtons}>
+                <div className={styles.pageactionCard} onClick={() => setShowEmailPopup(true)} >
+                  <Send size={20} className={styles.pageactionIcon} />
+                  <span className={styles.pageactionText}>Send Registration Links</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className={styles.metricsGrid}>
@@ -170,7 +274,7 @@ const Admin_Alumini = ( { onLogout } ) => {
 
             {/* Action Card */}
             <div className={styles.actionCard} onClick={() => { navigate('/admin/alumini_form') }} >
-              <UserPlus size={32} className={styles.actionIcon} />
+              <UserPlus size={20} className={styles.actionIcon} />
               <span className={styles.actionText}>+ Add Alumni</span>
             </div>
 
@@ -265,6 +369,115 @@ const Admin_Alumini = ( { onLogout } ) => {
         </section>
 
       </main>
+
+      {/* Send Registration Link Popup */}
+      {showEmailPopup && (
+        <div className={styles.popupOverlay} onClick={handleClosePopup}>
+          <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.popupHeader}>
+              <div className={styles.popupHeaderIcon}>
+                <Mail size={24} />
+              </div>
+              <div>
+                <h2 className={styles.popupTitle}>Send Registration Links</h2>
+                <p className={styles.popupSubtitle}>Enter email addresses to send registration invitations</p>
+              </div>
+              <button className={styles.popupCloseBtn} onClick={handleClosePopup}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className={styles.popupBody}>
+              {/* Email Input */}
+              <div className={styles.emailInputContainer}>
+                <input
+                  type="email"
+                  className={styles.emailInput}
+                  placeholder="Enter email address and press Enter"
+                  value={emailInput}
+                  onChange={(e) => {
+                    setEmailInput(e.target.value);
+                    setEmailError('');
+                  }}
+                  onKeyPress={handleEmailKeyPress}
+                  disabled={sendingEmails}
+                />
+                <button
+                  className={styles.addEmailBtn}
+                  onClick={handleAddEmail}
+                  disabled={sendingEmails}
+                >
+                  <Plus size={18} />
+                  Add
+                </button>
+              </div>
+
+              {emailError && (
+                <p className={styles.emailErrorText}>{emailError}</p>
+              )}
+
+              {/* Email List */}
+              <div className={styles.emailListContainer}>
+                {emailList.length === 0 ? (
+                  <div className={styles.emptyEmailList}>
+                    <Mail size={40} className={styles.emptyIcon} />
+                    <p>No emails added yet</p>
+                    <span>Add email addresses above to send registration links</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className={styles.emailListHeader}>
+                      <span>{emailList.length} email{emailList.length > 1 ? 's' : ''} added</span>
+                    </div>
+                    <div className={styles.emailList}>
+                      {emailList.map((email, index) => (
+                        <div key={index} className={styles.emailItem}>
+                          <Mail size={16} className={styles.emailItemIcon} />
+                          <span className={styles.emailItemText}>{email}</span>
+                          <button
+                            className={styles.removeEmailBtn}
+                            onClick={() => handleRemoveEmail(email)}
+                            disabled={sendingEmails}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.popupFooter}>
+              <button
+                className={styles.popupCancelBtn}
+                onClick={handleClosePopup}
+                disabled={sendingEmails}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.popupSendBtn}
+                onClick={handleSendRegistrationLinks}
+                disabled={emailList.length === 0 || sendingEmails}
+              >
+                {sendingEmails ? (
+                  <>
+                    <span className={styles.sendingSpinner}></span>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send size={16} />
+                    Send {emailList.length > 0 ? `${emailList.length} Link${emailList.length > 1 ? 's' : ''}` : 'Links'}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

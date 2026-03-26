@@ -41,6 +41,8 @@ import Admin_Dashboard from './frontend/Admin/AD_Dashboard';
 import Admin_ViewMail from './frontend/Admin/AD_ViewMail';
 import Admin_Profile from './frontend/Admin/AD_Profile';
 import Admin_BroadcastMessage from './frontend/Admin/AD_BroadcastMessage';
+import AD_Alumni_Registration from './frontend/Admin/AD_Alumni_Registration';
+import AD_Alumni_Registration_Form from './frontend/Admin/AD_Alumni_Registration_Form';
 
 // Co-Oridinator Imports
 import Coordinator_Dashboard from './frontend/Coordinator/Co_Dashboard';
@@ -130,6 +132,11 @@ function App() {
             path="/mail/token/:token/reject"
             element={<Al_Reject_Invitation />} />
         </Route>
+
+{/* Alumni Self-Registration Route - NO AUTHENTICATION REQUIRED */}
+        <Route
+          path="/register/alumni/:token"
+          element={<AD_Alumni_Registration />} />
 
 
 {/* Alumini Routes */}
@@ -233,6 +240,10 @@ function App() {
         <Route
           path="/admin/alumini_form"
           element={guard('admin', <Admin_Alumini_Form onLogout={logout} />)}
+        />
+        <Route
+          path="/admin/alumni_registration_form"
+          element={guard('admin', <AD_Alumni_Registration_Form onLogout={logout} />)}
         />
 
 {/* Admin Department Route */}

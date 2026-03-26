@@ -8,23 +8,39 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore session from cookie on mount
+  // Restore session from cookies on mount
   useEffect(() => {
     const storedUser = getCookie('user');
-    if (storedUser) {
-      setUser(JSON.parse(decodeURIComponent(storedUser)));
+    const storedToken = getCookie('token');
+
+    if (storedUser && storedToken) {
+      const userData = JSON.parse(decodeURIComponent(storedUser));
+      setUser({
+        ...userData,
+        token: storedToken
+      });
     }
     setLoading(false);
   }, []);
 
-  const saveUser = (userData) => {
+  const saveUser = (userData, token) => {
     const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+
+    // Store user data and token separately in cookies
     document.cookie = `user=${encodeURIComponent(JSON.stringify(userData))}; expires=${expires}; path=/; SameSite=Strict`;
-    setUser(userData);
+    document.cookie = `token=${encodeURIComponent(token)}; expires=${expires}; path=/; SameSite=Strict`;
+
+    // Set user state with token included
+    setUser({
+      ...userData,
+      token: token
+    });
   };
 
   const logout = () => {
+    // Clear both cookies
     document.cookie = 'user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict';
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict';
     setUser(null);
   };
 
@@ -39,5 +55,5 @@ export default function AuthProvider({ children }) {
 
 function getCookie(name) {
   const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? match[2] : null;
+  return match ? decodeURIComponent(match[2]) : null;
 }

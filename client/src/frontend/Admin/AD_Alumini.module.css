@@ -58,6 +58,48 @@
   background-color: #1a6b1a;
 }
 
+.pageHeader{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pageActionButtons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.pageactionCard {
+  padding: 1.1rem 1rem; /* approx padding-top: 17.5px */
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: var(--ksrce-red);
+}
+
+.pageactionCard:hover {
+  background-color: var(--ksrce-red-hover);
+}
+
+.pageactionText {
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.pageactionIcon {
+  color: white;
+}
+
 
 /* --- Content Header --- */
 .contentHeader {
@@ -192,7 +234,7 @@
 
 /* Card 3: Action Card */
 .actionCard {
-  padding: 1.1rem 1rem; /* approx padding-top: 17.5px */
+  padding: 1.1rem 1rem;
   border-radius: 0.75rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -421,4 +463,344 @@
 .badgeGray {
   background-color: #f3f4f6;
   color: #6b7280;
+}
+
+/* ================== REGISTRATION LINK POPUP ================== */
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.popupContent {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 520px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.popupHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.popupHeaderIcon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.popupTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.popupSubtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0.25rem 0 0 0;
+}
+
+.popupCloseBtn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #94a3b8;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.popupCloseBtn:hover {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.popupBody {
+  padding: 1.5rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.emailInputContainer {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.emailInput {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.emailInput:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.emailInput::placeholder {
+  color: #9ca3af;
+}
+
+.addEmailBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.75rem 1rem;
+  background: var(--ksrce-red);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.addEmailBtn:hover:not(:disabled) {
+  background: var(--ksrce-red-hover);
+}
+
+.addEmailBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.emailErrorText {
+  color: #dc2626;
+  font-size: 0.8rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.emailListContainer {
+  margin-top: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  min-height: 200px;
+  max-height: 280px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.emptyEmailList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  text-align: center;
+  flex: 1;
+}
+
+.emptyIcon {
+  color: #cbd5e1;
+  margin-bottom: 0.75rem;
+}
+
+.emptyEmailList p {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #64748b;
+  margin: 0;
+}
+
+.emptyEmailList span {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+.emailListHeader {
+  padding: 0.75rem 1rem;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.emailList {
+  padding: 0.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.emailItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 0.375rem;
+  border: 1px solid #e5e7eb;
+  transition: border-color 0.2s;
+}
+
+.emailItem:last-child {
+  margin-bottom: 0;
+}
+
+.emailItem:hover {
+  border-color: #cbd5e1;
+}
+
+.emailItemIcon {
+  color: #22c55e;
+  flex-shrink: 0;
+}
+
+.emailItemText {
+  flex: 1;
+  font-size: 0.875rem;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.removeEmailBtn {
+  background: none;
+  border: none;
+  padding: 0.375rem;
+  cursor: pointer;
+  color: #94a3b8;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.removeEmailBtn:hover:not(:disabled) {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.removeEmailBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.popupFooter {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 0 0 16px 16px;
+}
+
+.popupCancelBtn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popupCancelBtn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.popupCancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.popupSendBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popupSendBtn:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+  transform: translateY(-1px);
+}
+
+.popupSendBtn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.sendingSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

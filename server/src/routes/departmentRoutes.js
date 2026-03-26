@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/auth.js';
 import {
   createDepartment,
   getAllDepartments,
+  getPublicDepartments,
   getDepartmentById,
   getDepartmentByCode,
   updateDepartment,
@@ -11,6 +12,9 @@ import {
 } from '../controllers/departmentController.js';
 
 const router = Router();
+
+// Public route - Get departments for registration form (no auth)
+router.get('/public', getPublicDepartments);
 
 // Create a new department (Admin only)
 router.post('/', authenticate, createDepartment);

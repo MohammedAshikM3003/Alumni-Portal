@@ -35,7 +35,7 @@ export default function LoginGateway() {
         return;
       }
 
-      saveUser({ ...data.user, token: data.token });
+      saveUser(data.user, data.token);
 
       const role = data.user.role;
       if (role === 'alumni') navigate('/alumini/dashboard');
@@ -62,7 +62,7 @@ export default function LoginGateway() {
         return;
       }
 
-      saveUser({ ...data.user, token: data.token });
+      saveUser(data.user, data.token);
 
       const role = data.user.role;
       console.log('Google login role:', role);
