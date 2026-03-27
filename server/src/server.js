@@ -32,8 +32,7 @@ app.use(cors({
     'http://localhost:5173',
     'http://localhost:5000',
     'https://alumni--portal.vercel.app',
-    'https://alumini-portal-t.vercel.app',
-    'https://alumini-project-frontend-t.onrender.com',
+    'https://alumni-portal-backend-6e6m.onrender.com',
   ],
   credentials: true
 }));
