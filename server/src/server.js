@@ -40,7 +40,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 // JSON body size limit (1mb for form data)
 app.use(json({ limit: '1mb' }));
 
