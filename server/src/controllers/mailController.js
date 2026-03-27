@@ -2,35 +2,31 @@ import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import Mail from '../models/mail.js';
 import MailToken from '../models/mailToken.js';
+import createTransporter from '../utils/mailer.js';
 
 let transporter = null;
 
-const getTransporter = () => {
+const getTransporter = async () => {
     if (transporter) return transporter;
 
     if (!process.env.EMAIL_USER || process.env.EMAIL_USER.trim() === '') {
-        throw new Error(
-            'Email service misconfiguration: EMAIL_USER is not set. \n' +
-            'Set this in your .env file or hosting provider\'s environment variables.'
-        );
+        throw new Error('Email service misconfiguration: EMAIL_USER is not set.');
+    }
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_REFRESH_TOKEN) {
+        throw new Error('Email service misconfiguration: OAuth2 credentials are not set.');
     }
 
-    if (!process.env.EMAIL_APP_PASSWORD || process.env.EMAIL_APP_PASSWORD.trim() === '') {
-        throw new Error(
-            'Email service misconfiguration: EMAIL_APP_PASSWORD is not set. \n' +
-            'Set this in your .env file or hosting provider\'s environment variables.'
-        );
+    try {
+        transporter = await createTransporter();
+        return transporter;
+    } catch (error) {
+        console.error('Failed to create OAuth2 transporter:', {
+            errorName: error?.name,
+            errorMessage: error?.message,
+            stack: error?.stack,
+        });
+        throw error;
     }
-
-    transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_APP_PASSWORD,
-        },
-    });
-
-    return transporter;
 };
 
 const getFromEmail = () => `Alumni Portal <${process.env.EMAIL_USER}>`;
@@ -58,13 +54,25 @@ const logEmailError = (email, error) => {
 };
 
 const sendSingleEmail = async (to, subject, html) => {
-    const result = await getTransporter().sendMail({
-        from: getFromEmail(),
-        to,
-        subject,
-        html,
-    });
-    return result;
+    try {
+        const transport = await getTransporter();
+        const result = await transport.sendMail({
+            from: getFromEmail(),
+            to,
+            subject,
+            html,
+        });
+        return result;
+    } catch (error) {
+        console.error('sendSingleEmail failed:', {
+            recipient: to,
+            errorName: error?.name,
+            errorMessage: error?.message,
+            errorCode: error?.code,
+            errorResponse: error?.response,
+        });
+        throw error;
+    }
 };
 
 const sendBroadcast = async (recipientEmails, subject, html) => {

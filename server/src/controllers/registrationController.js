@@ -1,24 +1,10 @@
-import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import RegistrationToken from '../models/registrationToken.js';
 import User from '../models/user.js';
 import Alumni from '../models/alumni.js';
 import { generateToken } from '../security/jwt.js';
-
-const createTransporter = () => {
-	if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-		throw new Error('Missing EMAIL_USER or EMAIL_APP_PASSWORD in server environment');
-	}
-
-	return nodemailer.createTransport({
-		service: 'gmail',
-		auth: {
-			user: process.env.EMAIL_USER,
-			pass: process.env.EMAIL_APP_PASSWORD,
-		},
-	});
-};
+import createTransporter from '../utils/mailer.js';
 
 const normalizeBaseUrl = (url) => String(url || '').replace(/\/+$/, '');
 
@@ -64,7 +50,7 @@ export const sendRegistrationLinks = async (req, res) => {
 			emailCount: Array.isArray(emails) ? emails.length : 0,
 			hasAuthHeader: Boolean(req.headers.authorization),
 			hasEmailUser: Boolean(process.env.EMAIL_USER),
-			hasEmailAppPassword: Boolean(process.env.EMAIL_APP_PASSWORD),
+			hasOAuth2Credentials: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_REFRESH_TOKEN),
 			portalUrl: process.env.PORTAL_URL || 'http://localhost:5173',
 		});
 
@@ -89,8 +75,8 @@ export const sendRegistrationLinks = async (req, res) => {
 			);
 		}
 
-		logStep(traceId, 'send-links', 4, { message: 'Creating transporter' });
-		const transporter = createTransporter();
+		logStep(traceId, 'send-links', 4, { message: 'Creating OAuth2 transporter' });
+		const transporter = await createTransporter();
 		const portalBaseUrl = normalizeBaseUrl(process.env.PORTAL_URL || 'http://localhost:5173');
 
 		const sent = [];
@@ -263,7 +249,7 @@ export const sendSingleRegistrationLink = async (req, res) => {
 			email,
 			hasAuthHeader: Boolean(req.headers.authorization),
 			hasEmailUser: Boolean(process.env.EMAIL_USER),
-			hasEmailAppPassword: Boolean(process.env.EMAIL_APP_PASSWORD),
+			hasOAuth2Credentials: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_REFRESH_TOKEN),
 			portalUrl: process.env.PORTAL_URL || 'http://localhost:5173',
 		});
 
@@ -318,8 +304,8 @@ export const sendSingleRegistrationLink = async (req, res) => {
 			message: 'Token prepared in memory (not yet stored)',
 		});
 
-		logStep(traceId, 'send-single-link', 8, { message: 'Creating transporter' });
-		const transporter = createTransporter();
+		logStep(traceId, 'send-single-link', 8, { message: 'Creating OAuth2 transporter' });
+		const transporter = await createTransporter();
 		const portalBaseUrl = normalizeBaseUrl(process.env.PORTAL_URL || 'http://localhost:5173');
 
 		// Create registration link
@@ -422,7 +408,7 @@ export const sendPrefilledRegistrationLink = async (req, res) => {
 			hasPrefilledData: Boolean(prefilledData),
 			hasAuthHeader: Boolean(req.headers.authorization),
 			hasEmailUser: Boolean(process.env.EMAIL_USER),
-			hasEmailAppPassword: Boolean(process.env.EMAIL_APP_PASSWORD),
+			hasOAuth2Credentials: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_REFRESH_TOKEN),
 			portalUrl: process.env.PORTAL_URL || 'http://localhost:5173',
 		});
 
@@ -482,8 +468,8 @@ export const sendPrefilledRegistrationLink = async (req, res) => {
 			message: 'Token prepared in memory (not yet stored)',
 		});
 
-		logStep(traceId, 'send-prefilled-link', 9, { message: 'Creating transporter' });
-		const transporter = createTransporter();
+		logStep(traceId, 'send-prefilled-link', 9, { message: 'Creating OAuth2 transporter' });
+		const transporter = await createTransporter();
 		const portalBaseUrl = normalizeBaseUrl(process.env.PORTAL_URL || 'http://localhost:5173');
 
 		// Create registration link
