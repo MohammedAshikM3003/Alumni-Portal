@@ -6,8 +6,11 @@ import User from '../models/user.js';
 import Alumni from '../models/alumni.js';
 import { generateToken } from '../security/jwt.js';
 
-// Create a transporter using Gmail SMTP
 const createTransporter = () => {
+	if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
+		throw new Error('Missing EMAIL_USER or EMAIL_APP_PASSWORD in server environment');
+	}
+
 	return nodemailer.createTransport({
 		service: 'gmail',
 		auth: {
@@ -16,6 +19,8 @@ const createTransporter = () => {
 		},
 	});
 };
+
+const normalizeBaseUrl = (url) => String(url || '').replace(/\/+$/, '');
 
 const createTraceId = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
@@ -86,7 +91,7 @@ export const sendRegistrationLinks = async (req, res) => {
 
 		logStep(traceId, 'send-links', 4, { message: 'Creating transporter' });
 		const transporter = createTransporter();
-		const portalBaseUrl = process.env.PORTAL_URL || 'http://localhost:5173';
+		const portalBaseUrl = normalizeBaseUrl(process.env.PORTAL_URL || 'http://localhost:5173');
 
 		const sent = [];
 		const failed = [];
@@ -210,6 +215,19 @@ export const sendRegistrationLinks = async (req, res) => {
 			failedCount: failed.length,
 		});
 
+		if (sent.length === 0 && failed.length > 0) {
+			return res.status(400).json({
+				success: false,
+				message: 'No registration links were sent. Please check failed details.',
+				sent: 0,
+				failed,
+				traceId,
+				flow: 'send-links',
+				step: 11,
+				errorCode: 'ALL_SENDS_FAILED',
+			});
+		}
+
 		res.status(200).json({
 			success: true,
 			message: `Sent ${sent.length} registration link(s)`,
@@ -302,7 +320,7 @@ export const sendSingleRegistrationLink = async (req, res) => {
 
 		logStep(traceId, 'send-single-link', 8, { message: 'Creating transporter' });
 		const transporter = createTransporter();
-		const portalBaseUrl = process.env.PORTAL_URL || 'http://localhost:5173';
+		const portalBaseUrl = normalizeBaseUrl(process.env.PORTAL_URL || 'http://localhost:5173');
 
 		// Create registration link
 		const registrationUrl = `${portalBaseUrl}/register/alumni/${token}`;
@@ -466,7 +484,7 @@ export const sendPrefilledRegistrationLink = async (req, res) => {
 
 		logStep(traceId, 'send-prefilled-link', 9, { message: 'Creating transporter' });
 		const transporter = createTransporter();
-		const portalBaseUrl = process.env.PORTAL_URL || 'http://localhost:5173';
+		const portalBaseUrl = normalizeBaseUrl(process.env.PORTAL_URL || 'http://localhost:5173');
 
 		// Create registration link
 		const registrationUrl = `${portalBaseUrl}/register/alumni/${token}`;

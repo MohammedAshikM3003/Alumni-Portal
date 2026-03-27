@@ -21,7 +21,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.0",
     "multer": "^2.1.1",
-    "nodemailer": "^6.9.8",
+    "nodemailer": "^8.0.4",
     "ollama": "^0.6.3",
     "razorpay": "^2.9.6",
     "socket.io": "^4.7.2"

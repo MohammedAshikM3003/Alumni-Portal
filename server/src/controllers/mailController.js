@@ -10,8 +10,11 @@ const escapeHtml = (value = '') => String(value)
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-// Create a transporter using Gmail SMTP
 const createTransporter = () => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
+        throw new Error('Missing EMAIL_USER or EMAIL_APP_PASSWORD in server environment');
+    }
+
     return nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -20,6 +23,8 @@ const createTransporter = () => {
         }
     });
 };
+
+const normalizeBaseUrl = (url) => String(url || '').replace(/\/+$/, '');
 
 /**
  * Send mail to specific alumni and save to mails collection
@@ -67,7 +72,7 @@ export const sendMail = async (req, res) => {
         const safeAdminName = escapeHtml(adminName);
         const safeCollegeName = escapeHtml(collegeName);
         const safeMessage = escapeHtml(message);
-        const portalBaseUrl = process.env.PORTAL_BASE_URL || 'http://localhost:3000'; // Frontend URL for token links
+        const portalBaseUrl = normalizeBaseUrl(process.env.PORTAL_BASE_URL || process.env.PORTAL_URL || 'http://localhost:3000'); // Frontend URL for token links
 
         let emailsSentCount = 0;
         const failedEmails = [];
