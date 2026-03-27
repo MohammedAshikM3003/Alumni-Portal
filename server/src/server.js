@@ -27,15 +27,20 @@ config();
 const app = express();
 
 // --- Middleware ---
-app.use(cors({
+const corsOptions = {
   origin: [
     'http://localhost:5173',
     'http://localhost:5000',
     'https://alumni--portal.vercel.app',
     'https://alumni-portal-backend-6e6m.onrender.com',
   ],
-  credentials: true
-}));
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 // JSON body size limit (1mb for form data)
 app.use(json({ limit: '1mb' }));
 
@@ -79,13 +84,7 @@ app.use('/api/registration', registrationRoutes);
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:5000',
-      'https://alumni--portal.vercel.app',
-      'https://alumini-portal-t.vercel.app',
-      'https://alumini-project-frontend-t.onrender.com',
-    ],
+    origin: corsOptions.origin,
     methods: ["GET", "POST"],
     credentials: true
   }
