@@ -3,33 +3,117 @@ import crypto from 'crypto';
 import Mail from '../models/mail.js';
 import MailToken from '../models/mailToken.js';
 
-const escapeHtml = (value = '') => String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+let transporter = null;
 
-const createTransporter = () => {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-        throw new Error('Missing EMAIL_USER or EMAIL_APP_PASSWORD in server environment');
+const getTransporter = () => {
+    if (transporter) return transporter;
+
+    if (!process.env.EMAIL_USER || process.env.EMAIL_USER.trim() === '') {
+        throw new Error(
+            'Email service misconfiguration: EMAIL_USER is not set. \n' +
+            'Set this in your .env file or hosting provider\'s environment variables.'
+        );
     }
 
-    return nodemailer.createTransport({
+    if (!process.env.EMAIL_APP_PASSWORD || process.env.EMAIL_APP_PASSWORD.trim() === '') {
+        throw new Error(
+            'Email service misconfiguration: EMAIL_APP_PASSWORD is not set. \n' +
+            'Set this in your .env file or hosting provider\'s environment variables.'
+        );
+    }
+
+    transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
             user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_APP_PASSWORD
-        }
+            pass: process.env.EMAIL_APP_PASSWORD,
+        },
     });
+
+    return transporter;
 };
+
+const getFromEmail = () => `Alumni Portal <${process.env.EMAIL_USER}>`;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const escapeHtml = (value = '') =>
+    String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 
 const normalizeBaseUrl = (url) => String(url || '').replace(/\/+$/, '');
 
-/**
- * Send mail to specific alumni and save to mails collection
- * POST /api/mail/send-mail
- */
+const logEmailError = (email, error) => {
+    console.error({
+        timestamp: new Date().toISOString(),
+        recipientEmail: email,
+        errorName: error?.name || 'UnknownError',
+        errorMessage: error?.message || 'No error message available',
+        statusCode: error?.responseCode || error?.code || null,
+    });
+};
+
+const sendSingleEmail = async (to, subject, html) => {
+    const result = await getTransporter().sendMail({
+        from: getFromEmail(),
+        to,
+        subject,
+        html,
+    });
+    return result;
+};
+
+const sendBroadcast = async (recipientEmails, subject, html) => {
+    const BATCH_SIZE = 10;
+    const BATCH_DELAY_MS = 1000;
+
+    const sent = [];
+    const failed = [];
+
+    const batches = [];
+    for (let i = 0; i < recipientEmails.length; i += BATCH_SIZE) {
+        batches.push(recipientEmails.slice(i, i + BATCH_SIZE));
+    }
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+        const batch = batches[batchIndex];
+
+        const results = await Promise.allSettled(
+            batch.map(async (email) => {
+                await sendSingleEmail(email, subject, html);
+                return email;
+            })
+        );
+
+        for (let i = 0; i < results.length; i++) {
+            const result = results[i];
+            const email = batch[i];
+
+            if (result.status === 'fulfilled') {
+                sent.push(email);
+            } else {
+                const error = result.reason;
+                logEmailError(email, error);
+                failed.push({
+                    email,
+                    reason: error?.message || 'Unknown error',
+                    providerCode: error?.responseCode || error?.code || null,
+                });
+            }
+        }
+
+        if (batchIndex < batches.length - 1) {
+            await sleep(BATCH_DELAY_MS);
+        }
+    }
+
+    return { sent, failed };
+};
+
 export const sendMail = async (req, res) => {
     try {
         const {
@@ -39,107 +123,95 @@ export const sendMail = async (req, res) => {
             adminName,
             collegeName,
             email,
-            emails, // Array of emails for broadcast
+            emails,
             title,
             message,
-            isBroadcast
+            isBroadcast,
         } = req.body;
 
-        // Determine recipient emails
         const recipientEmails = isBroadcast && emails ? emails : [email];
 
-        // Validate input
         if (!adminName || !collegeName || !message || recipientEmails.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: 'Required fields are missing'
+                message: 'Required fields are missing',
             });
         }
 
-        // Validate email formats
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const invalidEmails = recipientEmails.filter(e => !emailRegex.test(e));
+        const invalidEmails = recipientEmails.filter((e) => !emailRegex.test(e));
         if (invalidEmails.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: `Invalid email format: ${invalidEmails.join(', ')}`
+                message: `Invalid email format: ${invalidEmails.join(', ')}`,
             });
         }
-
-        // Create transporter
-        const transporter = createTransporter();
 
         const safeAdminName = escapeHtml(adminName);
         const safeCollegeName = escapeHtml(collegeName);
         const safeMessage = escapeHtml(message);
-        const portalBaseUrl = normalizeBaseUrl(process.env.PORTAL_BASE_URL || process.env.PORTAL_URL || 'http://localhost:3000'); // Frontend URL for token links
+        const portalBaseUrl = normalizeBaseUrl(
+            process.env.PORTAL_BASE_URL || process.env.PORTAL_URL || 'http://localhost:3000'
+        );
 
         let emailsSentCount = 0;
         const failedEmails = [];
 
-        // Create and save mail record first to get mailId for token generation
         const mailRecord = new Mail({
             senderId: senderId || 'admin',
             senderName: senderName || adminName,
             senderEmail: senderEmail || process.env.EMAIL_USER,
             title: title || `Message from ${collegeName}`,
             content: message,
-            recipientCount: 0, // Will be updated after successful sends
+            recipientCount: 0,
             recipientEmails: [],
             isBroadcast: isBroadcast || false,
         });
 
         const savedMail = await mailRecord.save();
-        console.log(`📧 Mail record created with ID: ${savedMail._id}`);
 
-        // Send email first, then persist token only for successful deliveries
-        const tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+        const tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
         for (const recipientEmail of recipientEmails) {
             try {
-                // Step 1: Create a token in memory (not persisted yet)
                 const token = crypto.randomBytes(32).toString('hex');
-
-                // Single token, two different paths for accept/reject
                 const acceptUrl = `${portalBaseUrl}/mail/token/${token}/accept`;
                 const rejectUrl = `${portalBaseUrl}/mail/token/${token}/reject`;
 
-                const mailOptions = {
-                    from: `Alumni Portal <${process.env.EMAIL_USER}>`,
-                    to: recipientEmail,
-                    subject: title || `Message from ${collegeName} - Alumni Portal`,
-                    html: `
-                        <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; background-color: #f7f9fc;">
-                            <div style="background: #ffffff; border: 1px solid #e5e9f2; border-radius: 10px; padding: 22px;">
-                                <h2 style="margin: 0 0 16px 0; font-size: 20px; color: #1f2937;">${escapeHtml(title || 'New Message')}</h2>
+                const htmlContent = `
+                    <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; background-color: #f7f9fc;">
+                        <div style="background: #ffffff; border: 1px solid #e5e9f2; border-radius: 10px; padding: 22px;">
+                            <h2 style="margin: 0 0 16px 0; font-size: 20px; color: #1f2937;">${escapeHtml(title || 'New Message')}</h2>
 
-                                <div style="margin-bottom: 12px;">
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Admin Name</div>
-                                    <div style="font-size: 15px; color: #111827; font-weight: 600;">${safeAdminName}</div>
-                                </div>
+                            <div style="margin-bottom: 12px;">
+                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Admin Name</div>
+                                <div style="font-size: 15px; color: #111827; font-weight: 600;">${safeAdminName}</div>
+                            </div>
 
-                                <div style="margin-bottom: 12px;">
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">College Name</div>
-                                    <div style="font-size: 15px; color: #111827; font-weight: 600;">${safeCollegeName}</div>
-                                </div>
+                            <div style="margin-bottom: 12px;">
+                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">College Name</div>
+                                <div style="font-size: 15px; color: #111827; font-weight: 600;">${safeCollegeName}</div>
+                            </div>
 
-                                <div style="margin-bottom: 18px;">
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Message Content</div>
-                                    <div style="font-size: 15px; color: #111827; line-height: 1.6; white-space: pre-wrap; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">${safeMessage}</div>
-                                </div>
+                            <div style="margin-bottom: 18px;">
+                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Message Content</div>
+                                <div style="font-size: 15px; color: #111827; line-height: 1.6; white-space: pre-wrap; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">${safeMessage}</div>
+                            </div>
 
-                                <div style="display: flex; gap: 10px;">
-                                    <a href="${acceptUrl}" style="display: inline-block; text-decoration: none; background: #16a34a; color: #ffffff; font-weight: 600; padding: 10px 16px; border-radius: 8px; margin-right: 10px;">Accept</a>
-                                    <a href="${rejectUrl}" style="display: inline-block; text-decoration: none; background: #dc2626; color: #ffffff; font-weight: 600; padding: 10px 16px; border-radius: 8px;">Reject</a>
-                                </div>
+                            <div style="display: flex; gap: 10px;">
+                                <a href="${acceptUrl}" style="display: inline-block; text-decoration: none; background: #16a34a; color: #ffffff; font-weight: 600; padding: 10px 16px; border-radius: 8px; margin-right: 10px;">Accept</a>
+                                <a href="${rejectUrl}" style="display: inline-block; text-decoration: none; background: #dc2626; color: #ffffff; font-weight: 600; padding: 10px 16px; border-radius: 8px;">Reject</a>
                             </div>
                         </div>
-                    `
-                };
+                    </div>
+                `;
 
-                // Step 2: Send email with token link
-                await transporter.sendMail(mailOptions);
+                await sendSingleEmail(
+                    recipientEmail,
+                    title || `Message from ${collegeName} - Alumni Portal`,
+                    htmlContent
+                );
 
-                // Step 3: Persist token only after send success
                 await MailToken.create({
                     token,
                     mailId: savedMail._id,
@@ -149,28 +221,24 @@ export const sendMail = async (req, res) => {
                 });
 
                 emailsSentCount++;
-                console.log(`✅ Email sent and token stored for: ${recipientEmail}`);
             } catch (emailError) {
-                console.error(`❌ Failed to process ${recipientEmail}:`, emailError.message);
+                logEmailError(recipientEmail, emailError);
                 failedEmails.push(recipientEmail);
             }
         }
 
-        // Update mail record with final counts
         savedMail.recipientCount = emailsSentCount;
-        savedMail.recipientEmails = recipientEmails.filter(e => !failedEmails.includes(e));
+        savedMail.recipientEmails = recipientEmails.filter((e) => !failedEmails.includes(e));
         savedMail.hasTokens = emailsSentCount > 0;
         savedMail.tokenGeneratedAt = emailsSentCount > 0 ? new Date() : null;
         await savedMail.save();
-
-        console.log(`📧 Mail record updated with ${emailsSentCount} successful recipients`);
 
         if (failedEmails.length > 0 && emailsSentCount > 0) {
             return res.status(200).json({
                 success: true,
                 message: `Email sent to ${emailsSentCount} recipient(s). Failed: ${failedEmails.length}`,
                 emailsSent: emailsSentCount,
-                failedEmails
+                failedEmails,
             });
         }
 
@@ -178,88 +246,78 @@ export const sendMail = async (req, res) => {
             return res.status(500).json({
                 success: false,
                 message: 'Failed to send any emails',
-                failedEmails
+                failedEmails,
             });
         }
 
         return res.status(200).json({
             success: true,
             message: `Email sent successfully to ${emailsSentCount} recipient(s)`,
-            emailsSent: emailsSentCount
+            emailsSent: emailsSentCount,
         });
-
     } catch (error) {
-        console.error('Error sending email:', error);
+        logEmailError('N/A', error);
         return res.status(500).json({
             success: false,
             message: 'Failed to send email. Please try again later.',
-            error: error.message
+            error: error.message,
         });
     }
 };
 
-/**
- * Get all sent mails for admin
- * GET /api/mail/sent/:senderId
- */
 export const getSentMails = async (req, res) => {
     try {
-        // Fetch ALL mails from the collection (admin sees all sent mails)
         const mails = await Mail.find({})
             .sort({ createdAt: -1 })
-            .select('senderId senderName senderEmail title content recipientCount isBroadcast createdAt recipientEmails');
+            .select(
+                'senderId senderName senderEmail title content recipientCount isBroadcast createdAt recipientEmails'
+            );
 
-        // Import MailResponse model
         const { default: MailResponse } = await import('../models/mailResponse.js');
 
-        // For each mail, get response statistics
-        const mailsWithStats = await Promise.all(mails.map(async (mail) => {
-            const responses = await MailResponse.find({ mailId: mail._id });
+        const mailsWithStats = await Promise.all(
+            mails.map(async (mail) => {
+                const responses = await MailResponse.find({ mailId: mail._id });
 
-            const stats = {
-                total: responses.length,
-                accepted: responses.filter(r => r.action === 'accept').length,
-                rejected: responses.filter(r => r.action === 'reject').length,
-                pending: mail.recipientCount - responses.length
-            };
+                const stats = {
+                    total: responses.length,
+                    accepted: responses.filter((r) => r.action === 'accept').length,
+                    rejected: responses.filter((r) => r.action === 'reject').length,
+                    pending: mail.recipientCount - responses.length,
+                };
 
-            // Determine dominant status for UI coloring
-            let dominantStatus = 'pending';
-            if (stats.total > 0) {
-                if (stats.accepted > stats.rejected && stats.accepted > stats.pending) {
-                    dominantStatus = 'accept';
-                } else if (stats.rejected > stats.accepted && stats.rejected > stats.pending) {
-                    dominantStatus = 'reject';
+                let dominantStatus = 'pending';
+                if (stats.total > 0) {
+                    if (stats.accepted > stats.rejected && stats.accepted > stats.pending) {
+                        dominantStatus = 'accept';
+                    } else if (stats.rejected > stats.accepted && stats.rejected > stats.pending) {
+                        dominantStatus = 'reject';
+                    }
                 }
-            }
 
-            return {
-                ...mail.toObject(),
-                responseStats: stats,
-                dominantStatus: dominantStatus
-            };
-        }));
+                return {
+                    ...mail.toObject(),
+                    responseStats: stats,
+                    dominantStatus,
+                };
+            })
+        );
 
         return res.status(200).json({
             success: true,
             mails: mailsWithStats,
-            total: mailsWithStats.length
+            total: mailsWithStats.length,
         });
-
     } catch (error) {
-        console.error('Error fetching sent mails:', error);
+        logEmailError('N/A', error);
         return res.status(500).json({
             success: false,
             message: 'Failed to fetch sent mails',
-            error: error.message
+            error: error.message,
         });
     }
 };
 
-/**
- * Get all responses for a specific mail (admin view)
- * GET /api/mail/:mailId/responses
- */
 export const getMailResponses = async (req, res) => {
     try {
         const { mailId } = req.params;
@@ -268,23 +326,21 @@ export const getMailResponses = async (req, res) => {
         if (!mail) {
             return res.status(404).json({
                 success: false,
-                message: 'Mail not found'
+                message: 'Mail not found',
             });
         }
 
-        // Import MailResponse model
         const { default: MailResponse } = await import('../models/mailResponse.js');
 
         const responses = await MailResponse.find({ mailId })
             .sort({ submittedAt: -1 })
             .select('recipientEmail action responseData submittedAt');
 
-        // Calculate stats
         const stats = {
             total: responses.length,
-            accepted: responses.filter(r => r.action === 'accept').length,
-            rejected: responses.filter(r => r.action === 'reject').length,
-            pending: mail.recipientCount - responses.length
+            accepted: responses.filter((r) => r.action === 'accept').length,
+            rejected: responses.filter((r) => r.action === 'reject').length,
+            pending: mail.recipientCount - responses.length,
         };
 
         return res.status(200).json({
@@ -292,18 +348,18 @@ export const getMailResponses = async (req, res) => {
             mail,
             responses,
             stats,
-            totalRecipients: mail.recipientCount
+            totalRecipients: mail.recipientCount,
         });
-
     } catch (error) {
-        console.error('Error fetching mail responses:', error);
+        logEmailError('N/A', error);
         return res.status(500).json({
             success: false,
             message: 'Failed to fetch mail responses',
-            error: error.message
+            error: error.message,
         });
     }
 };
+
 export const getMailById = async (req, res) => {
     try {
         const { mailId } = req.params;
@@ -313,29 +369,24 @@ export const getMailById = async (req, res) => {
         if (!mail) {
             return res.status(404).json({
                 success: false,
-                message: 'Mail not found'
+                message: 'Mail not found',
             });
         }
 
         return res.status(200).json({
             success: true,
-            mail
+            mail,
         });
-
     } catch (error) {
-        console.error('Error fetching mail:', error);
+        logEmailError('N/A', error);
         return res.status(500).json({
             success: false,
             message: 'Failed to fetch mail',
-            error: error.message
+            error: error.message,
         });
     }
 };
 
-/**
- * Get all sent mails for coordinators (filtered by department)
- * GET /api/mail/department/:department
- */
 export const getDepartmentMails = async (req, res) => {
     try {
         const { department } = req.params;
@@ -343,114 +394,103 @@ export const getDepartmentMails = async (req, res) => {
         if (!department) {
             return res.status(400).json({
                 success: false,
-                message: 'Department parameter is required'
+                message: 'Department parameter is required',
             });
         }
 
-        // For coordinators, show all mails (they can see system-wide communications)
-        // In future, this can be enhanced to filter based on specific department rules
         const mails = await Mail.find({})
             .sort({ createdAt: -1 })
-            .select('senderId senderName senderEmail title content recipientCount isBroadcast createdAt recipientEmails');
+            .select(
+                'senderId senderName senderEmail title content recipientCount isBroadcast createdAt recipientEmails'
+            );
 
-        // Import MailResponse and Alumni models
         const { default: MailResponse } = await import('../models/mailResponse.js');
         const { default: Alumni } = await import('../models/alumni.js');
 
-        // For each mail, get response statistics filtered by coordinator's department
-        const mailsWithStats = await Promise.all(mails.map(async (mail) => {
-            // Get all responses for this mail
-            const allResponses = await MailResponse.find({ mailId: mail._id });
+        const mailsWithStats = await Promise.all(
+            mails.map(async (mail) => {
+                const allResponses = await MailResponse.find({ mailId: mail._id });
 
-            // Filter responses to only include alumni from coordinator's department
-            const departmentResponses = [];
+                const departmentResponses = [];
 
-            for (const response of allResponses) {
-                try {
-                    const alumni = await Alumni.findOne({ email: response.recipientEmail.toLowerCase() });
-                    if (alumni && alumni.branch === department) {
-                        departmentResponses.push(response);
+                for (const response of allResponses) {
+                    try {
+                        const alumni = await Alumni.findOne({
+                            email: response.recipientEmail.toLowerCase(),
+                        });
+                        if (alumni && alumni.branch === department) {
+                            departmentResponses.push(response);
+                        }
+                    } catch {
+                        continue;
                     }
-                } catch (err) {
-                    // Skip if alumni record not found
-                    continue;
                 }
-            }
 
-            // Count department alumni who received this mail
-            let departmentRecipientCount = 0;
-            for (const email of mail.recipientEmails || []) {
-                try {
-                    const alumni = await Alumni.findOne({ email: email.toLowerCase() });
-                    if (alumni && alumni.branch === department) {
-                        departmentRecipientCount++;
+                let departmentRecipientCount = 0;
+                for (const recipientEmail of mail.recipientEmails || []) {
+                    try {
+                        const alumni = await Alumni.findOne({
+                            email: recipientEmail.toLowerCase(),
+                        });
+                        if (alumni && alumni.branch === department) {
+                            departmentRecipientCount++;
+                        }
+                    } catch {
+                        continue;
                     }
-                } catch {
-                    // Skip if alumni record not found
                 }
-            }
 
-            // Calculate department-specific stats
-            const stats = {
-                total: departmentResponses.length,
-                accepted: departmentResponses.filter(r => r.action === 'accept').length,
-                rejected: departmentResponses.filter(r => r.action === 'reject').length,
-                pending: departmentRecipientCount - departmentResponses.length
-            };
+                const stats = {
+                    total: departmentResponses.length,
+                    accepted: departmentResponses.filter((r) => r.action === 'accept').length,
+                    rejected: departmentResponses.filter((r) => r.action === 'reject').length,
+                    pending: departmentRecipientCount - departmentResponses.length,
+                };
 
-            // Determine dominant status based on department alumni responses only
-            let dominantStatus = 'pending';
-            if (stats.total > 0) {
-                if (stats.accepted > stats.rejected && stats.accepted > stats.pending) {
-                    dominantStatus = 'accept';
-                } else if (stats.rejected > stats.accepted && stats.rejected > stats.pending) {
-                    dominantStatus = 'reject';
+                let dominantStatus = 'pending';
+                if (stats.total > 0) {
+                    if (stats.accepted > stats.rejected && stats.accepted > stats.pending) {
+                        dominantStatus = 'accept';
+                    } else if (stats.rejected > stats.accepted && stats.rejected > stats.pending) {
+                        dominantStatus = 'reject';
+                    }
                 }
-            }
 
-            return {
-                ...mail.toObject(),
-                responseStats: stats,
-                dominantStatus: dominantStatus,
-                departmentRecipientCount: departmentRecipientCount // Add this for reference
-            };
-        }));
+                return {
+                    ...mail.toObject(),
+                    responseStats: stats,
+                    dominantStatus,
+                    departmentRecipientCount,
+                };
+            })
+        );
 
         return res.status(200).json({
             success: true,
             mails: mailsWithStats,
             total: mailsWithStats.length,
             department,
-            message: `Showing mail statistics for ${department} department only`
+            message: `Showing mail statistics for ${department} department only`,
         });
-
     } catch (error) {
-        console.error('Error fetching department mails:', error);
+        logEmailError('N/A', error);
         return res.status(500).json({
             success: false,
             message: 'Failed to fetch department mails',
-            error: error.message
+            error: error.message,
         });
     }
 };
 
-/**
- * Send notification email to admin when alumni responds to invitation
- * @param {Object} responseData - Response data from alumni
- * @param {Object} mailData - Original mail data
- * @param {string} action - 'accept' or 'reject'
- */
 export const sendAdminNotification = async (responseData, mailData, action) => {
     try {
-        const transporter = createTransporter();
-
-        // Admin email (use sender email from original mail)
         const adminEmail = mailData.senderEmail;
 
-        let emailSubject, emailContent;
+        let emailSubject;
+        let emailContent;
 
         if (action === 'accept') {
-            emailSubject = `✅ Acceptance Response Received - ${mailData.title}`;
+            emailSubject = `Acceptance Response Received - ${mailData.title}`;
 
             const safeFullName = escapeHtml(responseData.fullName || 'N/A');
             const safeDesignation = escapeHtml(responseData.designation || 'N/A');
@@ -459,14 +499,15 @@ export const sendAdminNotification = async (responseData, mailData, action) => {
             const safePersonalEmail = escapeHtml(responseData.personalEmail || 'N/A');
             const safeOfficialEmail = escapeHtml(responseData.officialEmail || 'N/A');
             const safeLocation = escapeHtml(responseData.location || 'N/A');
-            const safeBatchYears = responseData.batchYear ?
-                `${responseData.batchYear.startYear || 'N/A'} - ${responseData.batchYear.endYear || 'N/A'}` : 'N/A';
+            const safeBatchYears = responseData.batchYear
+                ? `${responseData.batchYear.startYear || 'N/A'} - ${responseData.batchYear.endYear || 'N/A'}`
+                : 'N/A';
 
             emailContent = `
                 <div style="font-family: Arial, sans-serif; max-width: 720px; margin: 0 auto; padding: 20px; background-color: #f7f9fc;">
                     <div style="background: #ffffff; border: 1px solid #e5e9f2; border-radius: 10px; padding: 22px;">
                         <div style="background: #16a34a; color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;">
-                            <h2 style="margin: 0; font-size: 18px;">✅ New Acceptance Response Received</h2>
+                            <h2 style="margin: 0; font-size: 18px;">New Acceptance Response Received</h2>
                         </div>
 
                         <div style="margin-bottom: 20px;">
@@ -502,13 +543,13 @@ export const sendAdminNotification = async (responseData, mailData, action) => {
                         </div>
 
                         <div style="background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; padding: 12px; margin-top: 16px;">
-                            <div style="font-size: 14px; color: #166534; font-weight: 600;">✓ This alumni has accepted the invitation and provided their updated information.</div>
+                            <div style="font-size: 14px; color: #166534; font-weight: 600;">This alumni has accepted the invitation and provided their updated information.</div>
                         </div>
                     </div>
                 </div>
             `;
         } else if (action === 'reject') {
-            emailSubject = `❌ Rejection Response Received - ${mailData.title}`;
+            emailSubject = `Rejection Response Received - ${mailData.title}`;
 
             const safeRejectionReason = escapeHtml(responseData.rejectionReason || 'No reason provided');
             const recipientEmail = escapeHtml(responseData.recipientEmail || 'Unknown');
@@ -517,7 +558,7 @@ export const sendAdminNotification = async (responseData, mailData, action) => {
                 <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; background-color: #f7f9fc;">
                     <div style="background: #ffffff; border: 1px solid #e5e9f2; border-radius: 10px; padding: 22px;">
                         <div style="background: #dc2626; color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;">
-                            <h2 style="margin: 0; font-size: 18px;">❌ New Rejection Response Received</h2>
+                            <h2 style="margin: 0; font-size: 18px;">New Rejection Response Received</h2>
                         </div>
 
                         <div style="margin-bottom: 20px;">
@@ -543,34 +584,22 @@ export const sendAdminNotification = async (responseData, mailData, action) => {
                         </div>
 
                         <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; margin-top: 16px;">
-                            <div style="font-size: 14px; color: #991b1b; font-weight: 600;">✗ This alumni has declined the invitation.</div>
+                            <div style="font-size: 14px; color: #991b1b; font-weight: 600;">This alumni has declined the invitation.</div>
                         </div>
                     </div>
                 </div>
             `;
         }
 
-        const mailOptions = {
-            from: `Alumni Portal <${process.env.EMAIL_USER}>`,
-            to: adminEmail,
-            subject: emailSubject,
-            html: emailContent
-        };
-
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Admin notification sent to: ${adminEmail} for ${action} response`);
+        await sendSingleEmail(adminEmail, emailSubject, emailContent);
 
         return { success: true };
     } catch (error) {
-        console.error('❌ Failed to send admin notification:', error.message);
+        logEmailError(mailData?.senderEmail || 'N/A', error);
         return { success: false, error: error.message };
     }
 };
 
-/**
- * Get all responses for a specific mail filtered by coordinator department
- * GET /api/mail/:mailId/responses/department/:department
- */
 export const getMailResponsesByDepartment = async (req, res) => {
     try {
         const { mailId, department } = req.params;
@@ -579,49 +608,43 @@ export const getMailResponsesByDepartment = async (req, res) => {
         if (!mail) {
             return res.status(404).json({
                 success: false,
-                message: 'Mail not found'
+                message: 'Mail not found',
             });
         }
 
-        // Import required models
         const { default: MailResponse } = await import('../models/mailResponse.js');
         const { default: Alumni } = await import('../models/alumni.js');
 
-        // Get all responses for this mail and populate with alumni department info
         const allResponses = await MailResponse.find({ mailId })
             .sort({ submittedAt: -1 })
             .select('recipientEmail action responseData submittedAt');
 
-        // Filter responses by department
         const departmentFilteredResponses = [];
 
         for (const response of allResponses) {
             try {
-                // Find alumni record by email to get their branch/department
-                const alumni = await Alumni.findOne({ email: response.recipientEmail.toLowerCase() });
+                const alumni = await Alumni.findOne({
+                    email: response.recipientEmail.toLowerCase(),
+                });
 
-                // Only include responses from alumni in the coordinator's department
                 if (alumni && alumni.branch === department) {
                     departmentFilteredResponses.push(response);
                 }
-            } catch (err) {
-                console.warn(`Warning: Could not find alumni record for email ${response.recipientEmail}`);
-                // Continue processing other responses
+            } catch {
+                continue;
             }
         }
 
-        // Calculate department-specific stats
         const departmentStats = {
             total: departmentFilteredResponses.length,
-            accepted: departmentFilteredResponses.filter(r => r.action === 'accept').length,
-            rejected: departmentFilteredResponses.filter(r => r.action === 'reject').length,
+            accepted: departmentFilteredResponses.filter((r) => r.action === 'accept').length,
+            rejected: departmentFilteredResponses.filter((r) => r.action === 'reject').length,
         };
 
-        // Get total count of department alumni who received this mail
         const departmentAlumniCount = await Promise.all(
-            mail.recipientEmails.map(async (email) => {
+            mail.recipientEmails.map(async (recipientEmail) => {
                 try {
-                    const alumni = await Alumni.findOne({ email: email.toLowerCase() });
+                    const alumni = await Alumni.findOne({ email: recipientEmail.toLowerCase() });
                     return alumni && alumni.branch === department ? 1 : 0;
                 } catch {
                     return 0;
@@ -639,23 +662,18 @@ export const getMailResponsesByDepartment = async (req, res) => {
             stats: departmentStats,
             totalRecipients: totalDepartmentRecipients,
             department,
-            message: `Showing responses from ${department} department only`
+            message: `Showing responses from ${department} department only`,
         });
-
     } catch (error) {
-        console.error('Error fetching department mail responses:', error);
+        logEmailError('N/A', error);
         return res.status(500).json({
             success: false,
             message: 'Failed to fetch department mail responses',
-            error: error.message
+            error: error.message,
         });
     }
 };
 
-/**
- * Get mails for specific alumni (filtered by recipient email)
- * GET /api/mail/alumni/:email
- */
 export const getAlumniMails = async (req, res) => {
     try {
         const { email } = req.params;
@@ -663,60 +681,59 @@ export const getAlumniMails = async (req, res) => {
         if (!email) {
             return res.status(400).json({
                 success: false,
-                message: 'Alumni email parameter is required'
+                message: 'Alumni email parameter is required',
             });
         }
 
-        // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid email format'
+                message: 'Invalid email format',
             });
         }
 
-        // Find mails where the alumni email is in the recipient list
         const mails = await Mail.find({
-            recipientEmails: { $in: [email] }
+            recipientEmails: { $in: [email] },
         })
             .sort({ createdAt: -1 })
-            .select('senderId senderName senderEmail title content recipientCount isBroadcast createdAt recipientEmails');
+            .select(
+                'senderId senderName senderEmail title content recipientCount isBroadcast createdAt recipientEmails'
+            );
 
-        // Import MailResponse model
         const { default: MailResponse } = await import('../models/mailResponse.js');
 
-        // For each mail, find the response status for this specific alumni
-        const mailsWithStatus = await Promise.all(mails.map(async (mail) => {
-            const response = await MailResponse.findOne({
-                mailId: mail._id,
-                recipientEmail: email.toLowerCase()
-            });
+        const mailsWithStatus = await Promise.all(
+            mails.map(async (mail) => {
+                const response = await MailResponse.findOne({
+                    mailId: mail._id,
+                    recipientEmail: email.toLowerCase(),
+                });
 
-            return {
-                ...mail.toObject(),
-                responseStatus: response ? response.action : 'pending',
-                responseData: response ? response.responseData : null,
-                responseId: response ? response._id : null,
-                submittedAt: response ? response.submittedAt : null
-            };
-        }));
-
-        console.log(`📧 Found ${mails.length} mails for alumni: ${email}`);
+                return {
+                    ...mail.toObject(),
+                    responseStatus: response ? response.action : 'pending',
+                    responseData: response ? response.responseData : null,
+                    responseId: response ? response._id : null,
+                    submittedAt: response ? response.submittedAt : null,
+                };
+            })
+        );
 
         return res.status(200).json({
             success: true,
             mails: mailsWithStatus,
             total: mailsWithStatus.length,
-            alumniEmail: email
+            alumniEmail: email,
         });
-
     } catch (error) {
-        console.error('Error fetching alumni mails:', error);
+        logEmailError(req.params?.email || 'N/A', error);
         return res.status(500).json({
             success: false,
             message: 'Failed to fetch alumni mails',
-            error: error.message
+            error: error.message,
         });
     }
 };
+
+export { sendBroadcast };
