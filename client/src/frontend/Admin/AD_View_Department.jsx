@@ -57,14 +57,16 @@ const Admin_View_Department = ( { onLogout } ) => {
         }
 
         // Fetch coordinators by department
-        const coordinatorResponse = await fetch(`${API_BASE}/api/coordinators/department/${deptCode}`, {
+        const upperCaseDeptCode = deptCode.toUpperCase();
+        const coordinatorResponse = await fetch(`${API_BASE}/api/coordinators/department/${upperCaseDeptCode}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
 
         if (!coordinatorResponse.ok) {
-          throw new Error('Failed to fetch coordinator data');
+          const errorText = await coordinatorResponse.text();
+          throw new Error(`Failed to fetch coordinator data: ${coordinatorResponse.status} - ${errorText}`);
         }
 
         const coordinatorData = await coordinatorResponse.json();
@@ -72,7 +74,7 @@ const Admin_View_Department = ( { onLogout } ) => {
         if (coordinatorData.success && coordinatorData.coordinators) {
           setStaffList(coordinatorData.coordinators);
         } else {
-          setError('Failed to load coordinator data');
+          setError(coordinatorData.message || 'Failed to load coordinator data');
         }
       } catch (err) {
         setError(err.message);

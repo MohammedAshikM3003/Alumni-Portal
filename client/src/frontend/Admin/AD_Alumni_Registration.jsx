@@ -5,7 +5,7 @@ import styles from './AD_Alumni_Registration.module.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const AD_Alumni_Registration = () => {
+const Admin_Alumni_Registration = () => {
   const { token } = useParams();
   const navigate = useNavigate();
   const { saveUser } = useAuth();
@@ -1078,4 +1078,4 @@ const AD_Alumni_Registration = () => {
   );
 };
 
-export default AD_Alumni_Registration;
+export default Admin_Alumni_Registration;

@@ -295,3 +295,584 @@
 .sendBtn:hover {
   background-color: var(--forest-green-hover);
 }
+
+.sendBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sendIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ==================== PAGE HEADER ==================== */
+.pageHeader {
+  margin-bottom: 1.5rem;
+}
+
+.pageHeader h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 0.5rem;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* ==================== ALERT ==================== */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.alert.success {
+  background-color: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #6EE7B7;
+}
+
+.alert.error {
+  background-color: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+}
+
+.alert.info {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+  border: 1px solid #93C5FD;
+}
+
+/* ==================== FORM STYLES ==================== */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.inputSection {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.inputGroup {
+  margin-bottom: 1rem;
+}
+
+.inputGroup:last-child {
+  margin-bottom: 0;
+}
+
+.inputGroup label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.required {
+  color: #EF4444;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-dark);
+  background: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: var(--forest-green);
+  box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+}
+
+.inputField:disabled {
+  background-color: var(--bg-surface);
+  cursor: not-allowed;
+}
+
+.inputField.readOnly {
+  background-color: var(--bg-surface);
+  color: var(--text-muted);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 200px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.helperText {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.showDropdownLink {
+  color: var(--forest-green);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.showDropdownLink:hover {
+  text-decoration: underline;
+}
+
+/* ==================== PHOTO NAME ROW ==================== */
+.photoNameRow {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.fieldsSection {
+  flex: 1;
+}
+
+.photoSection {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.photoSection label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.photoDisplay {
+  width: 100px;
+  height: 100px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+}
+
+.photoPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  font-size: 0.75rem;
+}
+
+.photoPlaceholder span:first-child {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.photoLoading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alumniPhotoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ==================== BATCH ROW ==================== */
+.batchRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* ==================== ALUMNI ENTRY CARD ==================== */
+.alumniEntryCard {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  position: relative;
+}
+
+.alumniEntryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.alumniEntryTitle {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.removeAlumniBtn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.removeAlumniBtn:hover {
+  background: #FEE2E2;
+  color: #EF4444;
+}
+
+.removeAlumniBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==================== ADD ALUMNI BUTTON ==================== */
+.addAlumniBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem;
+  border: 2px dashed var(--border-color);
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addAlumniBtn:hover {
+  border-color: var(--forest-green);
+  color: var(--forest-green);
+  background: var(--forest-green-light);
+}
+
+.addAlumniBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==================== OPTIONAL FORM CARD ==================== */
+.optionalFormCard {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.optionalFormHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.optionalFormTitleWrap h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 0.25rem;
+}
+
+.optionalFormTitleWrap p {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.optionalFormControl {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.outcomeStatus {
+  display: flex;
+  align-items: center;
+}
+
+.enabledText {
+  font-size: 0.75rem;
+  color: var(--forest-green);
+  font-weight: 500;
+}
+
+/* Toggle Switch */
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggleSwitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggleSlider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #D1D5DB;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.toggleSlider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggleSwitch input:checked + .toggleSlider {
+  background-color: var(--forest-green);
+}
+
+.toggleSwitch input:checked + .toggleSlider:before {
+  transform: translateX(20px);
+}
+
+.toggleSwitch input:disabled + .toggleSlider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==================== EVENT FIELDS ==================== */
+.eventFieldsTop {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.eventFieldsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .eventFieldsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .eventFieldsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==================== MESSAGE ACTION ROW ==================== */
+.messageActionRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.charCount {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.generateBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #8B5CF6, #6366F1);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.generateBtn:hover {
+  background: linear-gradient(135deg, #7C3AED, #4F46E5);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.generateBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==================== SPINNER ==================== */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== PLACEHOLDER HINT ==================== */
+.placeholderHint {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #EEF2FF;
+  border: 1px solid #C7D2FE;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.8125rem;
+  color: #4338CA;
+}
+
+.placeholderHint span:first-child {
+  flex-shrink: 0;
+}
+
+/* ==================== DUPLICATE STYLES ==================== */
+.duplicateField {
+  border-color: #EF4444 !important;
+  background-color: #FEF2F2 !important;
+}
+
+.duplicateWarning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #DC2626;
+}
+
+.duplicateSummary {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  color: #991B1B;
+}
+
+.duplicateSummary span:first-child {
+  flex-shrink: 0;
+  color: #DC2626;
+}
+
+.duplicateEmailsList {
+  margin-top: 0.5rem;
+}
+
+.duplicateEmailItem {
+  margin-bottom: 0.25rem;
+}
+
+.duplicateEmailItem code {
+  background: #FEE2E2;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.duplicateSummary p {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+}
+
+/* ==================== FORM ACTIONS ==================== */
+.formActions {
+  margin-top: 1rem;
+}
+
+.formBtn {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.cancelBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #ffffff;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+  background: var(--bg-surface);
+  border-color: var(--text-light);
+}
+
+.cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==================== LOADING & EMPTY STATES ==================== */
+.loadingState,
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: var(--text-muted);
+  font-size: 1rem;
+}

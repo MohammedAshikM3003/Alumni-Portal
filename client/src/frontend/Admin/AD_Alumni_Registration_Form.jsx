@@ -15,7 +15,7 @@ const logClientBreak = (traceId, flow, step, reason, details = {}) => {
   console.warn(`[RegistrationMailClient:${traceId}][${flow}][BREAK at Step ${step}] ${reason}`, details);
 };
 
-const AD_Alumni_Registration_Form = ({ onLogout }) => {
+const Admin_Alumni_Registration_Form = ({ onLogout }) => {
   const { user } = useAuth();
 
   // Form state - only email required
@@ -217,4 +217,4 @@ const AD_Alumni_Registration_Form = ({ onLogout }) => {
   );
 };
 
-export default AD_Alumni_Registration_Form;
+export default Admin_Alumni_Registration_Form;

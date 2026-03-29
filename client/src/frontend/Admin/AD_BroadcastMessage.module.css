@@ -189,7 +189,6 @@
 
 /* Form Styles */
 .form {
-  max-width: 90rem; /* Extended from 72rem */
   margin: 0;
   background: white;
   padding: 2.5rem;
@@ -199,7 +198,7 @@
 }
 
 .inputSection {
-  margin-bottom: 2rem;
+  margin: 1rem 0rem 2rem 0rem;  
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -287,6 +286,17 @@
   color: #94a3b8;
   text-align: left;
   font-style: italic;
+}
+
+.showDropdownLink {
+  color: #228b22;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.showDropdownLink:hover {
+  color: #1b6e1b;
 }
 
 .nameSection {
@@ -413,11 +423,23 @@
   cursor: not-allowed;
 }
 
+/* Select dropdown styling */
+select.inputField {
+  cursor: pointer;
+  padding-right: 2.5rem;
+}
+
+select.inputField:disabled {
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
 .optionalFormCard {
   border: 1px solid #d9e4d9;
   border-radius: 0.75rem;
   background: #f8fcf8;
   padding: 1rem;
+  margin-bottom: 15px;
 }
 
 .optionalFormHeader {
@@ -432,7 +454,6 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  min-width: 420px;
 }
 
 .enabledText {
@@ -465,7 +486,7 @@
 .eventFieldsRow {
   margin-top: 1rem;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 1rem;
 }
 
@@ -650,10 +671,20 @@
 .formActions {
   display: flex;
   gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 2rem;
+  justify-content: end;
   border-top: 1px solid #e0e6ed;
-  padding-top: 1.5rem;
+}
+
+.formBtn{
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
 }
 
 .cancelBtn,
@@ -702,6 +733,242 @@
 
 .submitBtn span:first-child {
   font-size: 1.1rem;
+}
+
+
+.addAlumniBtn{
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  margin-top: 1rem;
+  height: fit-content;
+}
+
+.addAlumniBtn:hover:not(:disabled) {
+  background: #218838;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
+}
+
+.addAlumniBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Alumni Entry Card */
+.alumniEntryCard {
+  background: white;
+  border: 1px solid #e0e6ed;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.alumniEntryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e0e6ed;
+}
+
+.alumniEntryTitle {
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.removeAlumniBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.removeAlumniBtn:hover:not(:disabled) {
+  background: #c82333;
+  transform: scale(1.1);
+}
+
+.removeAlumniBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.removeAlumniBtn span {
+  font-size: 1.2rem;
+}
+
+/* Auto-personalization hint */
+.placeholderHint {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%);
+  border: 1px solid #81c784;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-start;
+}
+
+.placeholderHint > span {
+  color: #388e3c;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.placeholderHint strong {
+  color: #2e7d32;
+}
+
+.placeholderHint > div {
+  font-size: 0.9rem;
+  color: #424242;
+  line-height: 1.5;
+}
+
+/* Character count and message actions */
+.messageActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  gap: 1rem;
+}
+
+.generateBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: fit-content;
+  padding: 0.875rem 1.75rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+}
+
+.generateBtn:hover:not(:disabled) {
+  background: #218838;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.generateBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.generateBtn span:first-child {
+  font-size: 1.2rem;
+}
+
+.generateHelper {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  margin: 0.75rem 0 0 0;
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+}
+
+/* Duplicate email styling */
+.duplicateField {
+  border-color: #dc3545 !important;
+  background-color: #fff5f5 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.duplicateWarning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.duplicateWarning span {
+  font-size: 1.1rem;
+}
+
+/* Duplicate emails summary */
+.duplicateSummary {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+  border: 1px solid #f48fb1;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-start;
+}
+
+.duplicateSummary > span {
+  color: #d32f2f;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.duplicateSummary strong {
+  color: #c62828;
+}
+
+.duplicateSummary > div {
+  font-size: 0.9rem;
+  color: #424242;
+  line-height: 1.5;
+}
+
+.duplicateEmailsList {
+  margin: 0.5rem 0;
+}
+
+.duplicateEmailItem {
+  margin: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.duplicateEmailItem code {
+  background: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.85rem;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
 }
 
 /* Spinner */
@@ -783,9 +1050,10 @@
     flex-wrap: wrap;
     justify-content: center;
   }
-
+  
   .eventFieldsRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
   }
 
 }

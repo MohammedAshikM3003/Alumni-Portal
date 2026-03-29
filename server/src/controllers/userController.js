@@ -1,4 +1,108 @@
 import User from '../models/user.js';
+import Alumni from '../models/alumni.js';
+
+// Search all alumni by name, department, and batch (returns all matches)
+export const searchAlumniAll = async (req, res) => {
+  try {
+    const { name, department, batch } = req.query;
+
+    if (!name || !department || !batch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name, department, and batch are required'
+      });
+    }
+
+    // Parse batch (e.g., "2020-2024" -> yearFrom: 2020, yearTo: 2024)
+    const batchParts = batch.split('-');
+    const yearFrom = parseInt(batchParts[0]);
+    const yearTo = batchParts[1] ? parseInt(batchParts[1]) : yearFrom + 4;
+
+    const alumni = await Alumni.find({
+      name: { $regex: name, $options: 'i' },
+      branch: { $regex: department, $options: 'i' },
+      yearFrom: yearFrom,
+      yearTo: yearTo
+    }).select('name email branch yearFrom yearTo profilePhoto');
+
+    if (alumni.length === 0) {
+      return res.json({
+        success: false,
+        message: 'No alumni found',
+        alumni: []
+      });
+    }
+
+    // Format response with profile picture URL
+    const formattedAlumni = alumni.map(a => ({
+      _id: a._id,
+      name: a.name,
+      email: a.email,
+      branch: a.branch,
+      batch: `${a.yearFrom}-${a.yearTo}`,
+      profilePicture: a.profilePhoto ? `/api/images/${a.profilePhoto}` : null
+    }));
+
+    res.json({
+      success: true,
+      alumni: formattedAlumni,
+      count: formattedAlumni.length
+    });
+
+  } catch (error) {
+    console.error('Error searching alumni:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while searching alumni',
+      error: error.message
+    });
+  }
+};
+
+// Search alumni by email
+export const searchAlumniByEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    const alumni = await Alumni.findOne({
+      email: { $regex: `^${email}$`, $options: 'i' }
+    }).select('name email branch yearFrom yearTo profilePhoto');
+
+    if (!alumni) {
+      return res.json({
+        success: false,
+        message: 'Alumni not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      alumni: {
+        _id: alumni._id,
+        name: alumni.name,
+        email: alumni.email,
+        branch: alumni.branch,
+        batch: `${alumni.yearFrom}-${alumni.yearTo}`,
+        profilePicture: alumni.profilePhoto ? `/api/images/${alumni.profilePhoto}` : null
+      }
+    });
+
+  } catch (error) {
+    console.error('Error searching alumni by email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while searching alumni',
+      error: error.message
+    });
+  }
+};
 
 // Get all users (Admin only)
 export const getAllUsers = async (req, res) => {

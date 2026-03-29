@@ -6,6 +6,18 @@ import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+// Default alumni entry structure
+const createEmptyAlumniEntry = () => ({
+  alumniName: '',
+  department: '',
+  batchStart: '',
+  alumniEmail: '',
+  alumniPhoto: null,
+  matchedAlumni: [],
+  showEmailDropdown: false,
+  fetchingPhoto: false
+});
+
 const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -27,66 +39,269 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
     message: initialMessage = ''
   } = location.state || {};
 
-  const [formData, setFormData] = useState({
+  // Alumni entries array - each entry has its own alumni-specific data
+  const [alumniEntries, setAlumniEntries] = useState([{
     alumniName: initialAlumniName,
     department: initialDepartment,
     batchStart: initialBatch ? initialBatch.split('-')[0] : '',
     alumniEmail: initialAlumniEmail,
+    alumniPhoto: null,
+    matchedAlumni: [],
+    showEmailDropdown: false,
+    fetchingPhoto: false
+  }]);
+
+  // Shared form data (event info, subject, message)
+  const [sharedData, setSharedData] = useState({
     eventName: initialEventName,
     eventDate: initialEventDate,
-    eventLocation: initialEventLocation,
+    eventVenue: '',
+    eventTime: '',
     title: initialTitle,
     message: initialMessage,
   });
+
   const [isPreMessageFormEnabled, setIsPreMessageFormEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ show: false, message: '', type: '' });
-  const [alumniPhoto, setAlumniPhoto] = useState(null);
-  const [fetchingPhoto, setFetchingPhoto] = useState(false);
   const [formSent, setFormSent] = useState(false);
   const [formCleared, setFormCleared] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [isEventFormEnabled, setIsEventFormEnabled] = useState(false);
+  const [generatingEmail, setGeneratingEmail] = useState(false);
 
-  // Calculate ending year (start year + 4)
-  const batchEnd = formData.batchStart ? String(Number(formData.batchStart) + 4) : '';
-  const batch = formData.batchStart && batchEnd ? `${formData.batchStart}-${batchEnd}` : '';
+  // Helper function to get cookie value
+  const getCookie = (name) => {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  };
 
-  const handleInputChange = (e) => {
+  // Fetch events from the database
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoadingEvents(true);
+      try {
+        const token = getCookie('token') || user?.token;
+        const response = await fetch(`${API_BASE_URL}/api/events`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setEvents(data.events || []);
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    // Only fetch when user is available
+    if (user) {
+      fetchEvents();
+    }
+  }, [user]);
+
+  // Handle event selection from dropdown
+  const handleEventSelect = (e) => {
+    const selectedEventId = e.target.value;
+    if (!selectedEventId) {
+      setSharedData(prev => ({
+        ...prev,
+        eventName: '',
+        eventDate: '',
+        eventVenue: '',
+        eventTime: ''
+      }));
+      return;
+    }
+
+    const selectedEvent = events.find(event => event._id === selectedEventId);
+    if (selectedEvent) {
+      // Format the date for the date input (YYYY-MM-DD)
+      let formattedDate = '';
+      if (selectedEvent.eventDate) {
+        const date = new Date(selectedEvent.eventDate);
+        formattedDate = date.toISOString().split('T')[0];
+      }
+
+      setSharedData(prev => ({
+        ...prev,
+        eventName: selectedEvent.eventName,
+        eventDate: formattedDate,
+        eventVenue: selectedEvent.venue || '',
+        eventTime: selectedEvent.eventTime || ''
+      }));
+    }
+  };
+
+  // Calculate ending year for a specific alumni entry
+  const getBatchEnd = (batchStart) => batchStart ? String(Number(batchStart) + 4) : '';
+  const getBatch = (batchStart) => {
+    const batchEnd = getBatchEnd(batchStart);
+    return batchStart && batchEnd ? `${batchStart}-${batchEnd}` : '';
+  };
+
+  // Handle alumni-specific input changes
+  const handleAlumniInputChange = (index, e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+
+    // Check for duplicate email when email changes
+    if (name === 'alumniEmail' && value.trim()) {
+      const isDuplicate = checkDuplicateEmail(value, index);
+      if (isDuplicate) {
+        showAlert(`This email is already added for another alumni. Please use a different email.`, 'error');
+        return;
+      }
+    }
+
+    setAlumniEntries(prev => prev.map((entry, i) =>
+      i === index ? { ...entry, [name]: value } : entry
+    ));
+  };
+
+  // Handle shared data input changes
+  const handleSharedInputChange = (e) => {
+    const { name, value } = e.target;
+    setSharedData(prev => ({
       ...prev,
       [name]: value
     }));
   };
 
-  // Check if form has meaningful content to save as draft
-  const hasContentToSave = () => {
-    return formData.title.trim() ||
-           formData.message.trim() ||
-           formData.alumniName.trim() ||
-           formData.alumniEmail.trim() ||
-           formData.department.trim();
+  // Add new alumni entry
+  const handleAddAlumni = () => {
+    setAlumniEntries(prev => [...prev, createEmptyAlumniEntry()]);
   };
 
-  // Auto-save draft silently
+  // Remove alumni entry
+  const handleRemoveAlumni = (index) => {
+    if (alumniEntries.length > 1) {
+      setAlumniEntries(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  // Check for duplicate email addresses
+  const checkDuplicateEmail = (email, currentIndex) => {
+    if (!email.trim()) return false;
+    return alumniEntries.some((entry, index) =>
+      index !== currentIndex &&
+      entry.alumniEmail.trim().toLowerCase() === email.trim().toLowerCase()
+    );
+  };
+
+  // Get duplicate emails info
+  const getDuplicateEmailsInfo = () => {
+    const duplicateEmails = new Map();
+    alumniEntries.forEach((entry, index) => {
+      if (entry.alumniEmail.trim()) {
+        const email = entry.alumniEmail.trim().toLowerCase();
+        if (!duplicateEmails.has(email)) {
+          duplicateEmails.set(email, []);
+        }
+        duplicateEmails.get(email).push(index);
+      }
+    });
+
+    // Filter only those with duplicates
+    const duplicates = new Map();
+    for (const [email, indices] of duplicateEmails.entries()) {
+      if (indices.length > 1) {
+        duplicates.set(email, indices);
+      }
+    }
+    return duplicates;
+  };
+
+  // Replace placeholders and first alumni's data with each recipient's data
+  const personalizeContent = (text, entry, firstEntry) => {
+    const batchEnd = getBatchEnd(entry.batchStart);
+    const batch = entry.batchStart ? `${entry.batchStart}-${batchEnd}` : '';
+
+    const firstBatchEnd = getBatchEnd(firstEntry.batchStart);
+    const firstBatch = firstEntry.batchStart ? `${firstEntry.batchStart}-${firstBatchEnd}` : '';
+
+    let personalizedText = text;
+
+    // Replace first alumni's actual data with current alumni's data (case-insensitive)
+    if (firstEntry.alumniName.trim() && entry.alumniName.trim() !== firstEntry.alumniName.trim()) {
+      const nameRegex = new RegExp(firstEntry.alumniName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      personalizedText = personalizedText.replace(nameRegex, entry.alumniName.trim());
+    }
+
+    if (firstEntry.department.trim() && entry.department.trim() !== firstEntry.department.trim()) {
+      const deptRegex = new RegExp(firstEntry.department.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      personalizedText = personalizedText.replace(deptRegex, entry.department.trim());
+    }
+
+    if (firstBatch && batch !== firstBatch) {
+      const batchRegex = new RegExp(firstBatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      personalizedText = personalizedText.replace(batchRegex, batch);
+    }
+
+    if (firstEntry.batchStart.trim() && entry.batchStart.trim() !== firstEntry.batchStart.trim()) {
+      const yearRegex = new RegExp(firstEntry.batchStart.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      personalizedText = personalizedText.replace(yearRegex, entry.batchStart.trim());
+    }
+
+    if (firstEntry.alumniEmail.trim() && entry.alumniEmail.trim() !== firstEntry.alumniEmail.trim()) {
+      const emailRegex = new RegExp(firstEntry.alumniEmail.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      personalizedText = personalizedText.replace(emailRegex, entry.alumniEmail.trim());
+    }
+
+    return personalizedText;
+  };
+
+  // Check if form has meaningful content to save as draft
+  const hasContentToSave = () => {
+    const hasAlumniData = alumniEntries.some(entry =>
+      entry.alumniName.trim() ||
+      entry.alumniEmail.trim() ||
+      entry.department.trim()
+    );
+    return sharedData.title.trim() ||
+           sharedData.message.trim() ||
+           hasAlumniData;
+  };
+
+  // Auto-save draft silently (saves all alumni entries)
   const autoSaveDraft = async () => {
     if (formSent || formCleared || !hasContentToSave()) {
       return;
     }
 
     try {
+      const firstEntry = alumniEntries[0];
+      const batch = getBatch(firstEntry.batchStart);
+
+      // Build recipients array from all alumni entries
+      const recipients = alumniEntries.map(entry => ({
+        name: entry.alumniName.trim(),
+        email: entry.alumniEmail.trim(),
+        department: entry.department.trim(),
+        batch: getBatch(entry.batchStart),
+      }));
+
       const draftPayload = {
         senderId: user?.userId || 'admin',
         senderName: adminName || user?.name || 'Admin',
         senderEmail: adminEmail || user?.email || '',
-        recipientName: formData.alumniName.trim(),
-        recipientEmail: formData.alumniEmail.trim(),
-        department: formData.department.trim(),
+        // Store all recipients
+        recipients: recipients,
+        // Legacy fields for backward compatibility (first entry)
+        recipientName: firstEntry.alumniName.trim(),
+        recipientEmail: firstEntry.alumniEmail.trim(),
+        department: firstEntry.department.trim(),
         batch: batch,
-        title: formData.title.trim(),
-        content: formData.message.trim(),
-        eventName: formData.eventName.trim(),
-        eventDate: formData.eventDate,
-        eventLocation: formData.eventLocation.trim(),
+        title: sharedData.title.trim(),
+        content: sharedData.message.trim(),
+        eventName: sharedData.eventName.trim(),
+        eventDate: sharedData.eventDate,
+        eventLocation: sharedData.eventVenue.trim() + (sharedData.eventTime.trim() ? ` | ${sharedData.eventTime.trim()}` : ''),
       };
 
       const url = editDraft && draftId
@@ -131,7 +346,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [formData, formSent, formCleared]);
+  }, [alumniEntries, sharedData, formSent, formCleared]);
 
   const showAlert = (message, type) => {
     setAlert({ show: true, message, type });
@@ -144,116 +359,410 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
     setIsPreMessageFormEnabled(e.target.checked);
   };
 
-  // Fetch alumni photo when name, department, and batch are filled
-  useEffect(() => {
-    const fetchAlumniPhoto = async () => {
-      if (formData.alumniName && formData.department && batch) {
-        setFetchingPhoto(true);
-        try {
-          const response = await fetch(
-            `${API_BASE_URL}/api/users/alumni/search?name=${encodeURIComponent(formData.alumniName)}&department=${encodeURIComponent(formData.department)}&batch=${encodeURIComponent(batch)}`,
-            {
-              headers: { 'Content-Type': 'application/json' }
-            }
-          );
+  const handleEventFormToggleChange = (e) => {
+    setIsEventFormEnabled(e.target.checked);
+    if (!e.target.checked) {
+      // Clear event form data when disabled
+      setSharedData(prev => ({
+        ...prev,
+        eventName: '',
+        eventDate: '',
+        eventVenue: '',
+        eventTime: ''
+      }));
+    }
+  };
 
-          const data = await response.json();
-          if (data.success && data.alumni) {
-            setAlumniPhoto(data.alumni.profilePicture || null);
-            // Auto-fill email if available
-            if (data.alumni.email && !formData.alumniEmail) {
-              setFormData(prev => ({ ...prev, alumniEmail: data.alumni.email }));
-            }
-          } else {
-            setAlumniPhoto(null);
+  // Fetch alumni by name, department, and batch for a specific entry
+  const fetchAlumniByDetails = async (index) => {
+    const entry = alumniEntries[index];
+    const batch = getBatch(entry.batchStart);
+
+    if (entry.alumniName && entry.department && batch) {
+      // Set fetching state for this entry
+      setAlumniEntries(prev => prev.map((e, i) =>
+        i === index ? { ...e, fetchingPhoto: true } : e
+      ));
+
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/users/alumni/search-all?name=${encodeURIComponent(entry.alumniName)}&department=${encodeURIComponent(entry.department)}&batch=${encodeURIComponent(batch)}`,
+          {
+            headers: { 'Content-Type': 'application/json' }
           }
-        } catch (error) {
-          console.error('Error fetching alumni photo:', error);
-          setAlumniPhoto(null);
-        } finally {
-          setFetchingPhoto(false);
+        );
+
+        const data = await response.json();
+        if (data.success && data.alumni) {
+          if (Array.isArray(data.alumni) && data.alumni.length > 1) {
+            // Multiple matches - show dropdown
+            setAlumniEntries(prev => prev.map((e, i) =>
+              i === index ? {
+                ...e,
+                matchedAlumni: data.alumni,
+                showEmailDropdown: true,
+                alumniPhoto: null,
+                fetchingPhoto: false
+              } : e
+            ));
+          } else {
+            // Single match
+            const alumni = Array.isArray(data.alumni) ? data.alumni[0] : data.alumni;
+            const photoUrl = alumni.profilePicture
+              ? (alumni.profilePicture.startsWith('http') ? alumni.profilePicture : `${API_BASE_URL}${alumni.profilePicture}`)
+              : null;
+
+            setAlumniEntries(prev => prev.map((e, i) =>
+              i === index ? {
+                ...e,
+                matchedAlumni: [alumni],
+                showEmailDropdown: false,
+                alumniPhoto: photoUrl,
+                alumniEmail: e.alumniEmail || alumni.email || '',
+                fetchingPhoto: false
+              } : e
+            ));
+          }
+        } else {
+          setAlumniEntries(prev => prev.map((e, i) =>
+            i === index ? {
+              ...e,
+              matchedAlumni: [],
+              showEmailDropdown: false,
+              alumniPhoto: null,
+              fetchingPhoto: false
+            } : e
+          ));
         }
-      } else {
-        setAlumniPhoto(null);
+      } catch (error) {
+        console.error('Error fetching alumni:', error);
+        setAlumniEntries(prev => prev.map((e, i) =>
+          i === index ? {
+            ...e,
+            matchedAlumni: [],
+            showEmailDropdown: false,
+            alumniPhoto: null,
+            fetchingPhoto: false
+          } : e
+        ));
       }
+    } else {
+      setAlumniEntries(prev => prev.map((e, i) =>
+        i === index ? {
+          ...e,
+          matchedAlumni: [],
+          showEmailDropdown: false,
+          alumniPhoto: null
+        } : e
+      ));
+    }
+  };
+
+  // Fetch alumni by email for a specific entry
+  const fetchAlumniByEmail = async (index) => {
+    const entry = alumniEntries[index];
+
+    if (entry.alumniEmail && !entry.matchedAlumni.find(a => a.email === entry.alumniEmail)) {
+      setAlumniEntries(prev => prev.map((e, i) =>
+        i === index ? { ...e, fetchingPhoto: true } : e
+      ));
+
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/users/alumni/by-email?email=${encodeURIComponent(entry.alumniEmail)}`,
+          {
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+
+        const data = await response.json();
+        if (data.success && data.alumni) {
+          const photoUrl = data.alumni.profilePicture
+            ? (data.alumni.profilePicture.startsWith('http') ? data.alumni.profilePicture : `${API_BASE_URL}${data.alumni.profilePicture}`)
+            : null;
+
+          setAlumniEntries(prev => prev.map((e, i) =>
+            i === index ? {
+              ...e,
+              alumniPhoto: photoUrl,
+              alumniName: e.alumniName || data.alumni.name || '',
+              department: e.department || data.alumni.branch || '',
+              batchStart: e.batchStart || (data.alumni.batch ? data.alumni.batch.split('-')[0] : ''),
+              fetchingPhoto: false
+            } : e
+          ));
+        } else {
+          setAlumniEntries(prev => prev.map((e, i) =>
+            i === index ? { ...e, fetchingPhoto: false } : e
+          ));
+        }
+      } catch (error) {
+        console.error('Error fetching alumni by email:', error);
+        setAlumniEntries(prev => prev.map((e, i) =>
+          i === index ? { ...e, fetchingPhoto: false } : e
+        ));
+      }
+    }
+  };
+
+  // Debounced fetch for alumni details
+  useEffect(() => {
+    const timeouts = alumniEntries.map((entry, index) => {
+      const batch = getBatch(entry.batchStart);
+      if (entry.alumniName && entry.department && batch) {
+        return setTimeout(() => {
+          fetchAlumniByDetails(index);
+        }, 500);
+      }
+      return null;
+    });
+
+    return () => {
+      timeouts.forEach(timeout => {
+        if (timeout) clearTimeout(timeout);
+      });
     };
+  }, [alumniEntries.map(e => `${e.alumniName}-${e.department}-${e.batchStart}`).join(',')]);
 
-    // Debounce the API call
-    const timeoutId = setTimeout(() => {
-      fetchAlumniPhoto();
-    }, 500);
+  // Debounced fetch for alumni by email
+  useEffect(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const timeouts = alumniEntries.map((entry, index) => {
+      if (emailRegex.test(entry.alumniEmail)) {
+        return setTimeout(() => {
+          fetchAlumniByEmail(index);
+        }, 500);
+      }
+      return null;
+    });
 
-    return () => clearTimeout(timeoutId);
-  }, [formData.alumniName, formData.department, batch]);
+    return () => {
+      timeouts.forEach(timeout => {
+        if (timeout) clearTimeout(timeout);
+      });
+    };
+  }, [alumniEntries.map(e => e.alumniEmail).join(',')]);
+
+  // Handle email selection from dropdown for a specific entry
+  const handleEmailSelect = (index, e) => {
+    const selectedEmail = e.target.value;
+    const entry = alumniEntries[index];
+    const selectedAlumni = entry.matchedAlumni.find(a => a.email === selectedEmail);
+
+    if (selectedAlumni) {
+      // Check for duplicate email
+      const isDuplicate = checkDuplicateEmail(selectedEmail, index);
+      if (isDuplicate) {
+        showAlert(`This email is already added for another alumni. Please select a different alumni.`, 'error');
+        return;
+      }
+
+      const photoUrl = selectedAlumni.profilePicture
+        ? (selectedAlumni.profilePicture.startsWith('http') ? selectedAlumni.profilePicture : `${API_BASE_URL}${selectedAlumni.profilePicture}`)
+        : null;
+
+      setAlumniEntries(prev => prev.map((e, i) =>
+        i === index ? {
+          ...e,
+          alumniEmail: selectedEmail,
+          alumniPhoto: photoUrl,
+          showEmailDropdown: false
+        } : e
+      ));
+    }
+  };
+
+  // Generate email content using AI (uses first alumni entry for context)
+  const handleGenerateEmail = async () => {
+    const firstEntry = alumniEntries[0];
+    // Basic validation for required fields
+    if (!firstEntry.alumniName.trim()) {
+      showAlert('Please enter Alumni Name to generate email', 'error');
+      return;
+    }
+    if (!adminName && !user?.name) {
+      showAlert('Sender name is required to generate email', 'error');
+      return;
+    }
+
+    setGeneratingEmail(true);
+
+    try {
+      const token = getCookie('token') || user?.token;
+      const batchEnd = getBatchEnd(firstEntry.batchStart);
+
+      // Prepare payload for AI generation
+      const payload = {
+        alumniName: firstEntry.alumniName.trim(),
+        department: firstEntry.department.trim(),
+        batch: firstEntry.batchStart ? `${firstEntry.batchStart}-${batchEnd}` : '',
+        senderName: adminName || user?.name || 'Admin',
+        collegeName: 'K.S.R. College of Engineering',
+        purpose: 'Alumni outreach and engagement',
+        eventDetails: isEventFormEnabled ? {
+          eventName: sharedData.eventName.trim(),
+          eventDate: sharedData.eventDate,
+          eventVenue: sharedData.eventVenue.trim(),
+          eventTime: sharedData.eventTime.trim()
+        } : null,
+        additionalContext: sharedData.message.trim() || 'General alumni communication'
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/ai/generate-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Parse the AI response to extract subject and message
+        const aiContent = data.data;
+
+        // Try to extract subject line
+        const subjectMatch = aiContent.match(/Subject:\s*(.+)$/m);
+        const emailBodyMatch = aiContent.match(/Email Body:\s*([\s\S]+)$/);
+
+        let newSubject = sharedData.title;
+        let newMessage = aiContent;
+
+        // If we can parse the subject, use it
+        if (subjectMatch) {
+          newSubject = subjectMatch[1].trim();
+          // Remove the subject line from the message body
+          newMessage = aiContent.replace(/Subject:\s*.+$/m, '').trim();
+        }
+
+        // If we can find email body section, use that
+        if (emailBodyMatch) {
+          newMessage = emailBodyMatch[1].trim();
+        }
+
+        // Update form with generated content
+        setSharedData(prev => ({
+          ...prev,
+          title: newSubject,
+          message: newMessage
+        }));
+
+        showAlert('Email content generated successfully!', 'success');
+      } else {
+        const errorMsg = data.error || 'Failed to generate email content';
+        if (errorMsg.includes('Ollama service is not running')) {
+          showAlert('AI service is currently unavailable. Please try again later.', 'error');
+        } else {
+          showAlert(errorMsg, 'error');
+        }
+      }
+    } catch (error) {
+      console.error('Error generating email:', error);
+      showAlert('Network error. Please check your connection and try again.', 'error');
+    } finally {
+      setGeneratingEmail(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Get trimmed values
-    const alumniName = formData.alumniName.trim();
-    const department = formData.department.trim();
-    const alumniEmailValue = formData.alumniEmail.trim();
-    const titleValue = formData.title.trim();
-    const messageText = formData.message.trim();
-    const startYear = String(formData.batchStart).trim();
-    const endYear = batchEnd;
-
-    // Validation
-    if (!alumniName) {
-      showAlert('Please enter Alumni Name', 'error');
-      return;
-    }
-    if (!department) {
-      showAlert('Please enter Department', 'error');
-      return;
-    }
-    if (!startYear) {
-      showAlert('Please enter Batch year', 'error');
-      return;
-    }
-    if (!alumniEmailValue) {
-      showAlert('Please enter Alumni Email', 'error');
-      return;
-    }
-    // Email format validation
+    // Validate all alumni entries
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(alumniEmailValue)) {
-      showAlert('Please enter a valid email address', 'error');
-      return;
+
+    for (let i = 0; i < alumniEntries.length; i++) {
+      const entry = alumniEntries[i];
+      const entryNum = alumniEntries.length > 1 ? ` (Entry ${i + 1})` : '';
+
+      if (!entry.alumniName.trim()) {
+        showAlert(`Please enter Alumni Name${entryNum}`, 'error');
+        return;
+      }
+      if (!entry.department.trim()) {
+        showAlert(`Please enter Department${entryNum}`, 'error');
+        return;
+      }
+      if (!entry.batchStart.trim()) {
+        showAlert(`Please enter Batch year${entryNum}`, 'error');
+        return;
+      }
+      if (!entry.alumniEmail.trim()) {
+        showAlert(`Please enter Alumni Email${entryNum}`, 'error');
+        return;
+      }
+      if (!emailRegex.test(entry.alumniEmail.trim())) {
+        showAlert(`Please enter a valid email address${entryNum}`, 'error');
+        return;
+      }
     }
-    if (!titleValue) {
+
+    if (!sharedData.title.trim()) {
       showAlert('Please enter a Subject/Title', 'error');
       return;
     }
-    if (!messageText) {
+    if (!sharedData.message.trim()) {
       showAlert('Please enter a Message', 'error');
+      return;
+    }
+
+    // Check for duplicate emails
+    const duplicateEmails = getDuplicateEmailsInfo();
+    if (duplicateEmails.size > 0) {
+      const duplicateList = Array.from(duplicateEmails.keys()).join(', ');
+      showAlert(`Duplicate emails found: ${duplicateList}. Please remove duplicates before sending.`, 'error');
       return;
     }
 
     setLoading(true);
 
     try {
-      // Send complete payload for mail API
-      const emailPayload = {
-        senderId: user?.userId,
-        senderName: adminName || user?.name || 'Admin',
-        senderEmail: adminEmail || user?.email,
-        adminName: (adminName || user?.name || 'Admin').trim(),
-        collegeName: 'K.S.R. College of Engineering',
-        email: alumniEmailValue,
-        title: titleValue,
-        message: messageText,
-        isBroadcast: false
-      };
+      // Get the selected event ID
+      const selectedEventId = events.find(ev => ev.eventName === sharedData.eventName)?._id || '';
 
-      const response = await fetch(`${API_BASE_URL}/api/mail/send-mail`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(emailPayload)
-      });
+      // Send email to each alumni with personalized content
+      const firstEntry = alumniEntries[0];
+      const results = await Promise.all(
+        alumniEntries.map(async (entry) => {
+          // Automatically personalize content by replacing first alumni's data with current alumni's data
+          const personalizedTitle = personalizeContent(sharedData.title.trim(), entry, firstEntry);
+          const personalizedMessage = personalizeContent(sharedData.message.trim(), entry, firstEntry);
 
-      const data = await response.json();
-      if (response.ok && data.success) {
+          const emailPayload = {
+            senderId: user?.userId,
+            senderName: adminName || user?.name || 'Admin',
+            senderEmail: adminEmail || user?.email,
+            adminName: (adminName || user?.name || 'Admin').trim(),
+            collegeName: 'K.S.R. College of Engineering',
+            email: entry.alumniEmail.trim(),
+            title: personalizedTitle,
+            message: personalizedMessage,
+            isBroadcast: alumniEntries.length > 1,
+            isEventInvitation: isEventFormEnabled,
+            eventDetails: isEventFormEnabled ? {
+              eventId: selectedEventId,
+              eventName: sharedData.eventName.trim(),
+              eventDate: sharedData.eventDate,
+              eventVenue: sharedData.eventVenue.trim(),
+              eventTime: sharedData.eventTime.trim()
+            } : null
+          };
+
+          const response = await fetch(`${API_BASE_URL}/api/mail/send-mail`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(emailPayload)
+          });
+
+          return response.json();
+        })
+      );
+
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+
+      if (successCount > 0) {
         // If editing a draft, delete it after successful send
         if (editDraft && draftId) {
           try {
@@ -266,11 +775,16 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
           }
         }
 
-        setFormSent(true); // Mark as sent to prevent auto-save
-        showAlert('Mail sent successfully!', 'success');
+        setFormSent(true);
+
+        if (failCount > 0) {
+          showAlert(`${successCount} email(s) sent successfully, ${failCount} failed.`, 'info');
+        } else {
+          showAlert(alumniEntries.length > 1 ? `All ${successCount} emails sent successfully!` : 'Mail sent successfully!', 'success');
+        }
         resetForm();
       } else {
-        showAlert(data.message || 'Failed to send mail', 'error');
+        showAlert('Failed to send mail. Please try again.', 'error');
       }
     } catch (error) {
       console.error('Error sending mail:', error);
@@ -281,20 +795,18 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
   };
 
   const resetForm = () => {
-    setFormCleared(true); // Mark as cleared to prevent auto-save
-    setFormData({
-      alumniName: '',
-      department: '',
-      batchStart: '',
-      alumniEmail: '',
+    setFormCleared(true);
+    setAlumniEntries([createEmptyAlumniEntry()]);
+    setSharedData({
       eventName: '',
       eventDate: '',
-      eventLocation: '',
+      eventVenue: '',
+      eventTime: '',
       title: '',
       message: ''
     });
     setIsPreMessageFormEnabled(false);
-    setAlumniPhoto(null);
+    setIsEventFormEnabled(false);
     setFormSent(false);
     setFormCleared(false);
   };
@@ -328,51 +840,6 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
           <div className={styles.headerSpacer} aria-hidden="true"></div>
         </div>
 
-        <div className={styles.eventFieldsTop}>
-          <div className={styles.eventFieldsRow}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="eventName">Event Name</label>
-              <input
-                type="text"
-                id="eventName"
-                name="eventName"
-                placeholder="Enter event name"
-                className={styles.inputField}
-                value={formData.eventName}
-                onChange={handleInputChange}
-                disabled={loading}
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label htmlFor="eventDate">Date</label>
-              <input
-                type="date"
-                id="eventDate"
-                name="eventDate"
-                className={styles.inputField}
-                value={formData.eventDate}
-                onChange={handleInputChange}
-                disabled={loading}
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label htmlFor="eventLocation">Location</label>
-              <input
-                type="text"
-                id="eventLocation"
-                name="eventLocation"
-                placeholder="Enter location"
-                className={styles.inputField}
-                value={formData.eventLocation}
-                onChange={handleInputChange}
-                disabled={loading}
-              />
-            </div>
-          </div>
-        </div>
-
         {alert.show && (
           <div className={`${styles.alert} ${styles[alert.type]}`}>
             <span className="material-symbols-outlined">
@@ -383,119 +850,295 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
         )}
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
-          <div className={styles.inputSection}>
-            {/* Name, Department and Photo Row */}
-            <div className={styles.photoNameRow}>
-              {/* Alumni Name and Department - Left Side */}
-              <div className={styles.fieldsSection}>
-                <div className={styles.inputGroup}>
-                  <label htmlFor="alumniName">
-                    Alumni Name <span className={styles.required}>*</span>
-                  </label>
+          <div className={styles.optionalFormCard}>
+            <div className={styles.optionalFormHeader}>
+              <div className={styles.optionalFormTitleWrap}>
+                <h3>Event Information</h3>
+                <p>Enable event form to automatically populate event details in your message.</p>
+              </div>
+
+              <div className={styles.optionalFormControl}>
+                {isEventFormEnabled && (
+                  <div className={styles.outcomeStatus}>
+                    <span className={styles.enabledText}>Event form enabled</span>
+                  </div>
+                )}
+                <label className={styles.toggleSwitch}>
                   <input
-                    type="text"
-                    id="alumniName"
-                    name="alumniName"
-                    placeholder="Enter alumni name"
-                    className={styles.inputField}
-                    value={formData.alumniName}
-                    onChange={handleInputChange}
+                    type="checkbox"
+                    checked={isEventFormEnabled}
+                    onChange={handleEventFormToggleChange}
                     disabled={loading}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {isEventFormEnabled && (
+            <div className={styles.eventFieldsTop}>
+              <div className={styles.eventFieldsRow}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="eventName">Event Name</label>
+                  <select
+                    id="eventName"
+                    name="eventName"
+                    className={styles.inputField}
+                    value={events.find(ev => ev.eventName === sharedData.eventName)?._id || ''}
+                    onChange={handleEventSelect}
+                    disabled={loading || loadingEvents}
+                  >
+                    <option value="">
+                      {loadingEvents ? 'Loading events...' : 'Select an event'}
+                    </option>
+                    {events.map((event) => (
+                      <option key={event._id} value={event._id}>
+                        {event.eventName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="eventDate">Date</label>
+                  <input
+                    type="date"
+                    id="eventDate"
+                    name="eventDate"
+                    className={`${styles.inputField} ${styles.readOnly}`}
+                    value={sharedData.eventDate}
+                    readOnly
+                    disabled
                   />
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="department">
-                    Department <span className={styles.required}>*</span>
-                  </label>
+                  <label htmlFor="eventVenue">Venue</label>
                   <input
                     type="text"
-                    id="department"
-                    name="department"
-                    placeholder="Enter department"
-                    className={styles.inputField}
-                    value={formData.department}
-                    onChange={handleInputChange}
-                    disabled={loading}
+                    id="eventVenue"
+                    name="eventVenue"
+                    placeholder="Auto-filled from event"
+                    className={`${styles.inputField} ${styles.readOnly}`}
+                    value={sharedData.eventVenue}
+                    readOnly
+                    disabled
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="eventTime">Time</label>
+                  <input
+                    type="text"
+                    id="eventTime"
+                    name="eventTime"
+                    placeholder="Auto-filled from event"
+                    className={`${styles.inputField} ${styles.readOnly}`}
+                    value={sharedData.eventTime}
+                    readOnly
+                    disabled
                   />
                 </div>
               </div>
+              <br />
+              <hr />
+            </div>
+          )}
 
-              {/* Alumni Photo - Right Side */}
-              <div className={styles.photoSection}>
-                <label>Alumni Photo</label>
-                <div className={styles.photoDisplay}>
-                  {fetchingPhoto ? (
-                    <div className={styles.photoLoading}>
-                      <span className={styles.spinner}></span>
+          {/* Alumni Entries */}
+          {alumniEntries.map((entry, index) => (
+            <div key={index} className={styles.alumniEntryCard}>
+              {alumniEntries.length > 1 && (
+                <div className={styles.alumniEntryHeader}>
+                  <span className={styles.alumniEntryTitle}>Alumni {index + 1}</span>
+                  <button
+                    type="button"
+                    className={styles.removeAlumniBtn}
+                    onClick={() => handleRemoveAlumni(index)}
+                    disabled={loading}
+                  >
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+              )}
+
+              <div className={styles.inputSection}>
+                {/* Name, Department and Photo Row */}
+                <div className={styles.photoNameRow}>
+                  {/* Alumni Name and Department - Left Side */}
+                  <div className={styles.fieldsSection}>
+                    <div className={styles.inputGroup}>
+                      <label htmlFor={`alumniName-${index}`}>
+                        Alumni Name <span className={styles.required}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id={`alumniName-${index}`}
+                        name="alumniName"
+                        placeholder="Enter alumni name"
+                        className={styles.inputField}
+                        value={entry.alumniName}
+                        onChange={(e) => handleAlumniInputChange(index, e)}
+                        disabled={loading}
+                      />
                     </div>
-                  ) : alumniPhoto ? (
-                    <img
-                      src={alumniPhoto}
-                      alt="Alumni"
-                      className={styles.alumniPhotoImg}
+
+                    <div className={styles.inputGroup}>
+                      <label htmlFor={`department-${index}`}>
+                        Department <span className={styles.required}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id={`department-${index}`}
+                        name="department"
+                        placeholder="Enter department"
+                        className={styles.inputField}
+                        value={entry.department}
+                        onChange={(e) => handleAlumniInputChange(index, e)}
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Alumni Photo - Right Side */}
+                  <div className={styles.photoSection}>
+                    <label>Alumni Photo</label>
+                    <div className={styles.photoDisplay}>
+                      {entry.fetchingPhoto ? (
+                        <div className={styles.photoLoading}>
+                          <span className={styles.spinner}></span>
+                        </div>
+                      ) : entry.alumniPhoto ? (
+                        <img
+                          src={entry.alumniPhoto}
+                          alt="Alumni"
+                          className={styles.alumniPhotoImg}
+                        />
+                      ) : (
+                        <div className={styles.photoPlaceholder}>
+                          <span className="material-symbols-outlined">person</span>
+                          <span>No Photo</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.batchRow}>
+                  <div className={styles.inputGroup}>
+                    <label htmlFor={`batchStart-${index}`}>
+                      Batch <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id={`batchStart-${index}`}
+                      name="batchStart"
+                      placeholder="e.g., 2020"
+                      className={styles.inputField}
+                      value={entry.batchStart}
+                      onChange={(e) => handleAlumniInputChange(index, e)}
+                      disabled={loading}
                     />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label htmlFor={`batchEnd-${index}`}>
+                      &nbsp;
+                    </label>
+                    <input
+                      type="text"
+                      id={`batchEnd-${index}`}
+                      name="batchEnd"
+                      className={`${styles.inputField} ${styles.readOnly}`}
+                      value={getBatchEnd(entry.batchStart)}
+                      readOnly
+                      disabled
+                    />
+                    <div className={styles.helperText}>Auto-calculated (+4 years)</div>
+                  </div>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor={`alumniEmail-${index}`}>
+                    Alumni Email <span className={styles.required}>*</span>
+                  </label>
+                  {entry.showEmailDropdown && entry.matchedAlumni.length > 1 ? (
+                    <select
+                      id={`alumniEmail-${index}`}
+                      name="alumniEmail"
+                      className={`${styles.inputField} ${checkDuplicateEmail(entry.alumniEmail, index) ? styles.duplicateField : ''}`}
+                      value={entry.alumniEmail}
+                      onChange={(e) => handleEmailSelect(index, e)}
+                      disabled={loading}
+                    >
+                      <option value="">Select alumni email ({entry.matchedAlumni.length} matches found)</option>
+                      {entry.matchedAlumni.map((alumni, alIdx) => (
+                        <option key={alumni._id || alIdx} value={alumni.email}>
+                          {alumni.email}
+                        </option>
+                      ))}
+                    </select>
                   ) : (
-                    <div className={styles.photoPlaceholder}>
-                      <span className="material-symbols-outlined">person</span>
-                      <span>No Photo</span>
+                    <input
+                      type="email"
+                      id={`alumniEmail-${index}`}
+                      name="alumniEmail"
+                      placeholder="alumni@example.com"
+                      className={`${styles.inputField} ${checkDuplicateEmail(entry.alumniEmail, index) ? styles.duplicateField : ''}`}
+                      value={entry.alumniEmail}
+                      onChange={(e) => handleAlumniInputChange(index, e)}
+                      disabled={loading}
+                    />
+                  )}
+
+                  {/* Show duplicate warning */}
+                  {checkDuplicateEmail(entry.alumniEmail, index) && (
+                    <div className={styles.duplicateWarning}>
+                      <span className="material-symbols-outlined">warning</span>
+                      This email is already added for another alumni
+                    </div>
+                  )}
+
+                  {/* Show multiple matches info if no duplicates */}
+                  {!checkDuplicateEmail(entry.alumniEmail, index) && entry.matchedAlumni.length > 1 && !entry.showEmailDropdown && entry.alumniEmail && (
+                    <div className={styles.helperText}>
+                      {entry.matchedAlumni.length} alumni found with same details.
+                      <span
+                        className={styles.showDropdownLink}
+                        onClick={() => setAlumniEntries(prev => prev.map((e, i) =>
+                          i === index ? { ...e, showEmailDropdown: true } : e
+                        ))}
+                      > Show all</span>
                     </div>
                   )}
                 </div>
-                <div className={styles.helperText}>
-                  Auto-fetched from database
+              </div>
+            </div>
+          ))}
+
+          {/* Add Another Alumni Button */}
+          <button
+            type="button"
+            className={styles.addAlumniBtn}
+            onClick={handleAddAlumni}
+            disabled={loading || generatingEmail}
+          >
+            <span className="material-symbols-outlined">person_add</span>
+            Add Another Alumni
+          </button>
+
+          {/* Shared Subject and Message Section */}
+          <div className={styles.inputSection}>
+            {/* Auto-personalization hint for multiple alumni */}
+            {alumniEntries.length > 1 && (
+              <div className={styles.placeholderHint}>
+                <span className="material-symbols-outlined">info</span>
+                <div>
+                  <strong>Auto-Personalization:</strong> Write your message using the first alumni's details.
+                  The system will automatically replace their name, department, batch, etc. with each recipient's details when sending.
                 </div>
               </div>
-            </div>
-
-            <div className={styles.batchRow}>
-              <div className={styles.inputGroup}>
-                <label htmlFor="batchStart">
-                  Batch <span className={styles.required}>*</span>
-                </label>
-                <input
-                  type="text"
-                  id="batchStart"
-                  name="batchStart"
-                  placeholder="e.g., 2020"
-                  className={styles.inputField}
-                  value={formData.batchStart}
-                  onChange={handleInputChange}
-                  disabled={loading}
-                />
-              </div>
-              <div className={styles.inputGroup}>
-                <label htmlFor="batchEnd">
-                  &nbsp;
-                </label>
-                <input
-                  type="text"
-                  id="batchEnd"
-                  name="batchEnd"
-                  className={`${styles.inputField} ${styles.readOnly}`}
-                  value={batchEnd}
-                  readOnly
-                  disabled
-                />
-                <div className={styles.helperText}>Auto-calculated (+4 years)</div>
-              </div>
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label htmlFor="alumniEmail">
-                Alumni Email <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="email"
-                id="alumniEmail"
-                name="alumniEmail"
-                placeholder="alumni@example.com"
-                className={styles.inputField}
-                value={formData.alumniEmail}
-                onChange={handleInputChange}
-                disabled={loading}
-              />
-            </div>
+            )}
 
             <div className={styles.inputGroup}>
               <label htmlFor="title">
@@ -507,37 +1150,12 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
                 name="title"
                 placeholder="Enter mail subject"
                 className={styles.inputField}
-                value={formData.title}
-                onChange={handleInputChange}
+                value={sharedData.title}
+                onChange={handleSharedInputChange}
                 disabled={loading}
               />
             </div>
 
-            <div className={styles.optionalFormCard}>
-              <div className={styles.optionalFormHeader}>
-                <div className={styles.optionalFormTitleWrap}>
-                  <h3>Form</h3>
-                  <p>Enable or disable this form section before sending.</p>
-                </div>
-
-                <div className={styles.optionalFormControl}>
-                  {isPreMessageFormEnabled && (
-                    <div className={styles.outcomeStatus}>
-                      <span className={styles.enabledText}>Form section enabled</span>
-                    </div>
-                  )}
-                  <label className={styles.toggleSwitch}>
-                    <input
-                      type="checkbox"
-                      checked={isPreMessageFormEnabled}
-                      onChange={handleFormToggleChange}
-                      disabled={loading}
-                    />
-                    <span className={styles.toggleSlider}></span>
-                  </label>
-                </div>
-              </div>
-            </div>
 
             <div className={styles.inputGroup}>
               <label htmlFor="message">
@@ -549,37 +1167,87 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
                 placeholder="Write your message here..."
                 className={`${styles.inputField} ${styles.textarea}`}
                 rows="10"
-                value={formData.message}
-                onChange={handleInputChange}
+                value={sharedData.message}
+                onChange={handleSharedInputChange}
                 disabled={loading}
               />
-              <div className={styles.charCount}>{formData.message.length} characters</div>
+            </div>
+
+            {/* Character count and AI Generate Button */}
+            <div className={styles.messageActionRow}>
+              <div className={styles.charCount}>{sharedData.message.length} characters</div>
+              <button
+                type="button"
+                className={styles.generateBtn}
+                onClick={handleGenerateEmail}
+                disabled={loading || generatingEmail || !alumniEntries[0]?.alumniName.trim()}
+              >
+                {generatingEmail ? (
+                  <>
+                    <span className={styles.spinner}></span>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined">auto_awesome</span>
+                    Generate
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
+
+
+          {/* Duplicate emails summary */}
+          {(() => {
+            const duplicateEmails = getDuplicateEmailsInfo();
+            if (duplicateEmails.size > 0) {
+              return (
+                <div className={styles.duplicateSummary}>
+                  <span className="material-symbols-outlined">error</span>
+                  <div>
+                    <strong>Duplicate Emails Detected:</strong>
+                    <div className={styles.duplicateEmailsList}>
+                      {Array.from(duplicateEmails.entries()).map(([email, indices]) => (
+                        <div key={email} className={styles.duplicateEmailItem}>
+                          <code>{email}</code> - Found in Alumni {indices.map(i => i + 1).join(', ')}
+                        </div>
+                      ))}
+                    </div>
+                    <p>Please remove duplicate emails before sending to avoid sending the same email to one person multiple times.</p>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
           <div className={styles.formActions}>
-            <button
-              type="button"
-              className={styles.cancelBtn}
-              onClick={resetForm}
-              disabled={loading}
-            >
-              <span className="material-symbols-outlined">close</span>
-              Clear Form
-            </button>
-            <button type="submit" className={styles.submitBtn} disabled={loading}>
-              {loading ? (
-                <>
-                  <span className={styles.spinner}></span>
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined">send</span>
-                  Send Mail
-                </>
-              )}
-            </button>
+            <div className={styles.formBtn}>
+              <button
+                type="button"
+                className={styles.cancelBtn}
+                onClick={resetForm}
+                disabled={loading || generatingEmail}
+              >
+                <span className="material-symbols-outlined">close</span>
+                Clear Form
+              </button>
+              <button type="submit" className={styles.submitBtn} disabled={loading || generatingEmail}>
+                {loading ? (
+                  <>
+                    <span className={styles.spinner}></span>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined">send</span>
+                    {alumniEntries.length > 1 ? `Send to ${alumniEntries.length} Alumni` : 'Send Mail'}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </main>

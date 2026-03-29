@@ -516,3 +516,42 @@
   height: auto;
   border-radius: 1rem;
 }
+
+/* Gemini Flyer Preview */
+.geminiPreviewContainer {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.geminiPreviewImage {
+  border: 1px solid var(--border-light);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.geminiPreviewImage img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.geminiButtonGroup {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.geminiButtonGroup .generateBtn {
+  flex: 1;
+}
+
+/* Error Message */
+.errorMessage {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background-color: #FEE2E2;
+  color: #991B1B;
+  font-size: 0.875rem;
+  border-left: 3px solid #DC2626;
+}

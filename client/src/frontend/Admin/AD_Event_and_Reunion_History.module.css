@@ -324,3 +324,74 @@
   margin: 0;
   font-size: 1rem;
 }
+
+/* Card Header with Status Badge */
+.cardHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.statusBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.statusPending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.statusCompleted {
+  background-color: #d1fae5;
+  color: #059669;
+}
+
+.statusCancelled {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Event Organizer */
+.eventOrganizer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--accent-green);
+}
+
+.eventOrganizer span {
+  font-size: 1rem;
+}
+
+/* Event Co-Organizers */
+.eventCoOrg {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.eventCoOrg span {
+  font-size: 0.875rem;
+}
+
+/* Event Venue */
+.eventVenue {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 0.25rem;
+}
+
+.eventVenue span {
+  font-size: 1rem;
+}

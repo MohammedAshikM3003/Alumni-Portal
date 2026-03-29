@@ -1,16 +1,146 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './AD_Dashboard.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
+import { Users, UserCheck, Calendar, Send, RefreshCw } from 'lucide-react';
+import { useAuth } from '../../context/authContext/authContext';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || window.location.origin;
 
 
 const Admin_Dashboard = ( { onLogout } ) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Analytics KPI state
+  const [stats, setStats] = useState(null);
+  const [cards, setCards] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  /**
+   * Fetch dashboard statistics from the API
+   */
+  const fetchStats = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/dashboard/stats`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to fetch statistics');
+      }
+
+      setStats(data.stats);
+      setCards(data.cards);
+    } catch (err) {
+      console.error('[Admin_Dashboard] Analytics fetch error:', err);
+      setError(err.message || 'An error occurred while fetching analytics data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Format time ago for display
+   */
+  const formatTimeAgo = (date) => {
+    if (!date) return '';
+    const now = new Date();
+    const then = new Date(date);
+    const diffMs = now - then;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) return `Received ${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    if (diffHours > 0) return `Received ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return 'Received just now';
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  /**
+   * KPI card configuration
+   */
+  const kpiConfig = [
+    {
+      key: 'totalAlumni',
+      label: 'Total Alumni',
+      icon: Users,
+      color: 'green',
+    },
+    {
+      key: 'activeCoordinators',
+      label: 'Active Coordinators',
+      icon: UserCheck,
+      color: 'blue',
+    },
+    {
+      key: 'upcomingEvents',
+      label: 'Upcoming Events',
+      icon: Calendar,
+      color: 'orange',
+    },
+    {
+      key: 'totalBroadcasts',
+      label: 'Broadcasts Sent',
+      icon: Send,
+      color: 'purple',
+    },
+  ];
+
+
+  /**
+   * Render error state with retry button
+   */
+  const renderError = () => (
+    <div className={styles.errorContainer}>
+      <p className={styles.errorMessage}>{error}</p>
+      <button className={styles.retryButton} onClick={fetchStats}>
+        <RefreshCw size={16} />
+        Retry
+      </button>
+    </div>
+  );
+
+  /**
+   * Render KPI cards
+   */
+  const renderKpiCards = () => (
+    <div className={styles.kpiGrid}>
+      {kpiConfig.map((kpi) => {
+        const Icon = kpi.icon;
+        const value = stats?.[kpi.key] ?? 0;
+        const colorClass = styles[`kpiCard${kpi.color.charAt(0).toUpperCase() + kpi.color.slice(1)}`];
+
+        return (
+          <div key={kpi.key} className={`${styles.kpiCard} ${colorClass}`}>
+            <div className={styles.kpiIconWrapper}>
+              <Icon size={24} className={styles.kpiIcon} />
+            </div>
+            <span className={styles.kpiLabel}>{kpi.label}</span>
+            <span className={styles.kpiValue}>{value.toLocaleString()}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
 
 
 
   return (
     <div className={styles.dashboardWrapper}>
-      {/* Sidebar removed as requested */}
       <Sidebar onLogout={onLogout} currentView={'dashboard'} />
 
       <main className={styles.mainContent}>
@@ -20,28 +150,6 @@ const Admin_Dashboard = ( { onLogout } ) => {
               K.S.R College of Engineering
             </h1>
           </div>
-          <div className={styles.headerRight}>
-            <div className={styles.headerFlexContainer}>
-              <button className={styles.notificationBtn}>
-                <span className="material-symbols-outlined">notifications</span>
-                <span className={styles.notificationDot}></span>
-              </button>
-              <div className={styles.divider}></div>
-              <div className={styles.userInfo}>
-                <div className={styles.userDetails}>
-                  <p className={styles.userName}>Mohammed Ashik M</p>
-                  <p className={styles.userClass}>Class of 2018</p>
-                </div>
-                <div className={styles.userAvatar}>
-                  <img
-                    alt="User profile"
-                    className={styles.imageFullCover}
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDxsNmGHJS4TO6MjPYdAg6oNXiyZ7Xh78kZgm9lsfgXsBK2T70asN2eP7qf_lvE8bRMgMvaqSUHihcEO2W_XKcwX5W4MYd106wTTZbnc-ltRKtYlnXqg72coW16fUw8Gg2rEYPURS73pTyg7sgl_DNd-R4bpG9jeM2WP2WzwaEZnA11ZEpbUqfCEqLX8vtvoEJ8SsQsh_W1YP3aEooWbTJSSIcMsuHlEQ9QujCTaMRhjsMwC9tK1YFfoScM2bkVeu8ov-qFc0BQJJA"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
         </header>
         <div className={styles.dashboardContent}>
           {/* Cards Row 1 */}
@@ -49,11 +157,16 @@ const Admin_Dashboard = ( { onLogout } ) => {
             <div className={`${styles.card} ${styles.overlapColumn}`}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}>Mail</h2>
-                <span className={styles.cardBadge}>2 New</span>
+                <span className={styles.cardBadge}>{cards?.mail?.newCount || 0} New</span>
               </div>
               <div className={styles.cardBody}>
-                <div className={styles.mailPreview}>Welcome back to the network, Mohammed! We have some new alumni connect...</div>
-                <div className={styles.mailPreview}>New job referral available for SDE-1 role at Google. Interested...</div>
+                {cards?.mail?.recentMails?.length > 0 ? (
+                  cards.mail.recentMails.map((mail, idx) => (
+                    <div key={idx} className={styles.mailPreview}>{mail.preview || mail.title}</div>
+                  ))
+                ) : (
+                  <div className={styles.mailPreview}>No recent messages</div>
+                )}
               </div>
               <button className={styles.cardAction} onClick={() => { navigate('/admin/mail') }} >Go to Inbox →</button>
             </div>
@@ -61,11 +174,18 @@ const Admin_Dashboard = ( { onLogout } ) => {
               <div className={styles.cardHeader}>
                 <div className={styles.cardIcon}>💼</div>
                 <h2 className={styles.cardTitle}>Career Hub</h2>
-                <span className={styles.cardStatus}>12 Active</span>
+                <span className={styles.cardStatus}>{cards?.jobs?.activeCount || 0} Active</span>
               </div>
               <div className={styles.cardBody}>
-                <div className={styles.jobPreview}><b>Senior Dev, Google</b> <span>Referral by Rahul S.</span></div>
-                <div className={styles.jobPreview}><b>Lead Architect, IBM</b> <span>Open Referral</span></div>
+                {cards?.jobs?.recentJobs?.length > 0 ? (
+                  cards.jobs.recentJobs.map((job, idx) => (
+                    <div key={idx} className={styles.jobPreview}>
+                      <b>{job.role}, {job.company}</b> <span>Referral by {job.referredBy}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.jobPreview}>No active job referrals</div>
+                )}
               </div>
               <button className={styles.cardActionOutline} onClick={() => { navigate('/admin/job_and_reference') }} >Explore All Jobs</button>
             </div>
@@ -75,10 +195,19 @@ const Admin_Dashboard = ( { onLogout } ) => {
                 <span className={styles.cardStatusGreen}>Scholarship Goal</span>
               </div>
               <div className={styles.cardBody}>
-                <div className={styles.donationTitle}>Latest Department Donation</div>
-                <div className={styles.donationAmount}>₹50,000</div>
-                <div className={styles.donationDept}>Computer Science Department</div>
-                <div className={styles.donationTime}>Received 2 hours ago</div>
+                {cards?.donation ? (
+                  <>
+                    <div className={styles.donationTitle}>Latest Donation</div>
+                    <div className={styles.donationAmount}>₹{cards.donation.amount?.toLocaleString()}</div>
+                    <div className={styles.donationDept}>{cards.donation.purpose}</div>
+                    <div className={styles.donationTime}>{formatTimeAgo(cards.donation.paidAt)}</div>
+                  </>
+                ) : (
+                  <>
+                    <div className={styles.donationTitle}>No Recent Donations</div>
+                    <div className={styles.donationAmount}>-</div>
+                  </>
+                )}
               </div>
               <button className={styles.cardActionPrimary} onClick={() => { navigate('/admin/donation_history') }} >View History</button>
             </div>
@@ -91,47 +220,46 @@ const Admin_Dashboard = ( { onLogout } ) => {
                 <span className={styles.cardIcon}>📅</span>
               </div>
               <div className={styles.cardBody}>
-                <h3 className={styles.reunionTitle}>Alumni Reunion 2024</h3>
-                <p className={styles.reunionDesc}>Join us for an evening of nostalgia and networking as we celebrate 40 years of excellence. Reconnect with old friends and make new memories.</p>
-                <div className={styles.reunionCountdown}><div><b>24</b> Days</div><div><b>08</b> Hrs</div></div>
-                <button className={styles.reunionBtn} onClick={() => { navigate('/admin/event_and_reunion_history') }} >RSVP Today</button>
+                {cards?.event ? (
+                  <>
+                    <h3 className={styles.reunionTitle}>{cards.event.name}</h3>
+                    <p className={styles.reunionDesc}>
+                      {cards.event.venue} | {cards.event.day}, {cards.event.time}
+                    </p>
+                    <div className={styles.reunionCountdown}>
+                      <div><b>{cards.event.daysUntil}</b> Days</div>
+                      <div><b>{String(cards.event.hoursUntil).padStart(2, '0')}</b> Hrs</div>
+                    </div>
+                    <button className={styles.reunionBtn} onClick={() => { navigate('/admin/event_and_reunion_history') }} >View Events</button>
+                  </>
+                ) : (
+                  <>
+                    <h3 className={styles.reunionTitle}>No Upcoming Events</h3>
+                    <p className={styles.reunionDesc}>Schedule an event to engage with alumni</p>
+                    <button className={styles.reunionBtn} onClick={() => { navigate('/admin/event_and_reunion') }} >Create Event</button>
+                  </>
+                )}
               </div>
             </div>
             <div className={styles.cardAchievements}>
               <div className={styles.achievementsHeader}>
-                <div className={styles.cardIcon}>🏆</div>
-                <h2 className={styles.achievementsTitle}>Achievements & News</h2>
+                <div className={styles.cardIcon}>📊</div>
+                <h2 className={styles.achievementsTitle}>Analytics Overview</h2>
+                {!loading && !error && (
+                  <button
+                    className={styles.refreshButton}
+                    onClick={fetchStats}
+                    title="Refresh analytics data"
+                  >
+                    <RefreshCw size={16} />
+                  </button>
+                )}
               </div>
-              <div className={styles.achievementsGrid}>
-                <div className={styles.achievementItem}>
-                  <span className={styles.achievementDate}>Oct 24, 2023</span>
-                  <h4 className={styles.achievementTitle}>Startup center secures ₹5Cr Funding</h4>
-                  <p className={styles.achievementDesc}>Major grant to boost innovation hub, benefiting 50+ student startups across departments.</p>
-                  <a className={styles.achievementReadMore} href="#">Read More →</a>
-                </div>
-                <div className={styles.achievementItem}>
-                  <span className={styles.achievementDate}>Oct 22, 2023</span>
-                  <h4 className={styles.achievementTitle}>Dr. Arul wins "Researcher"</h4>
-                  <p className={styles.achievementDesc}>Honored for breakthrough contributions in Renewable Energy Systems and sustainable engineering.</p>
-                  <a className={styles.achievementReadMore} href="#">Read More →</a>
-                </div>
-                <div className={styles.achievementItem}>
-                  <span className={styles.achievementDate}>Oct 20, 2023</span>
-                  <h4 className={styles.achievementTitle}>Industry Partnership</h4>
-                  <p className={styles.achievementDesc}>MoU signed for internship programs and specialized training modules for final year students.</p>
-                  <a className={styles.achievementReadMore} href="#">Read More →</a>
-                </div>
-                <div className={styles.achievementItem}>
-                  <span className={styles.achievementDate}>Oct 18, 2023</span>
-                  <h4 className={styles.achievementTitle}>Alumni Sports Meet</h4>
-                  <p className={styles.achievementDesc}>Join the annual football and cricket tournament at the campus grounds. Register now.</p>
-                  <a className={styles.achievementReadMore} href="#">Read More →</a>
-                </div>
-              </div>
+              {error && !loading && renderError()}
+              {!loading && !error && stats && renderKpiCards()}
             </div>
           </div>
         </div>
-        {/* Night mode button removed */}
       </main>
 
     </div>

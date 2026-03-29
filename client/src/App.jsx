@@ -32,17 +32,23 @@ import Admin_View_Donation from './frontend/Admin/AD_View_Donation';
 import Admin_Event_and_Reunion_History from './frontend/Admin/AD_Event_and_Reunion_History';
 import Admin_Event_and_Reunion_Invitation from './frontend/Admin/AD_Event_and_Reunion_Invitation';
 import Admin_Event_and_Reunion_Form1 from './frontend/Admin/AD_Event_and_Reunion_Form1';
-import Admin_Event_and_Reunion_Form2 from './frontend/Admin/AD_Event_and_Reunion_Form2';
 import Admin_Feedback from './frontend/Admin/AD_Feedback';
 import Admin_Feedback_Form from './frontend/Admin/AD_Feedback_Form';
 import Admin_Alumini from './frontend/Admin/AD_Alumini';
 import Admin_Alumini_Form from './frontend/Admin/AD_Alumini_Form';
+import Admin_View_Alumni from './frontend/Admin/AD_View_Alumni';
 import Admin_Dashboard from './frontend/Admin/AD_Dashboard';
 import Admin_ViewMail from './frontend/Admin/AD_ViewMail';
 import Admin_Profile from './frontend/Admin/AD_Profile';
 import Admin_BroadcastMessage from './frontend/Admin/AD_BroadcastMessage';
-import AD_Alumni_Registration from './frontend/Admin/AD_Alumni_Registration';
-import AD_Alumni_Registration_Form from './frontend/Admin/AD_Alumni_Registration_Form';
+import Admin_Department from './frontend/Admin/AD_Department';
+import Admin_View_Department from './frontend/Admin/AD_View_Department';
+import Admin_View_Faculty from './frontend/Admin/AD_View_Faculty';
+import Admin_Add_Faculty from './frontend/Admin/AD_Add_Faculty';
+import Admin_Edit_Faculty from './frontend/Admin/AD_Edit_Faculty';
+import Admin_Alumni_Registration from './frontend/Admin/AD_Alumni_Registration';
+import Admin_Alumni_Registration_Form from './frontend/Admin/AD_Alumni_Registration_Form';
+import Admin_Event_and_Reunion_Flyer from './frontend/Admin/AD_Event_and_Reunion_Flyer';
 
 // Co-Oridinator Imports
 import Coordinator_Dashboard from './frontend/Coordinator/Co_Dashboard';
@@ -57,12 +63,8 @@ import CoordinatorViewInvitation from './frontend/Coordinator/Co_View_Invitation
 import CoordinatorFeedbackHistory from './frontend/Coordinator/Co_Feedback'
 import CoordinatorFeedbackForm from './frontend/Coordinator/Co_Feedback_Form'
 import CoordinatorProfile from './frontend/Coordinator/Co_Profile'
+
 import PageTitleManager from './components/PageTitleManager';
-import Admin_Department from './frontend/Admin/AD_Department';
-import Admin_View_Department from './frontend/Admin/AD_View_Department';
-import Admin_View_Faculty from './frontend/Admin/AD_View_Faculty';
-import Admin_Add_Faculty from './frontend/Admin/AD_Add_Faculty';
-import Admin_Edit_Faculty from './frontend/Admin/AD_Edit_Faculty';
 
 // Token-based Components (No authentication required)
 import TokenAuthProvider from './context/tokenAuthContext/tokenAuthContext';
@@ -136,7 +138,7 @@ function App() {
 {/* Alumni Self-Registration Route - NO AUTHENTICATION REQUIRED */}
         <Route
           path="/register/alumni/:token"
-          element={<AD_Alumni_Registration />} />
+          element={<Admin_Alumni_Registration />} />
 
 
 {/* Alumini Routes */}
@@ -231,6 +233,10 @@ function App() {
           path="/admin/mail/draft"
           element={guard('admin', <Admin_Draft onLogout={logout} />)}
         />
+        <Route
+          path="/admin/mail/flyer"
+          element={guard('admin', <Admin_Event_and_Reunion_Flyer onLogout={logout} />)}
+        />
 
 {/* Admin Alumini Routes */}
         <Route
@@ -243,7 +249,11 @@ function App() {
         />
         <Route
           path="/admin/alumni_registration_form"
-          element={guard('admin', <AD_Alumni_Registration_Form onLogout={logout} />)}
+          element={guard('admin', <Admin_Alumni_Registration_Form onLogout={logout} />)}
+        />
+        <Route
+          path="/admin/alumini/:id"
+          element={guard('admin', <Admin_View_Alumni onLogout={logout} />)}
         />
 
 {/* Admin Department Route */}
@@ -304,10 +314,6 @@ function App() {
         <Route
           path="/admin/event_and_reunion_form1"
           element={guard('admin', <Admin_Event_and_Reunion_Form1 onLogout={logout} />)}
-          />
-        <Route
-          path="/admin/event_and_reunion_form2"
-          element={guard('admin', <Admin_Event_and_Reunion_Form2 onLogout={logout} />)}
           />
 
 {/* Admin Feedback Routes */}

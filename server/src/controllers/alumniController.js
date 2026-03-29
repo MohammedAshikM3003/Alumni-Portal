@@ -175,13 +175,16 @@ export const getAllAlumni = async (req, res) => {
 // Get current logged-in alumni's profile
 export const getMyProfile = async (req, res) => {
 	try {
-		const alumni = await Alumni.findOne({ userId: req.user._id, isActive: true }).populate(
+		const alumni = await Alumni.findOne({ userId: req.user._id }).populate(
 			'userId',
 			'userId name email role'
 		);
 
 		if (!alumni) {
-			return res.status(404).json({ success: false, message: 'Alumni profile not found' });
+			return res.status(404).json({
+				success: false,
+				message: 'Alumni profile not found. Please create your alumni profile first.'
+			});
 		}
 
 		res.status(200).json({ success: true, alumni });

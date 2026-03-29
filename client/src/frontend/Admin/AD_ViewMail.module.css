@@ -171,6 +171,34 @@
   margin-left: 2rem;
 }
 
+.createFlyerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background-color: var(--forest-green);
+  color: var(--white);
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  font-family: inherit;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+.createFlyerButton:hover {
+  background-color: var(--forest-green-hover);
+  transform: translateY(-1px);
+}
+
+.createFlyerButton:focus-visible {
+  outline: 2px solid var(--forest-green);
+  outline-offset: 2px;
+}
+
 .eventMetadata {
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));

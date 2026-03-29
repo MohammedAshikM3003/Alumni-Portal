@@ -1,7 +1,7 @@
 import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './AD_Event_and_Reunion_Form1.module.css';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -17,9 +17,12 @@ const Admin_Event_and_Reunion_Form1 = ( { onLogout } ) => {
   const [eventTime, setEventTime] = useState('');
   const [venue, setVenue] = useState('');
   const [organizer, setOrganizer] = useState('');
-  const [coOrganizer, setCoOrganizer] = useState('');
+  const [coOrganizers, setCoOrganizers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [errors, setErrors] = useState({});
+  const [isCoOrgDropdownOpen, setIsCoOrgDropdownOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dropdownRef = useRef(null);
 
   // Fetch departments
   useEffect(() => {
@@ -53,7 +56,34 @@ const Admin_Event_and_Reunion_Form1 = ( { onLogout } ) => {
   // Filter out organizer from co-organizer options
   const coOrganizerOptions = departments.filter(dept => dept._id !== organizer);
 
-  const handleFormSubmit = (e) => {
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsCoOrgDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Toggle co-organizer selection
+  const toggleCoOrganizer = (deptId) => {
+    if (coOrganizers.includes(deptId)) {
+      setCoOrganizers(coOrganizers.filter(id => id !== deptId));
+    } else {
+      setCoOrganizers([...coOrganizers, deptId]);
+    }
+  };
+
+  // Get selected co-organizer names for display
+  const getSelectedCoOrganizerNames = () => {
+    if (coOrganizers.length === 0) return 'Select co-organizing departments';
+    const selectedDepts = departments.filter(d => coOrganizers.includes(d._id));
+    return selectedDepts.map(d => d.deptCode).join(', ');
+  };
+
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
     if (!eventName.trim()) newErrors.eventName = 'Event name is required';
@@ -67,21 +97,41 @@ const Admin_Event_and_Reunion_Form1 = ( { onLogout } ) => {
       return;
     }
 
-    const organizerDept = departments.find(d => d._id === organizer);
-    const coOrganizerDept = coOrganizer ? departments.find(d => d._id === coOrganizer) : null;
-
     setErrors({});
-    navigate('/admin/event_and_reunion_form2', {
-      state: {
-        eventName: eventName.trim(),
-        eventDate,
-        eventDay,
-        eventTime,
-        venue: venue.trim(),
-        organizer: organizerDept,
-        coOrganizer: coOrganizerDept
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify({
+          eventName: eventName.trim(),
+          eventDate,
+          eventDay,
+          eventTime,
+          venue: venue.trim(),
+          organizer,
+          coOrganizers,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Event created successfully!');
+        navigate('/admin/event_and_reunion_history');
+      } else {
+        alert(data.message || 'Failed to create event');
       }
-    });
+    } catch (error) {
+      console.error('Error creating event:', error);
+      alert('Failed to create event. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
 
@@ -188,7 +238,7 @@ const Admin_Event_and_Reunion_Form1 = ( { onLogout } ) => {
                   value={organizer}
                   onChange={(e) => {
                     setOrganizer(e.target.value);
-                    setCoOrganizer('');
+                    setCoOrganizers([]);
                   }}
                 >
                   <option value="">Select organizing department</option>
@@ -201,29 +251,44 @@ const Admin_Event_and_Reunion_Form1 = ( { onLogout } ) => {
                 {errors.organizer && <span className={styles.errorText}>{errors.organizer}</span>}
               </div>
 
-              {/* Co-Organizer */}
+              {/* Co-Organizers */}
               <div className={styles.inputGroup}>
-                <label className={styles.formLabel}>Co-Organizer (Optional)</label>
-                <select
-                  className={`${styles.formInput} ${styles.formSelect}`}
-                  value={coOrganizer}
-                  onChange={(e) => setCoOrganizer(e.target.value)}
-                  disabled={!organizer}
-                >
-                  <option value="">Select co-organizing department</option>
-                  {coOrganizerOptions.map((dept) => (
-                    <option key={dept._id} value={dept._id}>
-                      {dept.branch} ({dept.deptCode})
-                    </option>
-                  ))}
-                </select>
+                <label className={styles.formLabel}>Co-Organizers (Optional)</label>
+                <div className={styles.multiSelectDropdown} ref={dropdownRef}>
+                  <div
+                    className={`${styles.multiSelectTrigger} ${!organizer ? styles.disabled : ''}`}
+                    onClick={() => organizer && setIsCoOrgDropdownOpen(!isCoOrgDropdownOpen)}
+                  >
+                    <span className={coOrganizers.length === 0 ? styles.placeholder : ''}>
+                      {getSelectedCoOrganizerNames()}
+                    </span>
+                    <span className="material-symbols-outlined">
+                      {isCoOrgDropdownOpen ? 'expand_less' : 'expand_more'}
+                    </span>
+                  </div>
+                  {isCoOrgDropdownOpen && (
+                    <div className={styles.multiSelectOptions}>
+                      {coOrganizerOptions.map((dept) => (
+                        <label key={dept._id} className={styles.checkboxOption}>
+                          <input
+                            type="checkbox"
+                            checked={coOrganizers.includes(dept._id)}
+                            onChange={() => toggleCoOrganizer(dept._id)}
+                          />
+                          <span className={styles.checkmark}></span>
+                          <span>{dept.branch} ({dept.deptCode})</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {!organizer && <span className={styles.helperText}>Select an organizer first</span>}
               </div>
 
               {/* Submit Button */}
               <div className={styles.submitWrapper}>
-                <button type="submit" className={styles.submitBtn}>
-                  Create Event
+                <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
+                  {isSubmitting ? 'Creating Event...' : 'Create Event'}
                 </button>
               </div>
 

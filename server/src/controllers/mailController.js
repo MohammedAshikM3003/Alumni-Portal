@@ -1,4 +1,3 @@
-import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import Mail from '../models/mail.js';
 import MailToken from '../models/mailToken.js';
@@ -135,6 +134,8 @@ export const sendMail = async (req, res) => {
             title,
             message,
             isBroadcast,
+            isEventInvitation,
+            eventDetails,
         } = req.body;
 
         const recipientEmails = isBroadcast && emails ? emails : [email];
@@ -174,6 +175,14 @@ export const sendMail = async (req, res) => {
             recipientCount: 0,
             recipientEmails: [],
             isBroadcast: isBroadcast || false,
+            isEventInvitation: isEventInvitation || false,
+            eventDetails: isEventInvitation && eventDetails ? {
+                eventId: eventDetails.eventId,
+                eventName: eventDetails.eventName,
+                eventDate: eventDetails.eventDate ? new Date(eventDetails.eventDate) : null,
+                eventVenue: eventDetails.eventVenue,
+                eventTime: eventDetails.eventTime,
+            } : null,
         });
 
         const savedMail = await mailRecord.save();
@@ -182,51 +191,133 @@ export const sendMail = async (req, res) => {
 
         for (const recipientEmail of recipientEmails) {
             try {
-                const token = crypto.randomBytes(32).toString('hex');
-                const acceptUrl = `${portalBaseUrl}/mail/token/${token}/accept`;
-                const rejectUrl = `${portalBaseUrl}/mail/token/${token}/reject`;
+                let htmlContent;
 
-                const htmlContent = `
-                    <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; background-color: #f7f9fc;">
-                        <div style="background: #ffffff; border: 1px solid #e5e9f2; border-radius: 10px; padding: 22px;">
-                            <h2 style="margin: 0 0 16px 0; font-size: 20px; color: #1f2937;">${escapeHtml(title || 'New Message')}</h2>
+                if (isEventInvitation && eventDetails) {
+                    // Event Invitation Email with Accept/Reject buttons
+                    const token = crypto.randomBytes(32).toString('hex');
+                    const acceptUrl = `${portalBaseUrl}/mail/token/${token}/accept`;
+                    const rejectUrl = `${portalBaseUrl}/mail/token/${token}/reject`;
 
-                            <div style="margin-bottom: 12px;">
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Admin Name</div>
-                                <div style="font-size: 15px; color: #111827; font-weight: 600;">${safeAdminName}</div>
-                            </div>
+                    // Format event date
+                    let formattedDate = 'TBD';
+                    if (eventDetails.eventDate) {
+                        const dateObj = new Date(eventDetails.eventDate);
+                        formattedDate = dateObj.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                    }
 
-                            <div style="margin-bottom: 12px;">
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">College Name</div>
-                                <div style="font-size: 15px; color: #111827; font-weight: 600;">${safeCollegeName}</div>
-                            </div>
+                    htmlContent = `
+                        <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; background-color: #f7f9fc;">
+                            <div style="background: #ffffff; border: 1px solid #e5e9f2; border-radius: 10px; padding: 22px;">
+                                <h2 style="margin: 0 0 16px 0; font-size: 20px; color: #1f2937;">${escapeHtml(title || 'Event Invitation')}</h2>
 
-                            <div style="margin-bottom: 18px;">
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Message Content</div>
-                                <div style="font-size: 15px; color: #111827; line-height: 1.6; white-space: pre-wrap; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">${safeMessage}</div>
-                            </div>
+                                <div style="margin-bottom: 12px;">
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Admin Name</div>
+                                    <div style="font-size: 15px; color: #111827; font-weight: 600;">${safeAdminName}</div>
+                                </div>
 
-                            <div style="display: flex; gap: 10px;">
-                                <a href="${acceptUrl}" style="display: inline-block; text-decoration: none; background: #16a34a; color: #ffffff; font-weight: 600; padding: 10px 16px; border-radius: 8px; margin-right: 10px;">Accept</a>
-                                <a href="${rejectUrl}" style="display: inline-block; text-decoration: none; background: #dc2626; color: #ffffff; font-weight: 600; padding: 10px 16px; border-radius: 8px;">Reject</a>
+                                <div style="margin-bottom: 12px;">
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">College Name</div>
+                                    <div style="font-size: 15px; color: #111827; font-weight: 600;">${safeCollegeName}</div>
+                                </div>
+
+                                <!-- Event Details Section -->
+                                <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 1px solid #a5d6a7; border-radius: 10px; padding: 16px; margin: 16px 0;">
+                                    <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #2e7d32; display: flex; align-items: center;">
+                                        <span style="margin-right: 8px;">📅</span> Event Details
+                                    </h3>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                        <div>
+                                            <div style="font-size: 11px; color: #558b2f; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Event Name</div>
+                                            <div style="font-size: 14px; color: #1b5e20; font-weight: 600;">${escapeHtml(eventDetails.eventName || 'N/A')}</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 11px; color: #558b2f; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Date</div>
+                                            <div style="font-size: 14px; color: #1b5e20; font-weight: 600;">${formattedDate}</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 11px; color: #558b2f; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Venue</div>
+                                            <div style="font-size: 14px; color: #1b5e20; font-weight: 600;">${escapeHtml(eventDetails.eventVenue || 'N/A')}</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 11px; color: #558b2f; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Time</div>
+                                            <div style="font-size: 14px; color: #1b5e20; font-weight: 600;">${escapeHtml(eventDetails.eventTime || 'N/A')}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom: 18px;">
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Message Content</div>
+                                    <div style="font-size: 15px; color: #111827; line-height: 1.6; white-space: pre-wrap; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">${safeMessage}</div>
+                                </div>
+
+                                <div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; margin-bottom: 18px;">
+                                    <div style="font-size: 14px; color: #92400e; font-weight: 600;">Please confirm your attendance by clicking one of the buttons below:</div>
+                                </div>
+
+                                <div style="display: flex; gap: 10px;">
+                                    <a href="${acceptUrl}" style="display: inline-block; text-decoration: none; background: #16a34a; color: #ffffff; font-weight: 600; padding: 12px 24px; border-radius: 8px; margin-right: 10px; font-size: 15px;">✓ Accept Invitation</a>
+                                    <a href="${rejectUrl}" style="display: inline-block; text-decoration: none; background: #dc2626; color: #ffffff; font-weight: 600; padding: 12px 24px; border-radius: 8px; font-size: 15px;">✗ Decline</a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
 
-                await sendSingleEmail(
-                    recipientEmail,
-                    title || `Message from ${collegeName} - Alumni Portal`,
-                    htmlContent
-                );
+                    await sendSingleEmail(
+                        recipientEmail,
+                        title || `Event Invitation from ${collegeName} - Alumni Portal`,
+                        htmlContent
+                    );
 
-                await MailToken.create({
-                    token,
-                    mailId: savedMail._id,
-                    recipientEmail,
-                    isTokenValid: true,
-                    expiresAt: tokenExpiry,
-                });
+                    await MailToken.create({
+                        token,
+                        mailId: savedMail._id,
+                        recipientEmail,
+                        isTokenValid: true,
+                        expiresAt: tokenExpiry,
+                    });
+                } else {
+                    // Normal Email without Accept/Reject buttons
+                    htmlContent = `
+                        <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; background-color: #f7f9fc;">
+                            <div style="background: #ffffff; border: 1px solid #e5e9f2; border-radius: 10px; padding: 22px;">
+                                <h2 style="margin: 0 0 16px 0; font-size: 20px; color: #1f2937;">${escapeHtml(title || 'New Message')}</h2>
+
+                                <div style="margin-bottom: 12px;">
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">From</div>
+                                    <div style="font-size: 15px; color: #111827; font-weight: 600;">${safeAdminName}</div>
+                                </div>
+
+                                <div style="margin-bottom: 12px;">
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">College</div>
+                                    <div style="font-size: 15px; color: #111827; font-weight: 600;">${safeCollegeName}</div>
+                                </div>
+
+                                <div style="margin-bottom: 18px;">
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Message</div>
+                                    <div style="font-size: 15px; color: #111827; line-height: 1.6; white-space: pre-wrap; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">${safeMessage}</div>
+                                </div>
+
+                                <div style="border-top: 1px solid #e5e7eb; padding-top: 16px; margin-top: 16px;">
+                                    <div style="font-size: 13px; color: #6b7280; text-align: center;">
+                                        This email was sent from the Alumni Portal of ${safeCollegeName}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    await sendSingleEmail(
+                        recipientEmail,
+                        title || `Message from ${collegeName} - Alumni Portal`,
+                        htmlContent
+                    );
+                }
 
                 emailsSentCount++;
             } catch (emailError) {
@@ -237,8 +328,10 @@ export const sendMail = async (req, res) => {
 
         savedMail.recipientCount = emailsSentCount;
         savedMail.recipientEmails = recipientEmails.filter((e) => !failedEmails.includes(e));
-        savedMail.hasTokens = emailsSentCount > 0;
-        savedMail.tokenGeneratedAt = emailsSentCount > 0 ? new Date() : null;
+        savedMail.hasTokens = isEventInvitation && emailsSentCount > 0;
+        savedMail.tokenGeneratedAt = isEventInvitation && emailsSentCount > 0 ? new Date() : null;
+        // Mark non-event mails as completed immediately after successful send
+        savedMail.status = isEventInvitation ? 'pending' : 'completed';
         await savedMail.save();
 
         if (failedEmails.length > 0 && emailsSentCount > 0) {
@@ -278,13 +371,28 @@ export const getSentMails = async (req, res) => {
         const mails = await Mail.find({})
             .sort({ createdAt: -1 })
             .select(
-                'senderId senderName senderEmail title content recipientCount isBroadcast createdAt recipientEmails'
+                'senderId senderName senderEmail title content recipientCount isBroadcast isEventInvitation status createdAt recipientEmails'
             );
 
         const { default: MailResponse } = await import('../models/mailResponse.js');
 
         const mailsWithStats = await Promise.all(
             mails.map(async (mail) => {
+                // For non-event mails (status='completed'), skip response stats calculation
+                if (mail.status === 'completed' || !mail.isEventInvitation) {
+                    return {
+                        ...mail.toObject(),
+                        responseStats: {
+                            total: 0,
+                            accepted: 0,
+                            rejected: 0,
+                            pending: 0,
+                        },
+                        dominantStatus: 'completed',
+                    };
+                }
+
+                // For event mails, calculate response stats
                 const responses = await MailResponse.find({ mailId: mail._id });
 
                 const stats = {
@@ -339,10 +447,37 @@ export const getMailResponses = async (req, res) => {
         }
 
         const { default: MailResponse } = await import('../models/mailResponse.js');
+        const { default: Alumni } = await import('../models/alumni.js');
 
         const responses = await MailResponse.find({ mailId })
             .sort({ submittedAt: -1 })
             .select('recipientEmail action responseData submittedAt');
+
+        // Fetch alumni profile photos for each response
+        const responsesWithPhotos = await Promise.all(
+            responses.map(async (response) => {
+                const responseObj = response.toObject();
+                if (response.action === 'accept') {
+                    try {
+                        const alumni = await Alumni.findOne({
+                            email: response.recipientEmail
+                        }).select('profilePhoto');
+                        if (alumni && alumni.profilePhoto) {
+                            // Convert GridFS ID to URL
+                            const photoUrl = alumni.profilePhoto.startsWith('http')
+                                ? alumni.profilePhoto
+                                : alumni.profilePhoto.startsWith('/api')
+                                    ? alumni.profilePhoto
+                                    : `/api/images/${alumni.profilePhoto}`;
+                            responseObj.profilePhoto = photoUrl;
+                        }
+                    } catch (err) {
+                        console.error('Error fetching alumni profile:', err);
+                    }
+                }
+                return responseObj;
+            })
+        );
 
         const stats = {
             total: responses.length,
@@ -354,7 +489,7 @@ export const getMailResponses = async (req, res) => {
         return res.status(200).json({
             success: true,
             mail,
-            responses,
+            responses: responsesWithPhotos,
             stats,
             totalRecipients: mail.recipientCount,
         });
@@ -409,7 +544,7 @@ export const getDepartmentMails = async (req, res) => {
         const mails = await Mail.find({})
             .sort({ createdAt: -1 })
             .select(
-                'senderId senderName senderEmail title content recipientCount isBroadcast createdAt recipientEmails'
+                'senderId senderName senderEmail title content recipientCount isBroadcast isEventInvitation status createdAt recipientEmails'
             );
 
         const { default: MailResponse } = await import('../models/mailResponse.js');
@@ -417,6 +552,22 @@ export const getDepartmentMails = async (req, res) => {
 
         const mailsWithStats = await Promise.all(
             mails.map(async (mail) => {
+                // For non-event mails (status='completed'), skip response stats calculation
+                if (mail.status === 'completed' || !mail.isEventInvitation) {
+                    return {
+                        ...mail.toObject(),
+                        responseStats: {
+                            total: 0,
+                            accepted: 0,
+                            rejected: 0,
+                            pending: 0,
+                        },
+                        dominantStatus: 'completed',
+                        departmentRecipientCount: 0,
+                    };
+                }
+
+                // For event mails, calculate department-specific response stats
                 const allResponses = await MailResponse.find({ mailId: mail._id });
 
                 const departmentResponses = [];
@@ -706,7 +857,7 @@ export const getAlumniMails = async (req, res) => {
         })
             .sort({ createdAt: -1 })
             .select(
-                'senderId senderName senderEmail title content recipientCount isBroadcast createdAt recipientEmails'
+                'senderId senderName senderEmail title content recipientCount isBroadcast isEventInvitation status createdAt recipientEmails'
             );
 
         const { default: MailResponse } = await import('../models/mailResponse.js');

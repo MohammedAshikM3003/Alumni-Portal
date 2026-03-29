@@ -103,6 +103,11 @@ export const getImage = async (req, res) => {
 		res.set('Content-Type', file.contentType || 'image/png');
 		res.set('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
 
+		// Set original file name if available in metadata
+		if (file.metadata && file.metadata.originalName) {
+			res.set('X-File-Name', file.metadata.originalName);
+		}
+
 		// Stream the file to response
 		const downloadStream = bucket.openDownloadStream(objectId);
 

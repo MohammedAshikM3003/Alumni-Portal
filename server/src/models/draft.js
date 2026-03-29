@@ -1,5 +1,13 @@
 import { Schema, model } from 'mongoose';
 
+// Recipient sub-schema for multiple alumni support
+const recipientSchema = new Schema({
+  name: { type: String, default: '' },
+  email: { type: String, default: '' },
+  department: { type: String, default: '' },
+  batch: { type: String, default: '' },
+}, { _id: false });
+
 const draftSchema = new Schema(
   {
     senderId: {
@@ -15,6 +23,12 @@ const draftSchema = new Schema(
       type: String,
       required: true,
     },
+    // Support for multiple recipients
+    recipients: {
+      type: [recipientSchema],
+      default: [],
+    },
+    // Legacy single recipient fields (for backward compatibility)
     recipientName: {
       type: String,
       default: '',

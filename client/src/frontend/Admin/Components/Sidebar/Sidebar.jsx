@@ -32,8 +32,8 @@ export default function Sidebar({ onLogout, currentView }) {
       </div>
 
       <nav className={styles.sidebarNav}>
-        <a 
-          className={`${styles.navLink} ${currentView === 'dashboard' ? styles.navLinkActive : ''} ${styles.dashboardLink}`} 
+        <a
+          className={`${styles.navLink} ${currentView === 'dashboard' ? styles.navLinkActive : ''} ${styles.dashboardLink}`}
           href="#"
           onClick={(e) => handleNavClick(e, 'dashboard')}
         >
@@ -42,7 +42,7 @@ export default function Sidebar({ onLogout, currentView }) {
             Dashboard
           </span>
         </a>
-        <a 
+        <a
           className={`${styles.navLink} ${currentView === 'mail' ? styles.navLinkActive : ''}`}
           onClick={(e) => handleNavClick(e, 'mail')}
         >

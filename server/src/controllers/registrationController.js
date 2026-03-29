@@ -688,68 +688,130 @@ export const submitRegistration = async (req, res) => {
 			});
 		}
 
-		// Check if user already exists
-		const existingUser = await User.findOne({
+		// Check if alumni already exists by email or register number
+		let existingAlumni = await Alumni.findOne({
+			$or: [{ email }, { registerNumber }],
+		});
+
+		// Check if user account already exists
+		let existingUser = await User.findOne({
 			$or: [{ email }, { userId: registerNumber }],
 		});
-		if (existingUser) {
-			return res.status(400).json({
-				success: false,
-				message: 'User with this email or register number already exists',
-			});
-		}
-
-		// Check if alumni already exists
-		const existingAlumni = await Alumni.findOne({ registerNumber });
-		if (existingAlumni) {
-			return res.status(400).json({
-				success: false,
-				message: 'Alumni with this register number already exists',
-			});
-		}
 
 		// Hash password
 		const hashedPassword = await bcrypt.hash(password, 12);
 
-		// Create User account
-		const newUser = await User.create({
-			userId: registerNumber,
-			name,
-			email,
-			password: hashedPassword,
-			role: 'alumni',
-		});
+		let newUser;
+		let alumni;
 
-		// Create Alumni record
-		const alumni = await Alumni.create({
-			userId: newUser._id,
-			registerNumber,
-			name,
-			fatherName,
-			email,
-			dob: new Date(dob),
-			yearFrom,
-			yearTo,
-			degree,
-			branch,
-			presentAddress,
-			permanentAddress,
-			hasCompetitiveExams,
-			competitiveExams,
-			collegeQualifications,
-			placementType,
-			designation,
-			companyAddress,
-			employmentRemarks,
-			isEntrepreneur,
-			entrepreneurDetails,
-			maritalStatus,
-			spouseDetails,
-			extraCurricular,
-			otherInfo,
-			knownAlumni,
-			signature,
-		});
+		if (existingAlumni) {
+			// Alumni record exists - UPDATE scenario
+			console.log(`Alumni exists for email ${email}. Updating record...`);
+
+			// If user account doesn't exist, create it
+			if (!existingUser) {
+				newUser = await User.create({
+					userId: registerNumber,
+					name,
+					email,
+					password: hashedPassword,
+					role: 'alumni',
+				});
+
+				// Link user to alumni record
+				existingAlumni.userId = newUser._id;
+			} else {
+				// User exists - update password if different
+				existingUser.password = hashedPassword;
+				existingUser.name = name;
+				await existingUser.save();
+				newUser = existingUser;
+			}
+
+			// Update alumni record with all submitted data
+			existingAlumni.registerNumber = registerNumber;
+			existingAlumni.name = name;
+			existingAlumni.fatherName = fatherName;
+			existingAlumni.email = email;
+			existingAlumni.dob = new Date(dob);
+			existingAlumni.yearFrom = yearFrom;
+			existingAlumni.yearTo = yearTo;
+			existingAlumni.degree = degree;
+			existingAlumni.branch = branch;
+			existingAlumni.presentAddress = presentAddress;
+			existingAlumni.permanentAddress = permanentAddress;
+			existingAlumni.hasCompetitiveExams = hasCompetitiveExams;
+			existingAlumni.competitiveExams = competitiveExams;
+			existingAlumni.collegeQualifications = collegeQualifications;
+			existingAlumni.placementType = placementType;
+			existingAlumni.designation = designation;
+			existingAlumni.companyAddress = companyAddress;
+			existingAlumni.employmentRemarks = employmentRemarks;
+			existingAlumni.isEntrepreneur = isEntrepreneur;
+			existingAlumni.entrepreneurDetails = entrepreneurDetails;
+			existingAlumni.maritalStatus = maritalStatus;
+			existingAlumni.spouseDetails = spouseDetails;
+			existingAlumni.extraCurricular = extraCurricular;
+			existingAlumni.otherInfo = otherInfo;
+			existingAlumni.knownAlumni = knownAlumni;
+			if (signature) {
+				existingAlumni.signature = signature;
+			}
+
+			await existingAlumni.save();
+			alumni = existingAlumni;
+		} else {
+			// New registration - CREATE scenario
+			console.log(`New alumni registration for email ${email}. Creating records...`);
+
+			// Check if user with this email/registerNumber exists (shouldn't happen normally)
+			if (existingUser) {
+				return res.status(400).json({
+					success: false,
+					message: 'User account already exists with this email or register number',
+				});
+			}
+
+			// Create User account
+			newUser = await User.create({
+				userId: registerNumber,
+				name,
+				email,
+				password: hashedPassword,
+				role: 'alumni',
+			});
+
+			// Create Alumni record
+			alumni = await Alumni.create({
+				userId: newUser._id,
+				registerNumber,
+				name,
+				fatherName,
+				email,
+				dob: new Date(dob),
+				yearFrom,
+				yearTo,
+				degree,
+				branch,
+				presentAddress,
+				permanentAddress,
+				hasCompetitiveExams,
+				competitiveExams,
+				collegeQualifications,
+				placementType,
+				designation,
+				companyAddress,
+				employmentRemarks,
+				isEntrepreneur,
+				entrepreneurDetails,
+				maritalStatus,
+				spouseDetails,
+				extraCurricular,
+				otherInfo,
+				knownAlumni,
+				signature,
+			});
+		}
 
 		// Mark token as used
 		const userAgent = req.headers['user-agent'] || 'Unknown';

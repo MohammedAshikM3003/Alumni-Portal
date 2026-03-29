@@ -11,6 +11,23 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 };
 
+const formatTime = (timeStr) => {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const displayH = h % 12 || 12;
+  return `${displayH}:${String(m).padStart(2, '0')} ${period}`;
+};
+
+const getStatusBadgeClass = (status) => {
+  switch (status) {
+    case 'completed': return styles.statusCompleted;
+    case 'cancelled': return styles.statusCancelled;
+    case 'pending': return styles.statusPending;
+    default: return styles.statusPending;
+  }
+};
+
 const Admin_Event_and_Reunion_History = ({ onLogout }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -21,7 +38,7 @@ const Admin_Event_and_Reunion_History = ({ onLogout }) => {
   const cardsPerPage = 9;
 
   useEffect(() => {
-    const fetchInvitations = async () => {
+    const fetchEvents = async () => {
       if (!user?.token) {
         setError('Please login to view events');
         setLoading(false);
@@ -29,7 +46,7 @@ const Admin_Event_and_Reunion_History = ({ onLogout }) => {
       }
 
       try {
-        const response = await fetch(`${API_BASE}/api/invitations/all`, {
+        const response = await fetch(`${API_BASE}/api/events`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -41,16 +58,19 @@ const Admin_Event_and_Reunion_History = ({ onLogout }) => {
 
         const data = await response.json();
 
-        if (data.success && data.invitations) {
-          const formattedData = data.invitations.map((inv) => ({
-            id: inv._id,
-            title: inv.subject,
-            speaker: inv.sender,
-            description: inv.description,
-            date: formatDate(inv.eventDate),
-            time: inv.eventTime,
-            venue: inv.venue,
-            flyerId: inv.flyer,
+        if (data.success && data.events) {
+          const formattedData = data.events.map((event) => ({
+            id: event._id,
+            title: event.eventName,
+            organizer: event.organizer?.branch || 'N/A',
+            organizerCode: event.organizer?.deptCode || '',
+            coOrganizers: event.coOrganizers?.map(co => co.deptCode).join(', ') || '',
+            date: formatDate(event.eventDate),
+            day: event.eventDay,
+            time: formatTime(event.eventTime),
+            venue: event.venue,
+            status: event.status,
+            createdAt: event.createdAt,
           }));
           setEventsData(formattedData);
         }
@@ -61,7 +81,7 @@ const Admin_Event_and_Reunion_History = ({ onLogout }) => {
       }
     };
 
-    fetchInvitations();
+    fetchEvents();
   }, [user]);
 
   const totalPages = Math.ceil(eventsData.length / cardsPerPage) || 1;
@@ -159,22 +179,30 @@ const Admin_Event_and_Reunion_History = ({ onLogout }) => {
               paginatedEvents.map((event) => (
                 <article key={event.id} className={styles.eventCard}>
                   <div className={styles.cardContent}>
+                    <div className={styles.cardHeader}>
+                      <span className={`${styles.statusBadge} ${getStatusBadgeClass(event.status)}`}>
+                        {event.status}
+                      </span>
+                    </div>
                     <div className={styles.cardText}>
                       <h3 className={styles.eventTitle}>{event.title}</h3>
-                      <div className={styles.eventSpeaker}>{event.speaker}</div>
-                      <p className={styles.eventDescription}>{event.description}</p>
+                      <div className={styles.eventOrganizer}>
+                        <span className="material-symbols-outlined">business</span>
+                        {event.organizer} ({event.organizerCode})
+                      </div>
                       <div className={styles.eventMeta}>
                         <span className={styles.eventDate}>
                           <span className="material-symbols-outlined">calendar_month</span>
-                          {event.date}
+                          {event.date} ({event.day})
                         </span>
                         <span className={styles.eventTime}>
                           <span className="material-symbols-outlined">schedule</span>
                           {event.time}
                         </span>
                       </div>
+
                     </div>
-                    <button className={styles.viewDetailsBtn} onClick={() => { navigate(`/admin/event_and_reunion_invitation/${event.id}`) }} >View Details</button>
+                    <button className={styles.viewDetailsBtn} onClick={() => { navigate(`/admin/event_and_reunion_invitation/${event.id}`) }} >View</button>
                   </div>
                 </article>
               ))

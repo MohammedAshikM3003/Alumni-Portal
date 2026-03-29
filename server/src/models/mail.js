@@ -35,12 +35,28 @@ const mailSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    isEventInvitation: {
+      type: Boolean,
+      default: false,
+    },
+    eventDetails: {
+      eventId: { type: String },
+      eventName: { type: String },
+      eventDate: { type: Date },
+      eventVenue: { type: String },
+      eventTime: { type: String },
+    },
     hasTokens: {
       type: Boolean,
       default: false,
     },
     tokenGeneratedAt: {
       type: Date,
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'completed'],
+      default: 'pending',
     },
   },
   { timestamps: true }

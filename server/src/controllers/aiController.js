@@ -117,3 +117,112 @@ export const enhanceText = async (req, res) => {
     return res.status(500).json({ error: error.message || "Failed to enhance text." });
   }
 };
+
+// Generate email content using AI
+export const generateEmail = async (req, res) => {
+  try {
+    const {
+      alumniName,
+      department,
+      batch,
+      senderName,
+      collegeName,
+      purpose,
+      eventDetails,
+      additionalContext
+    } = req.body;
+
+    // Basic validation
+    if (!alumniName || !senderName) {
+      return res.status(400).json({
+        error: "Alumni name and sender name are required."
+      });
+    }
+
+    // 1. Construct the absolute path to the prompts file
+    const promptPath = path.join(__dirname, '../utils/prompts.txt');
+
+    // 2. Read the file asynchronously
+    const allPrompts = await fs.readFile(promptPath, 'utf8');
+
+    // 3. Extract the email generation prompt
+    const emailPromptRegex = /### EMAIL_GENERATION_PROMPT_START ###([\s\S]*?)### EMAIL_GENERATION_PROMPT_END ###/;
+    const match = allPrompts.match(emailPromptRegex);
+
+    if (!match || !match[1]) {
+      return res.status(500).json({
+        error: "Internal Configuration Error: Email generation prompt not found."
+      });
+    }
+    const systemPrompt = match[1].trim();
+
+    // 4. Construct the user prompt with context
+    let userPrompt = `Generate a professional email with the following details:
+
+Alumni Information:
+- Name: ${alumniName}
+- Department: ${department || 'Not specified'}
+- Batch: ${batch || 'Not specified'}
+
+Sender Information:
+- Name: ${senderName}
+- Institution: ${collegeName || 'K.S.R. College of Engineering'}
+
+Purpose: ${purpose || 'General communication and outreach'}`;
+
+    // Add event details if provided
+    if (eventDetails && eventDetails.eventName) {
+      userPrompt += `
+
+Event Information:
+- Event Name: ${eventDetails.eventName}
+- Date: ${eventDetails.eventDate || 'To be announced'}
+- Venue: ${eventDetails.eventVenue || 'To be announced'}
+- Time: ${eventDetails.eventTime || 'To be announced'}`;
+    }
+
+    // Add additional context if provided
+    if (additionalContext) {
+      userPrompt += `
+
+Additional Context: ${additionalContext}`;
+    }
+
+    // 5. Call Ollama to generate the email
+    const response = await ollama.chat({
+      model: 'mistral',
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt
+        },
+        {
+          role: 'user',
+          content: userPrompt
+        }
+      ],
+      stream: false,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: response.message.content
+    });
+
+  } catch (error) {
+    console.error("Email Generation Error:", error.message || error);
+    if (error.code === 'ENOENT') {
+      return res.status(500).json({
+        error: "Internal Configuration Error: Prompt file missing."
+      });
+    }
+    if (error.message?.includes('ECONNREFUSED') || error.cause?.code === 'ECONNREFUSED') {
+      return res.status(500).json({
+        error: "Ollama service is not running. Please start Ollama."
+      });
+    }
+    return res.status(500).json({
+      error: error.message || "Failed to generate email."
+    });
+  }
+};

@@ -1,0 +1,573 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Color Variables */
+:root {
+  --primary-green: #228B22;
+  --primary-hover: #1a6b1a;
+  --primary-light: #EAF1EC;
+  --primary-danger: #EF4444;
+  --primary-danger-hover: #DC2626;
+  --bg-light: #F8FAFC;
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e5e7eb;
+}
+
+/* Base Layout */
+.dashboardWrapper {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-light);
+  color: #222;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+/* Main Content */
+.mainContent {
+  width: 100%;
+  margin-left: 60px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+/* Dashboard Content Area */
+.dashboardContent {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.dashboardContent::-webkit-scrollbar {
+  width: 12px;
+}
+
+.dashboardContent::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-left: 1px solid #e2e8f0;
+}
+
+.dashboardContent::-webkit-scrollbar-thumb {
+  background-color: var(--primary-green);
+  border-radius: 10px;
+  border: 3px solid #f1f5f9;
+}
+
+.dashboardContent::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--primary-green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error State */
+.error {
+  color: var(--primary-danger);
+  padding: 1rem;
+  background: #FEF2F2;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Page Header */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.backBtn:hover {
+  color: var(--primary-green);
+}
+
+.pageTitle {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+/* Profile Wrapper */
+.profileWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Profile Header Card */
+.profileHeaderCard {
+  background-color: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.profileAvatarLarge {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-green), #4ade80);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(34, 139, 34, 0.2);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileIntro {
+  flex: 1;
+}
+
+.introTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.introTop h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badgeActive {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badgeInactive {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.badgePlacement {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.designation {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-green);
+  margin: 0 0 4px 0;
+}
+
+.department {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0 0 20px 0;
+}
+
+.quickContact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.contactItem svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Info Grid Layout */
+.infoGridLayout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .infoGridLayout {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.infoCard {
+  background-color: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.fullSection {
+  grid-column: 1 / -1;
+}
+
+.cardHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cardIcon {
+  color: var(--primary-green);
+}
+
+.cardHeader h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.cardBody {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.infoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.infoLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.infoValue {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Timeline for Qualifications */
+.timeline {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.timelineItem {
+  display: flex;
+  gap: 16px;
+  position: relative;
+}
+
+.timelineItem:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 24px;
+  bottom: -20px;
+  width: 2px;
+  background-color: #e2e8f0;
+}
+
+.timelineDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--primary-green);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--primary-green);
+  margin-top: 4px;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.timelineContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.degreeTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.institutionName {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.qualificationMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.passingYear,
+.percentage,
+.board {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+}
+
+.percentage {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+/* Known Alumni Grid */
+.knownAlumniGrid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.knownAlumniCard {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.knownAlumniAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-green), #4ade80);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.knownAlumniInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.knownAlumniName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 4px 0;
+}
+
+.knownAlumniDetails {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0 0 8px 0;
+}
+
+.knownAlumniContact {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.knownAlumniContact svg {
+  flex-shrink: 0;
+}
+
+/* Delete Section */
+.deleteSection {
+  margin-top: 24px;
+}
+
+.deleteWarningCard {
+  background-color: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.deleteWarningContent {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.deleteWarningIcon {
+  color: var(--primary-danger);
+  flex-shrink: 0;
+}
+
+.deleteWarningContent h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #991B1B;
+  margin: 0 0 4px 0;
+}
+
+.deleteWarningContent p {
+  font-size: 0.875rem;
+  color: #B91C1C;
+  margin: 0;
+}
+
+.deleteBtn {
+  background-color: var(--primary-danger);
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover {
+  background-color: var(--primary-danger-hover);
+}
+
+.deleteBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .profileHeaderCard {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .introTop {
+    justify-content: center;
+  }
+
+  .quickContact {
+    justify-content: center;
+  }
+
+  .cardBody {
+    grid-template-columns: 1fr;
+  }
+
+  .deleteWarningCard {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .deleteWarningContent {
+    flex-direction: column;
+  }
+
+  .deleteBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}

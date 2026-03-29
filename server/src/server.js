@@ -19,6 +19,9 @@ import mailRoutes from './routes/mailRoutes.js';
 import draftRoutes from './routes/draftRoutes.js';
 import tokenRoutes from './routes/tokenRoutes.js';
 import registrationRoutes from './routes/registrationRoutes.js';
+import eventRoutes from './routes/eventRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import flyerRoutes from './routes/flyerRoutes.js';
 
 // Load environment variables from a .env file
 config();
@@ -77,6 +80,12 @@ app.use('/api/drafts', draftRoutes);
 app.use('/api/tokens', tokenRoutes);
 
 app.use('/api/registration', registrationRoutes);
+
+app.use('/api/events', eventRoutes);
+
+app.use('/api/admin', adminRoutes);
+
+app.use('/api/flyers', flyerRoutes);
 
 
 // --- Socket.io Setup ---

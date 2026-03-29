@@ -137,16 +137,33 @@ export const getAllCoordinators = async (req, res) => {
 export const getCoordinatorsByDepartment = async (req, res) => {
 	try {
 		const { department } = req.params;
+		const upperDept = department.toUpperCase();
 
+		// First, find the department by code to get the full branch name
+		const Department = (await import('../models/department.js')).default;
+		const deptRecord = await Department.findOne({
+			deptCode: upperDept,
+			isActive: true
+		});
+
+		if (!deptRecord) {
+			return res.status(404).json({
+				success: false,
+				message: `Department with code ${upperDept} not found`
+			});
+		}
+
+		// Now search coordinators by the full branch name
 		const coordinators = await Coordinator.find({
-			department: department.toUpperCase(),
+			department: deptRecord.branch,
 			isActive: true
 		})
 		.populate('userId', 'userId name email role')
 		.sort({ name: 1 });
 
 		res.status(200).json({ success: true, coordinators });
-	} catch {
+	} catch (error) {
+		console.error('Error in getCoordinatorsByDepartment:', error);
 		res.status(500).json({ success: false, message: 'Server error' });
 	}
 };

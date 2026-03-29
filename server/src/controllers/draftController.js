@@ -14,6 +14,7 @@ export const saveDraft = async (req, res) => {
             recipientEmail,
             department,
             batch,
+            recipients, // New: array of recipients
             title,
             content,
             eventName,
@@ -32,6 +33,9 @@ export const saveDraft = async (req, res) => {
             senderId,
             senderName,
             senderEmail,
+            // Store multiple recipients if provided
+            recipients: recipients || [],
+            // Legacy single recipient fields (for backward compatibility)
             recipientName: recipientName || '',
             recipientEmail: recipientEmail || '',
             department: department || '',
@@ -107,7 +111,7 @@ export const getAllDrafts = async (req, res) => {
     try {
         const drafts = await Draft.find({})
             .sort({ updatedAt: -1 })
-            .select('senderId senderName recipientName recipientEmail title content updatedAt');
+            .select('senderId senderName recipientName recipientEmail recipients title content updatedAt');
 
         return res.status(200).json({
             success: true,

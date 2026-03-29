@@ -578,3 +578,381 @@
 .achievementReadMore:hover {
   text-decoration: underline;
 }
+
+/* ================== ANALYTICS KPI STYLES ================== */
+:root {
+  --ksrce-red: #228B22;
+  --ksrce-red-hover: #1e7b1e;
+  --ksrce-gray: #f9fafb;
+  --ksrce-border: #e5e7eb;
+
+  --text-dark: #1e293b;
+  --text-primary: #0f172a;
+  --text-muted: #475569;
+  --text-light: #64748b;
+
+  --bg-white: #ffffff;
+  --bg-surface: #f8fafc;
+
+  /* KPI Card Color Variants */
+  --kpi-green-bg: #dcfce7;
+  --kpi-green-text: #166534;
+  --kpi-green-icon: #22c55e;
+
+  --kpi-blue-bg: #dbeafe;
+  --kpi-blue-text: #1e40af;
+  --kpi-blue-icon: #3b82f6;
+
+  --kpi-orange-bg: #ffedd5;
+  --kpi-orange-text: #9a3412;
+  --kpi-orange-icon: #f97316;
+
+  --kpi-purple-bg: #f3e8ff;
+  --kpi-purple-text: #6b21a8;
+  --kpi-purple-icon: #a855f7;
+}
+
+/* ================== REFRESH BUTTON ================== */
+.refreshButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: var(--bg-white);
+  border: 1px solid var(--ksrce-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.refreshButton:hover {
+  background-color: var(--bg-surface);
+  color: var(--ksrce-red);
+  border-color: var(--ksrce-red);
+}
+
+.refreshButton:focus-visible {
+  outline: 2px solid var(--ksrce-red);
+  outline-offset: 2px;
+}
+
+/* ================== KPI GRID ================== */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .kpiGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ================== KPI CARD BASE ================== */
+.kpiCard {
+  background-color: var(--bg-white);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--ksrce-border);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.kpiCard:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.kpiIconWrapper {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpiIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.kpiLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.kpiValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1;
+}
+
+/* ================== KPI CARD COLOR VARIANTS ================== */
+.kpiCardGreen .kpiIconWrapper {
+  background-color: var(--kpi-green-bg);
+}
+
+.kpiCardGreen .kpiIcon {
+  color: var(--kpi-green-icon);
+}
+
+.kpiCardGreen .kpiValue {
+  color: var(--kpi-green-text);
+}
+
+.kpiCardBlue .kpiIconWrapper {
+  background-color: var(--kpi-blue-bg);
+}
+
+.kpiCardBlue .kpiIcon {
+  color: var(--kpi-blue-icon);
+}
+
+.kpiCardBlue .kpiValue {
+  color: var(--kpi-blue-text);
+}
+
+.kpiCardOrange .kpiIconWrapper {
+  background-color: var(--kpi-orange-bg);
+}
+
+.kpiCardOrange .kpiIcon {
+  color: var(--kpi-orange-icon);
+}
+
+.kpiCardOrange .kpiValue {
+  color: var(--kpi-orange-text);
+}
+
+.kpiCardPurple .kpiIconWrapper {
+  background-color: var(--kpi-purple-bg);
+}
+
+.kpiCardPurple .kpiIcon {
+  color: var(--kpi-purple-icon);
+}
+
+.kpiCardPurple .kpiValue {
+  color: var(--kpi-purple-text);
+}
+
+/* ================== SKELETON LOADING STATE ================== */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeletonIcon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.625rem;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+}
+
+.skeletonText {
+  width: 60%;
+  height: 1rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+  animation-delay: 0.1s;
+}
+
+.skeletonValue {
+  width: 40%;
+  height: 2rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+  animation-delay: 0.2s;
+}
+
+/* ================== ERROR STATE ================== */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background-color: var(--bg-white);
+  border-radius: 0.75rem;
+  border: 1px solid var(--ksrce-border);
+  text-align: center;
+  gap: 1rem;
+}
+
+.errorMessage {
+  font-size: 1rem;
+  color: #dc2626;
+  margin: 0;
+}
+
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background-color: var(--ksrce-red);
+  color: var(--bg-white);
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-family: inherit;
+}
+
+.retryButton:hover {
+  background-color: var(--ksrce-red-hover);
+}
+
+.retryButton:focus-visible {
+  outline: 2px solid var(--ksrce-red);
+  outline-offset: 2px;
+}
+
+/* ================== RESPONSIVE ADJUSTMENTS ================== */
+@media (max-width: 768px) {
+  .kpiCard {
+    padding: 1.25rem;
+  }
+
+  .kpiValue {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpiGrid {
+    gap: 1rem;
+  }
+
+  .kpiCard {
+    padding: 1rem;
+  }
+
+  .kpiIconWrapper {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .kpiIcon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .kpiLabel {
+    font-size: 0.8125rem;
+  }
+
+  .kpiValue {
+    font-size: 1.5rem;
+  }
+}
+
+/* ================== FLOATING CREATE BUTTON ================== */
+.floatingCreateButton {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+  transition: all 0.3s ease;
+  font-family: inherit;
+  animation: floatPulse 2s ease-in-out infinite;
+}
+
+.floatingCreateButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(34, 197, 94, 0.4);
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+}
+
+.floatingCreateButton:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 3px;
+}
+
+/* Floating animation */
+@keyframes floatPulse {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Responsive adjustments for floating button */
+@media (max-width: 768px) {
+  .floatingCreateButton {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .floatingCreateButton {
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+  }
+
+  .floatingCreateButton span {
+    display: none;
+  }
+}

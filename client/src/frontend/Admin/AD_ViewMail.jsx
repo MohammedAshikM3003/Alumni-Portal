@@ -1,7 +1,8 @@
 import styles from './AD_ViewMail.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FileImage } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -11,6 +12,7 @@ const Admin_ViewMail = ({ onLogout }) => {
   const [responseStats, setResponseStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
   const mailId = location.state?.mailId;
   const passedMailData = location.state?.mailData;
 
@@ -99,6 +101,13 @@ const Admin_ViewMail = ({ onLogout }) => {
     }
   };
 
+  /**
+   * Check if there are any accepted responses
+   */
+  const hasAcceptedResponses = () => {
+    return responses.some(response => response.action === 'accept');
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -138,7 +147,7 @@ const Admin_ViewMail = ({ onLogout }) => {
       <Sidebar onLogout={onLogout} currentView={'mail'} />
 
       <main className={styles.mainContent}>
-        <div className={styles.backButton} onClick={() => window.history.back()}>
+        <div className={styles.backButton} onClick={() => navigate('/admin/mail')}>
           <span className="material-symbols-outlined">arrow_back</span>
           <span>Back</span>
         </div>
@@ -213,6 +222,38 @@ const Admin_ViewMail = ({ onLogout }) => {
               <div className={styles.eventCard}>
                 <div className={styles.eventHeader}>
                   <h3>Individual Responses ({responses.length})</h3>
+                  {/* Create Flyer Button - only show if there are accepted responses */}
+                  {hasAcceptedResponses() && (
+                    <button
+                      className={styles.createFlyerButton}
+                      onClick={() => {
+                        // Build recipients array from accepted responses
+                        const recipients = responses
+                          .filter(r => r.action === 'accept' && r.responseData)
+                          .map(r => ({
+                            name: r.responseData.fullName || r.recipientEmail,
+                            email: r.recipientEmail,
+                            profilePhoto: r.profilePhoto || ''
+                          }));
+
+                        navigate('/admin/mail/flyer', {
+                          state: {
+                            mailId,
+                            mailData: mail,
+                            recipients,
+                            recipientEmails: recipients.map(r => r.email),
+                            eventName: mail.eventName || '',
+                            eventDate: mail.eventDate || '',
+                            eventTime: mail.eventTime || '',
+                            eventLocation: mail.eventLocation || ''
+                          }
+                        });
+                      }}
+                    >
+                      <FileImage size={18} />
+                      Create Flyer
+                    </button>
+                  )}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginTop: '20px' }}>
                   {responses.map((response, index) => (

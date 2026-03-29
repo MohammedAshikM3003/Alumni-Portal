@@ -39,7 +39,7 @@ const Admin_Alumini = ( { onLogout } ) => {
 
   // Search/Filter states
   const [searchTerm, setSearchTerm] = useState('');
-  const [designationFilter, setDesignationFilter] = useState('');
+  const [filterType, setFilterType] = useState('');
   const [batchFilter, setBatchFilter] = useState('');
 
   // Pagination states
@@ -227,6 +227,7 @@ const Admin_Alumini = ( { onLogout } ) => {
   useEffect(() => {
     let result = alumniData;
 
+    // General search term filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
@@ -237,12 +238,27 @@ const Admin_Alumini = ( { onLogout } ) => {
       );
     }
 
-    if (designationFilter) {
-      result = result.filter((a) =>
-        a.designation?.toLowerCase().includes(designationFilter.toLowerCase())
-      );
+    // Sort by selected filter type
+    if (filterType) {
+      switch (filterType) {
+        case 'department':
+          result = [...result].sort((a, b) => (a.branch || '').localeCompare(b.branch || ''));
+          break;
+        case 'designation':
+          result = [...result].sort((a, b) => (a.designation || '').localeCompare(b.designation || ''));
+          break;
+        case 'name':
+          result = [...result].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+          break;
+        case 'type':
+          result = [...result].sort((a, b) => (a.placementType || '').localeCompare(b.placementType || ''));
+          break;
+        default:
+          break;
+      }
     }
 
+    // Batch filter
     if (batchFilter) {
       const [yearFrom, yearTo] = batchFilter.split('-');
       result = result.filter(
@@ -252,7 +268,7 @@ const Admin_Alumini = ( { onLogout } ) => {
 
     setFilteredData(result);
     setCurrentPage(1);
-  }, [searchTerm, designationFilter, batchFilter, alumniData]);
+  }, [searchTerm, filterType, batchFilter, alumniData]);
 
   // Get badge class based on placement type
   const getBadgeClass = (type) => {
@@ -315,13 +331,20 @@ const Admin_Alumini = ( { onLogout } ) => {
                 />
               </div>
               <div className={styles.filterGridRow}>
-                <input
-                  type="text"
-                  className={styles.filterInput}
-                  placeholder="Search by Designation"
-                  value={designationFilter}
-                  onChange={(e) => setDesignationFilter(e.target.value)}
-                />
+                {/* Filter Type Dropdown */}
+                <select
+                  className={styles.filterSelect}
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                >
+                  <option value="">Select Filter</option>
+                  <option value="department">By Department</option>
+                  <option value="designation">By Designation</option>
+                  <option value="name">By Name</option>
+                  <option value="type">By Type</option>
+                </select>
+
+                {/* Batch Filter - Right Side */}
                 <select
                   className={styles.filterSelect}
                   value={batchFilter}
