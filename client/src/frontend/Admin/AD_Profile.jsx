@@ -45,6 +45,13 @@ const Admin_Profile = ({ onLogout }) => {
   const [logoPreview, setLogoPreview] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
 
+  // Track previous image IDs for deletion of replaced images
+  const [previousImages, setPreviousImages] = useState({
+    profilePhoto: null,
+    logo: null,
+    banner: null
+  });
+
   // File refs
   const profilePhotoRef = useRef(null);
   const logoRef = useRef(null);
@@ -149,14 +156,24 @@ const Admin_Profile = ({ onLogout }) => {
 
         // Set image previews if they exist
         if (profileData.profilePhoto) {
-          setProfilePhotoPreview(`${API_BASE_URL}/api/images/${profileData.profilePhoto}`);
+          const photoUrl = `${API_BASE_URL}/api/images/${profileData.profilePhoto}`;
+          setProfilePhotoPreview(photoUrl);
         }
         if (profileData.instituteDetails?.logo) {
-          setLogoPreview(`${API_BASE_URL}/api/images/${profileData.instituteDetails.logo}`);
+          const logoUrl = `${API_BASE_URL}/api/images/${profileData.instituteDetails.logo}`;
+          setLogoPreview(logoUrl);
         }
         if (profileData.instituteDetails?.banner) {
-          setBannerPreview(`${API_BASE_URL}/api/images/${profileData.instituteDetails.banner}`);
+          const bannerUrl = `${API_BASE_URL}/api/images/${profileData.instituteDetails.banner}`;
+          setBannerPreview(bannerUrl);
         }
+
+        // Track previous images for deletion of replaced files
+        setPreviousImages({
+          profilePhoto: profileData.profilePhoto,
+          logo: profileData.instituteDetails?.logo,
+          banner: profileData.instituteDetails?.banner
+        });
 
         // Check if addresses are the same and set checkbox
         const addressesMatch =
@@ -218,6 +235,10 @@ const Admin_Profile = ({ onLogout }) => {
         return;
       }
 
+      // Step 1: Delete old images that were replaced
+      await deleteReplacedImages();
+
+      // Step 2: Save profile with new image IDs
       const response = await fetch(`${API_BASE_URL}/api/admin/profile`, {
         method: 'PUT',
         headers: {
@@ -237,8 +258,20 @@ const Admin_Profile = ({ onLogout }) => {
       }
 
       if (data.success) {
+        // Step 3: Update previousImages to reflect newly saved state
+        setPreviousImages({
+          profilePhoto: profileData.profilePhoto,
+          logo: profileData.instituteDetails?.logo,
+          banner: profileData.instituteDetails?.banner
+        });
+
         showMessage('success', 'Profile updated successfully');
         setIsEditing(false);
+
+        // Reload page after 1 second to refresh all data and images
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         showMessage('error', data.message || 'Failed to update profile');
       }
@@ -444,7 +477,37 @@ const Admin_Profile = ({ onLogout }) => {
     }
   };
 
-  // Handle profile photo change
+  // Delete images that were replaced with new ones
+  const deleteReplacedImages = async () => {
+    const imagesToDelete = [];
+
+    // Check profilePhoto
+    if (previousImages.profilePhoto && previousImages.profilePhoto !== profileData.profilePhoto) {
+      imagesToDelete.push(previousImages.profilePhoto);
+    }
+
+    // Check logo
+    if (previousImages.logo && previousImages.logo !== profileData.instituteDetails?.logo) {
+      imagesToDelete.push(previousImages.logo);
+    }
+
+    // Check banner
+    if (previousImages.banner && previousImages.banner !== profileData.instituteDetails?.banner) {
+      imagesToDelete.push(previousImages.banner);
+    }
+
+    // Delete each old image
+    for (const imageId of imagesToDelete) {
+      try {
+        await fetch(`${API_BASE_URL}/api/images/${imageId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${user?.token}` }
+        });
+      } catch (error) {
+        console.error(`Error deleting image ${imageId}:`, error);
+      }
+    }
+  };
   const handleProfilePhotoChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -501,7 +564,30 @@ const Admin_Profile = ({ onLogout }) => {
   };
 
   // Remove image
-  const handleRemoveImage = (type) => {
+  const handleRemoveImage = async (type) => {
+    let imageId = null;
+
+    if (type === 'profilePhoto') {
+      imageId = profileData.profilePhoto;
+    } else if (type === 'logo') {
+      imageId = profileData.instituteDetails?.logo;
+    } else if (type === 'banner') {
+      imageId = profileData.instituteDetails?.banner;
+    }
+
+    // Delete from GridFS if exists
+    if (imageId) {
+      try {
+        await fetch(`${API_BASE_URL}/api/images/${imageId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${user?.token}` }
+        });
+      } catch (error) {
+        console.error(`Error deleting image:`, error);
+      }
+    }
+
+    // Then clear from state
     if (type === 'profilePhoto') {
       setProfilePhotoPreview(null);
       setProfileData(prev => ({ ...prev, profilePhoto: null }));

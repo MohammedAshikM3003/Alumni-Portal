@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './NavBar.module.css';
-import ksrLogo from '../../assets/KSR_College_Logo.svg';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -51,7 +50,7 @@ export default function NavBar( { isLanding } ) {
       <div className={styles.container}>
         {/* Logo Section */}
         <div className={styles.logoSection}>
-          <img src={logoUrl || ksrLogo} alt="KSRCE Logo" className={styles.logo} />
+          <img src={logoUrl} className={styles.logo} />
           <span className={styles.brandName}>
             KSRCE <span className={styles.brandHighlight}>ALUMNI</span>
           </span>

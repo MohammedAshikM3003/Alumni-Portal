@@ -6,6 +6,7 @@ import MailResponse from '../models/mailResponse.js';
 import JobReference from '../models/jobReference.js';
 import Payment from '../models/payment.js';
 import Admin from '../models/admin.js';
+import mongoose from 'mongoose';
 import User from '../models/user.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -339,14 +340,14 @@ export const updateAdminProfile = async (req, res) => {
 
     // Handle profile photo if provided
     if (profilePhoto !== undefined) {
-      updateData.profilePhoto = profilePhoto || null;
+      updateData.profilePhoto = profilePhoto ? new mongoose.Types.ObjectId(profilePhoto) : null;
     }
 
     // Handle institute details if provided
     if (instituteDetails) {
       updateData.instituteDetails = {
-        logo: instituteDetails.logo || null,
-        banner: instituteDetails.banner || null,
+        logo: instituteDetails.logo ? new mongoose.Types.ObjectId(instituteDetails.logo) : null,
+        banner: instituteDetails.banner ? new mongoose.Types.ObjectId(instituteDetails.banner) : null,
         name: cleanValue(instituteDetails.name),
         address: cleanValue(instituteDetails.address),
         mobile: cleanValue(instituteDetails.mobile),

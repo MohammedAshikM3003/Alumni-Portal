@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import styles from "./Sidebar.module.css";
-import collegeLogo from '../../../../assets/KSR_College_Logo.svg';
 import { useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -41,7 +40,7 @@ export default function Sidebar({ onLogout, currentView }) {
     <aside id="sidebar" className={styles.sidebar}>
       <div className={styles.sidebarHeader}>
         <img
-          src={logoUrl || collegeLogo}
+          src={logoUrl}
           alt="KSRCE Logo"
           className={styles.sidebarLogo}
         />

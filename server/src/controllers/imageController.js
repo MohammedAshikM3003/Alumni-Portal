@@ -21,38 +21,49 @@ export const uploadImage = async (req, res) => {
 			});
 		}
 
-		const { type } = req.body; // 'signature' or 'profilePhoto'
+		const { type } = req.body;
 		const filename = `${type || 'image'}_${req.user._id}_${Date.now()}`;
 
-		// Create upload stream
+		// Determine content type - use mimetype if available, otherwise fallback
+		const contentType = req.file.mimetype || 'image/png';
+
 		const uploadStream = bucket.openUploadStream(filename, {
-			contentType: req.file.mimetype,
+			contentType: contentType,
 			metadata: {
 				userId: req.user._id,
 				type: type || 'image',
 				originalName: req.file.originalname,
+				mimeType: contentType,  // Store as backup in metadata
 			},
 		});
 
-		// Write buffer to stream
-		uploadStream.end(req.file.buffer);
+		// Properly write buffer to stream
+		uploadStream.write(req.file.buffer);
+		uploadStream.end();
 
-		// Wait for upload to complete
+		let responseSent = false;
+
 		uploadStream.on('finish', () => {
-			res.status(201).json({
-				success: true,
-				message: 'Image uploaded successfully',
-				imageId: uploadStream.id.toString(),
-				filename: filename,
-			});
+			if (!responseSent) {
+				responseSent = true;
+				res.status(201).json({
+					success: true,
+					message: 'Image uploaded successfully',
+					imageId: uploadStream.id.toString(),
+					filename: filename,
+				});
+			}
 		});
 
 		uploadStream.on('error', (error) => {
-			console.error('GridFS upload error:', error);
-			res.status(500).json({
-				success: false,
-				message: 'Error uploading image',
-			});
+			if (!responseSent) {
+				responseSent = true;
+				console.error('[ImageController] uploadImage - Stream error:', error);
+				res.status(500).json({
+					success: false,
+					message: 'Error uploading image',
+				});
+			}
 		});
 	} catch (error) {
 		console.error('Error uploading image:', error);
@@ -99,9 +110,10 @@ export const getImage = async (req, res) => {
 
 		const file = files[0];
 
-		// Set content type header
-		res.set('Content-Type', file.contentType || 'image/png');
-		res.set('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+		// Set content type header - check file.contentType, metadata.mimeType, or fallback
+		const responseContentType = file.contentType || file.metadata?.mimeType || 'image/png';
+		res.set('Content-Type', responseContentType);
+		res.set('Cache-Control', 'public, max-age=31536000');
 
 		// Set original file name if available in metadata
 		if (file.metadata && file.metadata.originalName) {

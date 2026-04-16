@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
 import styles from './Co_Profile.module.css';
-import ksrLogo from '../../assets/KSR_College_Logo.svg';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from './Components/BackButton/Back';
 

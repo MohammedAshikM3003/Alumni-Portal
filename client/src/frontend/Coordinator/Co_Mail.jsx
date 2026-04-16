@@ -1,7 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import styles from './Co_Mail.module.css';
-import ksrLogo from '../../assets/KSR_College_Logo.svg';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from './Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
