@@ -172,8 +172,10 @@ const Admin_Dashboard = ( { onLogout } ) => {
             </div>
             <div className={styles.card}>
               <div className={styles.cardHeader}>
-                <div className={styles.cardIcon}>💼</div>
-                <h2 className={styles.cardTitle}>Career Hub</h2>
+                <div className={styles.cardHeader1}>
+                  <div className={styles.cardIcon}>💼</div>
+                  <h2 className={styles.cardTitle}>Career Hub</h2>
+                </div>
                 <span className={styles.cardStatus}>{cards?.jobs?.activeCount || 0} Active</span>
               </div>
               <div className={styles.cardBody}>

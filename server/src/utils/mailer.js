@@ -7,57 +7,65 @@ const OAuth2 = google.auth.OAuth2;
  * This bypasses SMTP port restrictions on platforms like Render.
  */
 const createTransporter = async () => {
-    const oauth2Client = new OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        'https://developers.google.com/oauthplayground'
-    );
+    try {
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_REFRESH_TOKEN) {
+            throw new Error('Missing Google OAuth2 credentials in environment variables: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, or GOOGLE_REFRESH_TOKEN');
+        }
 
-    oauth2Client.setCredentials({
-        refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-    });
+        const oauth2Client = new OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
+            'https://developers.google.com/oauthplayground'
+        );
 
-    // Verify credentials by getting access token
-    await oauth2Client.getAccessToken();
-    console.log('OAuth2 access token fetched successfully');
+        oauth2Client.setCredentials({
+            refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+        });
 
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+        // Verify credentials by getting access token
+        await oauth2Client.getAccessToken();
+        console.log('✓ Gmail OAuth2 access token fetched successfully');
 
-    // Return an object that mimics nodemailer's transporter interface
-    return {
-        sendMail: async (mailOptions) => {
-            const { from, to, subject, html, text } = mailOptions;
+        const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
-            // Build RFC 2822 formatted email
-            const messageParts = [
-                `From: ${from}`,
-                `To: ${to}`,
-                `Subject: ${subject}`,
-                'MIME-Version: 1.0',
-                'Content-Type: text/html; charset=utf-8',
-                '',
-                html || text || '',
-            ];
-            const message = messageParts.join('\n');
+        // Return an object that mimics nodemailer's transporter interface
+        return {
+            sendMail: async (mailOptions) => {
+                const { from, to, subject, html, text } = mailOptions;
 
-            // Encode to base64url format
-            const encodedMessage = Buffer.from(message)
-                .toString('base64')
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/, '');
+                // Build RFC 2822 formatted email
+                const messageParts = [
+                    `From: ${from}`,
+                    `To: ${to}`,
+                    `Subject: ${subject}`,
+                    'MIME-Version: 1.0',
+                    'Content-Type: text/html; charset=utf-8',
+                    '',
+                    html || text || '',
+                ];
+                const message = messageParts.join('\n');
 
-            const result = await gmail.users.messages.send({
-                userId: 'me',
-                requestBody: {
-                    raw: encodedMessage,
-                },
-            });
+                // Encode to base64url format
+                const encodedMessage = Buffer.from(message)
+                    .toString('base64')
+                    .replace(/\+/g, '-')
+                    .replace(/\//g, '_')
+                    .replace(/=+$/, '');
 
-            console.log('Email sent via Gmail API, messageId:', result.data.id);
-            return { messageId: result.data.id };
-        },
-    };
+                const result = await gmail.users.messages.send({
+                    userId: 'me',
+                    requestBody: {
+                        raw: encodedMessage,
+                    },
+                });
+
+                return { messageId: result.data.id };
+            },
+        };
+    } catch (error) {
+        console.error('✗ Transporter creation failed:', error.message);
+        throw error;
+    }
 };
 
 export default createTransporter;

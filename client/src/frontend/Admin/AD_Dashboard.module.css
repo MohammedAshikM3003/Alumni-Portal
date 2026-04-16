@@ -13,18 +13,16 @@
   margin: 8px 0;
 }
 .dashboardContent::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #2E6F40, #256032);
+  background-color: #2E6F40;
   border-radius: 10px;
   transition: all 0.3s ease;
   border: 2px solid #E5E7EB;
   box-shadow: inset 0 0 6px rgba(46, 111, 64, 0.3);
 }
-.dashboardContent::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #0069D9, #0051CC);
-  border-color: var(-p);
+.dashboardContent::-webkit-scrollbar-thumb:hover {  
+  background-color: #256032;
 }
 .dashboardContent::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(to bottom, #0051CC, #003d99);
   box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.7);
 }
 /* --- Alumni Dashboard Search Bar Styles --- */
@@ -355,6 +353,12 @@
   justify-content: space-between;
   margin-bottom: 16px;
 }
+
+.cardHeader1{
+  display: flex;
+  align-items: center;
+}
+
 .cardTitle {
   font-size: 1.1rem;
   font-weight: bold;
@@ -371,7 +375,7 @@
 }
 .cardIcon {
   font-size: 1.5rem;
-  margin-right: 8px;
+  margin-right: 4px;
 }
 .cardStatus {
   font-size: 0.7rem;
