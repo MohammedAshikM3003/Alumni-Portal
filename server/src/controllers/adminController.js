@@ -349,9 +349,6 @@ export const updateAdminProfile = async (req, res) => {
       updateData.instituteDetails = {
         logo: instituteDetails.logo ? new mongoose.Types.ObjectId(instituteDetails.logo) : null,
         banner: instituteDetails.banner ? new mongoose.Types.ObjectId(instituteDetails.banner) : null,
-        name: cleanValue(instituteDetails.name),
-        address: cleanValue(instituteDetails.address),
-        mobile: cleanValue(instituteDetails.mobile),
       };
     }
 
@@ -825,7 +822,6 @@ export const getInstituteBranding = async (req, res) => {
         banner: admin.instituteDetails.banner
           ? `/api/images/${admin.instituteDetails.banner}`
           : null,
-        name: admin.instituteDetails.name || null,
       },
     });
   } catch (error) {

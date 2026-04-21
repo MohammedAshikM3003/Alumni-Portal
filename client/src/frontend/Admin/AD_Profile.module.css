@@ -200,35 +200,115 @@
   gap: 0.5rem;
 }
 
+.inputGroup:has(+ .inputGroup) {
+  margin-bottom: 0.5rem;
+}
+
+.passwordForm .inputGroup {
+  margin-bottom: 0.75rem;
+}
+
+.passwordForm .inputLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Step Indicators */
+.stepIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0 2rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(46, 111, 64, 0.05) 0%, rgba(46, 111, 64, 0.03) 100%);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-light);
+}
+
+.stepDot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  border: 2px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #6b7280;
+  transition: all 0.3s ease;
+}
+
+.stepDot:not([style*="opacity: 0.6"]) {
+  cursor: pointer;
+}
+
+.stepDot:hover:not([style*="opacity: 0.6"]) {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stepDot.active {
+  background: linear-gradient(135deg, var(--primary) 0%, #24663e 100%);
+  border-color: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(46, 111, 64, 0.3);
+}
+
+.stepDot.completed {
+  background-color: #10b981;
+  border-color: #059669;
+  color: white;
+}
+
+.stepConnector {
+  width: 2px;
+  height: 16px;
+  background-color: #d1d5db;
+  transition: background-color 0.3s ease;
+}
+
+.stepConnector.active {
+  background-color: var(--primary);
+}
+
 .inputGroup.fullWidth {
   grid-column: 1 / -1;
 }
 
 .inputLabel {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 700;
   color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
 }
 
 .inputField {
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
   border: 2px solid var(--border-color);
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   font-size: 0.875rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease;
   background-color: var(--bg-white);
+  font-family: inherit;
 }
 
 .inputField:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(46, 111, 64, 0.1);
+  box-shadow: 0 0 0 4px rgba(46, 111, 64, 0.15);
+  background-color: #fafbfc;
 }
 
 .inputField:disabled {
-  background-color: var(--bg-surface);
+  background-color: #f3f4f6;
   color: var(--text-muted);
   cursor: not-allowed;
+  border-color: #e5e7eb;
 }
 
 .inputField::placeholder {
@@ -303,7 +383,20 @@
 
 /* Password Management */
 .passwordSection {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(46, 111, 64, 0.05) 0%, rgba(46, 111, 64, 0.03) 100%);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-light);
+  transition: all 0.3s ease;
+}
+
+.passwordSection:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(46, 111, 64, 0.08);
 }
 
 .passwordSection:last-child {
@@ -333,19 +426,108 @@
 
 .passwordForm {
   margin-top: 1rem;
-  padding: 1.5rem;
-  background-color: var(--bg-white);
+  padding: 2.5rem;
+  background: linear-gradient(to bottom, #FFFFFF 0%, #FAFBFC 100%);
   border: 2px solid var(--border-light);
-  border-radius: 0.5rem;
+  border-radius: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.passwordFormTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--primary);
+}
+
+.passwordFormGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+  padding: 1rem 0;
+}
+
+.resetButtonGroup {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: var(--primary);
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border: 2px solid var(--primary);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  align-self: flex-start;
+}
+
+.backButton:hover {
+  background-color: var(--primary);
+  color: white;
+  transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(46, 111, 64, 0.2);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  color: var(--text-primary);
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+  border-radius: 0.5rem;
+  width: 36px;
+  height: 36px;
+}
+
+.closeBtn:hover {
+  background: linear-gradient(135deg, var(--primary-danger) 0%, #ff4757 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(241, 43, 43, 0.2);
 }
 
 .passwordWrapper {
   position: relative;
   display: flex;
   align-items: center;
+}
+
+.passwordWrapper .inputField {
+  padding-right: 2.75rem;
+  width: 100%;
 }
 
 .passwordToggle {
@@ -355,10 +537,17 @@
   border: none;
   cursor: pointer;
   color: var(--text-muted);
-  padding: 0;
+  padding: 0.25rem;
   display: flex;
   align-items: center;
-  transition: color 0.2s;
+  justify-content: center;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+}
+
+.passwordToggle:hover {
+  color: var(--primary);
+  transform: scale(1.15);
 }
 
 .passwordToggle:hover {
@@ -371,31 +560,60 @@
   gap: 1.5rem;
 }
 
+/* OTP Input Styling */
+.otpStep {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+}
+
+.otpInputGroup {
+  flex: 1;
+}
+
+.otpInputGroup .inputField {
+  text-align: center;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  font-weight: 600;
+}
+
+.otpVerifyBtn {
+  padding: 0.875rem 2rem;
+  height: fit-content;
+  white-space: nowrap;
+}
+
 /* Buttons */
 .primary {
-  background-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, #24663e 100%);
   color: white;
   font-weight: 600;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  border-radius: 0.75rem;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  transition: all 0.3s ease;
   font-size: 0.875rem;
   align-self: flex-start;
+  box-shadow: 0 4px 12px rgba(46, 111, 64, 0.15);
 }
 
 .primary:hover {
-  background-color: var(--primary-hover);
+  background: linear-gradient(135deg, var(--primary-hover) 0%, #1e4d2f 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(46, 111, 64, 0.25);
 }
 
 .primary:active {
-  transform: translateY(1px);
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(46, 111, 64, 0.15);
 }
 
 .primary:disabled {
-  background-color: var(--text-muted);
+  background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
   cursor: not-allowed;
+  box-shadow: none;
   transform: none;
 }
 
@@ -406,7 +624,6 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1rem 1rem 0;
-  margin-top: 2rem;
   border-top: 1px solid var(--border-light);
 }
 
@@ -565,9 +782,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--border-light);
 }
 
 @media (max-width: 768px) {
@@ -714,6 +928,42 @@
   }
 }
 
+/* Helper Text */
+.helperText {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.noteBox {
+  padding: 0.875rem 1rem;
+  background-color: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.noteBox p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #92400e;
+  font-weight: 500;
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background-color: #fafbfc;
+  border: 1px solid var(--border-light);
+  border-radius: 0.75rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .contentWrapper {
@@ -728,9 +978,6 @@
     padding: 1rem 1.5rem;
   }
 
-  .cardBody {
-    padding: 1.5rem;
-  }
 
   .actionRow {
     flex-direction: column;
@@ -754,5 +1001,41 @@
   .profilePhotoWrapper {
     width: 100px;
     height: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .passwordFormGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .passwordForm {
+    padding: 1.5rem;
+  }
+
+  .stepIndicator {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .stepConnector {
+    width: 16px;
+    height: 2px;
+    transform: rotate(90deg);
+  }
+
+  .otpStep {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .otpInputGroup {
+    flex: 1;
+  }
+
+  .otpVerifyBtn {
+    width: 100%;
   }
 }

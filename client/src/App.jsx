@@ -24,7 +24,6 @@ import Alumini_Profile from './frontend/Alumini/Al_Profile';
 // Admin Imports
 import Admin_Mail from './frontend/Admin/AD_Mail';
 import Admin_Draft_History from './frontend/Admin/AD_Draft_History';
-import Admin_Draft from './frontend/Admin/AD_Draft';
 import Admin_Job_and_Reference from './frontend/Admin/AD_Job_and_Reference';
 import Admin_View_Job_and_Reference from './frontend/Admin/AD_View_Job_and_Reference';
 import Admin_Donation_History from './frontend/Admin/AD_Donation_History';
@@ -228,10 +227,6 @@ function App() {
         <Route
           path="/admin/mail/draft_history"
           element={guard('admin', <Admin_Draft_History onLogout={logout} />)}
-        />
-        <Route
-          path="/admin/mail/draft"
-          element={guard('admin', <Admin_Draft onLogout={logout} />)}
         />
         <Route
           path="/admin/mail/flyer"

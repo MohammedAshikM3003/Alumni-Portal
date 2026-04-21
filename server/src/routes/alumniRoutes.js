@@ -9,9 +9,13 @@ import {
 	updateAlumni,
 	updateMyProfile,
 	deleteAlumni,
+	searchAlumni,
 } from '../controllers/alumniController.js';
 
 const router = Router();
+
+// Search alumni by name
+router.get('/search', authenticate, searchAlumni);
 
 // Create new alumni (creates both User and Alumni records)
 router.post('/', authenticate, createAlumni);

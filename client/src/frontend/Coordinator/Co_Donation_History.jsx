@@ -5,6 +5,7 @@ import Sidebar from './Components/Sidebar/Sidebar';
 import Back from './Components/BackButton/Back';
 import { DateInput } from '../../components/Calendar';
 import { useAuth } from '../../context/authContext/authContext';
+import * as XLSX from 'xlsx';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -125,6 +126,39 @@ const CoordinatorDonationHistory = ({ onLogout }) => {
         setCurrentPage(pageNumber);
     };
 
+    const handleExportReport = () => {
+        if (donationData.length === 0) {
+            alert('No donation data to export');
+            return;
+        }
+
+        // Prepare data for export
+        const exportData = donationData.map((row) => ({
+            'S.No': row.sno,
+            'Donor Name': row.name,
+            'Cause': row.details,
+            'Amount': row.amount,
+            'Date': row.date,
+            'Type': row.type,
+        }));
+
+        // Create workbook and worksheet
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Donations');
+
+        // Set column widths
+        const colWidths = [8, 18, 20, 12, 12, 12];
+        ws['!cols'] = colWidths.map(width => ({ wch: width }));
+
+        // Generate filename with current date
+        const currentDate = new Date().toISOString().split('T')[0];
+        const filename = `Donations_Report_${currentDate}.xlsx`;
+
+        // Download the file
+        XLSX.writeFile(wb, filename);
+    };
+
     const getTypeStyle = (type) => {
         switch (type) {
             case 'UPI': return styles.typeUpi;
@@ -163,11 +197,14 @@ const CoordinatorDonationHistory = ({ onLogout }) => {
             <Sidebar onLogout={onLogout} currentView="donation_history" />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
+                <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
+                    <Back to={'/coordinator/dashboard'} />
+                </div>
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
                     <div className="max-w-7xl mx-auto">
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-2xl font-bold text-slate-900">Alumni Donations Tracking</h2>
-                            <button className="bg-[#FF3D00] hover:bg-red-600 text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 shadow-sm shadow-red-500/10">
+                            <button onClick={handleExportReport} className="bg-[#FF3D00] hover:bg-red-600 text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 shadow-sm shadow-red-500/10">
                                 <span className="material-symbols-outlined text-lg">file_download</span>
                                 Export Report
                             </button>

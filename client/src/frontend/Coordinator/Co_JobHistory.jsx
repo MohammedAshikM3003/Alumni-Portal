@@ -83,9 +83,10 @@ const CoordinatorJobHistory = ({ onLogout }) => {
             <Sidebar currentView="job_and_reference" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-
-                <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-6 bg-[#F8FAFC]`}>
+                <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
                     <Back to={'/coordinator/dashboard'} />
+                </div>
+                <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-6 bg-[#F8FAFC]`}>
                     <div className="flex justify-between items-end mb-6">
                         <div>
                             <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900">

@@ -1,17 +1,27 @@
 import { useState, useEffect } from "react";
 import styles from "./Sidebar.module.css";
 import { useNavigate } from 'react-router-dom';
-import { useAdminContext } from '../../../../context/adminContext/adminContext';
-import { useAuth } from '../../../../context/authContext/authContext';
+
+const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function Sidebar({ onLogout, currentView }) {
   const navigate = useNavigate();
-  const { adminBranding, fetchAdminBranding } = useAdminContext();
-  const { user } = useAuth();
+  const [logoUrl, setLogoUrl] = useState(null);
 
   useEffect(() => {
-    fetchAdminBranding(user?.token);
-  }, [user?.token]);
+    const fetchBranding = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/branding`);
+        const data = await res.json();
+        if (data.success && data.data?.logo) {
+          setLogoUrl(`${API_BASE}${data.data.logo}`);
+        }
+      } catch (err) {
+        console.error('Failed to fetch branding:', err);
+      }
+    };
+    fetchBranding();
+  }, []);
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -30,7 +40,7 @@ export default function Sidebar({ onLogout, currentView }) {
     <aside id="sidebar" className={styles.sidebar}>
       <div className={styles.sidebarHeader}>
         <img
-          src={adminBranding.logo}
+          src={logoUrl}
           alt="KSRCE Logo"
           className={styles.sidebarLogo}
         />

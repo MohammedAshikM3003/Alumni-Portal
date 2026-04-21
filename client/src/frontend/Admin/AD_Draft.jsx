@@ -537,6 +537,18 @@ const Admin_Draft = ({ onLogout, adminName, adminEmail }) => {
       return;
     }
 
+    // Validation: if event form is not toggled, subject and message are required
+    if (!isEventFormEnabled && (!sharedData.title.trim() || !sharedData.message.trim())) {
+      showAlert('What to generate', 'error');
+      return;
+    }
+
+    // Validation: if event form is toggled, event details should be filled
+    if (isEventFormEnabled && (!sharedData.eventName.trim() || !sharedData.eventDate)) {
+      showAlert('Please fill event details (Event Name and Date are required)', 'error');
+      return;
+    }
+
     setGeneratingEmail(true);
 
     try {
@@ -556,7 +568,8 @@ const Admin_Draft = ({ onLogout, adminName, adminEmail }) => {
           eventVenue: sharedData.eventVenue.trim(),
           eventTime: sharedData.eventTime.trim()
         } : null,
-        additionalContext: sharedData.message.trim() || 'General alumni communication'
+        additionalContext: sharedData.message.trim() || 'General alumni communication',
+        subject: sharedData.title.trim() || ''
       };
 
       const response = await fetch(`${API_BASE_URL}/api/ai/generate-email`, {
@@ -1176,24 +1189,34 @@ const Admin_Draft = ({ onLogout, adminName, adminEmail }) => {
             {/* Character count and AI Generate Button */}
             <div className={styles.messageActionRow}>
               <div className={styles.charCount}>{sharedData.message.length} characters</div>
-              <button
-                type="button"
-                className={styles.generateBtn}
-                onClick={handleGenerateEmail}
-                disabled={sending || generatingEmail || !alumniEntries[0]?.alumniName.trim()}
-              >
-                {generatingEmail ? (
-                  <>
-                    <span className={styles.spinner}></span>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined">auto_awesome</span>
-                    Generate
-                  </>
-                )}
-              </button>
+              {(() => {
+                const firstAlumni = alumniEntries[0];
+                const isAlumniDetailsValid =
+                  firstAlumni?.alumniName.trim() &&
+                  firstAlumni?.department.trim() &&
+                  firstAlumni?.batchStart.trim() &&
+                  (isEventFormEnabled || (sharedData.title.trim() && sharedData.message.trim()));
+                return (
+                  <button
+                    type="button"
+                    className={styles.generateBtn}
+                    onClick={handleGenerateEmail}
+                    disabled={sending || generatingEmail || !isAlumniDetailsValid}
+                  >
+                    {generatingEmail ? (
+                      <>
+                        <span className={styles.spinner}></span>
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined">auto_awesome</span>
+                        Generate
+                      </>
+                    )}
+                  </button>
+                );
+              })()}
             </div>
           </div>
 

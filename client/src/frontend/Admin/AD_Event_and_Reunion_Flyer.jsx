@@ -880,7 +880,8 @@ const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
                   <button
                     onClick={handleGenerateGeminiFlyer}
                     className={styles.generateBtn}
-                    disabled={geminiLoading}
+                    disabled={geminiLoading || enhancing}
+                    style={{ cursor: (geminiLoading || enhancing) ? 'not-allowed' : 'pointer' }}
                   >
                     <span className="material-symbols-outlined">magic_button</span>
                     <span>{geminiLoading ? 'Generating...' : 'Generate Flyer'}</span>
@@ -907,7 +908,7 @@ const Admin_Event_and_Reunion_Form2 = ( { onLogout } ) => {
                       <button
                         onClick={handleRegenerateGeminiFlyer}
                         className={styles.generateBtn}
-                        disabled={geminiLoading}
+                        disabled={geminiLoading || enhancing}
                       >
                         <span className="material-symbols-outlined">refresh</span>
                         <span>{geminiLoading ? 'Generating...' : 'Regenerate'}</span>

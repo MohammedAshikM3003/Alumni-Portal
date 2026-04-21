@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Co_Invitations.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
+import Back from './Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -95,23 +96,26 @@ const CoordinatorInvitations = ({ onLogout }) => {
             <Sidebar currentView="invitations" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
+                <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
+                    <Back to={'/coordinator/dashboard'} />
+                </div>
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-7 bg-[#F9FAFB]`}>
-
-                    <header className="flex justify-between items-start mb-10">
-                        <div>
-                            <h2 className="text-3xl font-bold text-slate-900">Welcome back, Coordinator!</h2>
-                            <p className="text-slate-500 mt-2">Check out what's happening in your alma mater today.</p>
-                        </div>
-                    </header>
-
-                    <section className="pb-10">
-                        <div className="flex justify-between items-center mb-6">
-                            <div className="flex items-center space-x-2 text-[#FF3D00]">
-                                <span className="material-symbols-outlined">email</span>
-                                <h3 className="font-bold text-lg text-slate-900">Received Emails</h3>
+                    <div className="max-w-7xl mx-auto">
+                        <header className="flex justify-between items-start mb-10">
+                            <div>
+                                <h2 className="text-3xl font-bold text-slate-900">Welcome back, Coordinator!</h2>
+                                <p className="text-slate-500 mt-2">Check out what's happening in your alma mater today.</p>
                             </div>
-                        </div>
-                        <div className="space-y-4">
+                        </header>
+
+                        <section className="pb-10">
+                            <div className="flex justify-between items-center mb-6">
+                                <div className="flex items-center space-x-2 text-[#FF3D00]">
+                                    <span className="material-symbols-outlined">email</span>
+                                    <h3 className="font-bold text-lg text-slate-900">Received Emails</h3>
+                                </div>
+                            </div>
+                            <div className="space-y-4">
                             {invitations.length > 0 ? (
                                 invitations.map((invitation) => (
                                     <div key={invitation._id} className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
@@ -140,6 +144,7 @@ const CoordinatorInvitations = ({ onLogout }) => {
                             )}
                         </div>
                     </section>
+                    </div>
                 </div>
             </main>
         </div>

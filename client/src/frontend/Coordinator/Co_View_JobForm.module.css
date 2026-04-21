@@ -89,3 +89,16 @@
 .customSidebarScrollbar::-webkit-scrollbar-button {
     display: none;
 }
+
+/* Status-colored borders */
+.borderGreen {
+    border-color: #22c55e !important;
+}
+
+.borderRed {
+    border-color: #ef4444 !important;
+}
+
+.borderGrey {
+    border-color: #d1d5db !important;
+}

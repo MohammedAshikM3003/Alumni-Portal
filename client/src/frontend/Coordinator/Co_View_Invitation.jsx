@@ -76,8 +76,10 @@ const CoordinatorViewInvitation = ({ onLogout }) => {
             <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden font-sans">
                 <Sidebar currentView="invitations" onLogout={onLogout} />
                 <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                    <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} ${styles.dottedBg} min-h-screen`}>
+                    <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
                         <Back to={'/coordinator/invitations'} />
+                    </div>
+                    <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} ${styles.dottedBg} min-h-screen`}>
                         <div className="flex-1 flex items-center justify-center">
                             <p className="text-red-500">{error || 'Invitation not found'}</p>
                         </div>
@@ -95,8 +97,10 @@ const CoordinatorViewInvitation = ({ onLogout }) => {
             <Sidebar currentView="invitations" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} ${styles.dottedBg} min-h-screen`}>
+                <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 flex items-center justify-between border-b border-slate-200">
                     <Back to={'/coordinator/invitations'} />
+                </div>
+                <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} ${styles.dottedBg} min-h-screen`}>
                     <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-stretch pb-20">
                         <div className="w-full lg:w-1/3 min-h-[600px] bg-gradient-to-br from-[#FF3D00] to-[#C42E00] rounded-3xl overflow-hidden shadow-2xl relative flex flex-col items-center justify-between py-16 px-8 text-center text-white">
                             <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">

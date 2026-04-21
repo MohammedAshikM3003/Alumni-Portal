@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styles from './AD_View_Job_and_Reference.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
+import Back from '../Coordinator/Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -24,9 +25,21 @@ const formatDate = (dateString) => {
 const Admin_View_Job_and_Reference = ({ onLogout }) => {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [jobReference, setJobReference] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const getBorderClassByStatus = (status) => {
+    switch (status) {
+      case 'approved':
+        return styles.borderGreen;
+      case 'rejected':
+        return styles.borderRed;
+      default:
+        return styles.borderGrey;
+    }
+  };
 
   useEffect(() => {
     const fetchJobReference = async () => {
@@ -101,20 +114,16 @@ const Admin_View_Job_and_Reference = ({ onLogout }) => {
       {/* Sidebar */}
       <Sidebar onLogout={onLogout} currentView={'job_and_reference'} />
 
-
       {/* Main Content */}
       <main className={styles.mainContent}>
+
+        {/* Back Button Header */}
+        <div className={styles.backBtn}>
+          <Back to={'/admin/job_and_reference'} />
+        </div>
         <div className={styles.contentWrapper}>
-
-          {/* Logged in User Badge */}
-          <div className={styles.userBadgeContainer}>
-            <p className={styles.userBadge}>
-              Submitted by: <span>{jobReference.submittedBy?.email || 'Unknown'}</span>
-            </p>
-          </div>
-
           {/* Form Card */}
-          <div className={styles.formCard}>
+          <div className={`${styles.formCard} ${getBorderClassByStatus(jobReference.status)}`}>
             <div className={styles.formHeader}>
               <div className="flex justify-between items-center">
                 <div>
@@ -124,6 +133,36 @@ const Admin_View_Job_and_Reference = ({ onLogout }) => {
                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${jobReference.status === 'approved' ? 'bg-green-100 text-green-700' : jobReference.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
                   {jobReference.status}
                 </span>
+              </div>
+            </div>
+
+            {/* Alumni Profile Section */}
+            <div className={styles.alumniSection}>
+              <div className={styles.alumniCard}>
+                <div>
+                  {jobReference.submittedBy?.profilePhoto && (
+                    <img
+                      src={jobReference.submittedBy.profilePhoto}
+                      alt={jobReference.submittedBy?.name}
+                      className={styles.alumniPhoto}
+                    />
+                  )}
+                  {!jobReference.submittedBy?.profilePhoto && (
+                    <div className={styles.alumniPhotoPlaceholder}>
+                      {jobReference.submittedBy?.name?.charAt(0).toUpperCase() || 'A'}
+                    </div>
+                  )}
+                </div>
+                <div className={styles.alumniInfo}>
+                  <h3 className={styles.alumniName}>{jobReference.submittedBy?.name || 'Unknown'}</h3>
+                  <p className={styles.alumniRole}>{jobReference.submittedBy?.jobRole || 'Not specified'}</p>
+                  <a
+                    href={`/admin/alumni/${jobReference.submittedBy?._id}`}
+                    className={styles.viewAlumniLink}
+                  >
+                    View Alumni
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -176,14 +215,6 @@ const Admin_View_Job_and_Reference = ({ onLogout }) => {
                     {jobReference.workMode}
                   </div>
                 </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className={styles.formActions}>
-                <button className={styles.submitBtn} type="button" onClick={() => window.history.back()} >
-                  <span className="material-symbols-outlined">arrow_back</span>
-                  Back
-                </button>
               </div>
             </div>
           </div>

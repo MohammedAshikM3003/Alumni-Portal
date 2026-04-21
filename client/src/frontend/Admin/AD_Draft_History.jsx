@@ -114,7 +114,7 @@ const Admin_Draft_History = ({ onLogout }) => {
                       <button
                         className={styles.viewBtn}
                         title="View"
-                        onClick={() => navigate('/admin/mail/draft', { state: { draftId: draft._id } })}
+                        onClick={() => navigate('/admin/mail/broadcast_message', { state: { draftId: draft._id, editDraft: true } })}
                       >
                         <span>View</span>
                       </button>

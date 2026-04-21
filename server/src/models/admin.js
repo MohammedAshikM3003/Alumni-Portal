@@ -72,18 +72,6 @@ const adminSchema = new Schema(
         type: Schema.Types.ObjectId,
         default: null,
       },
-      name: {
-        type: String,
-        trim: true,
-      },
-      address: {
-        type: String,
-        trim: true,
-      },
-      mobile: {
-        type: String,
-        trim: true,
-      },
     },
     // OTP for password reset
     resetOtp: {

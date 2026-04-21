@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, Lock, Eye, EyeOff, ChevronDown, ChevronUp, Camera, Building2, Upload, X } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, ChevronDown, ChevronUp, Camera, Building2, Upload, X, ArrowLeft } from 'lucide-react';
 import styles from './AD_Profile.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
@@ -34,10 +34,7 @@ const Admin_Profile = ({ onLogout }) => {
     profilePhoto: null,
     instituteDetails: {
       logo: null,
-      banner: null,
-      name: '',
-      address: '',
-      mobile: ''
+      banner: null
     }
   });
 
@@ -100,7 +97,7 @@ const Admin_Profile = ({ onLogout }) => {
     newPassword: '',
     confirmPassword: ''
   });
-  const [resetStep, setResetStep] = useState('mobile'); // mobile, otp, password
+  const [resetStep, setResetStep] = useState('none'); // none, otp, password
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
 
@@ -193,6 +190,11 @@ const Admin_Profile = ({ onLogout }) => {
           profileData.presentAddress.street !== ''; // Only if present address is not empty
 
         setSameAsPresent(addressesMatch);
+
+        // Auto-populate mobile for password reset
+        if (profileData.mobile) {
+          setResetData(prev => ({ ...prev, mobile: profileData.mobile }));
+        }
       } else if (data.success && !data.data) {
         // Profile not created yet - this is fine
       } else {
@@ -453,7 +455,7 @@ const Admin_Profile = ({ onLogout }) => {
         showMessage('success', 'Password reset successfully');
         setShowResetPassword(false);
         setResetData({ mobile: '', otp: '', newPassword: '', confirmPassword: '' });
-        setResetStep('mobile');
+        setResetStep('none');
         setOtpSent(false);
         setOtpVerified(false);
       } else {
@@ -960,7 +962,7 @@ const Admin_Profile = ({ onLogout }) => {
                   <h3 className={styles.cardTitle}>Institute Details</h3>
                 </div>
               </div>
-              <div className={styles.cardBody}>
+              <div className={styles.cardBody} style={{ paddingBottom: '1.5rem' }}>
                 {/* Logo and Banner Upload Section */}
                 <div className={styles.instituteImagesSection}>
                   {/* Logo Upload */}
@@ -1067,45 +1069,6 @@ const Admin_Profile = ({ onLogout }) => {
                     </div>
                   </div>
                 </div>
-
-                {/* Institute Text Fields */}
-                <div className={styles.inputGrid}>
-                  <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                    <label className={styles.inputLabel}>Institute Name</label>
-                    <input
-                      type="text"
-                      className={styles.inputField}
-                      value={profileData.instituteDetails?.name || ''}
-                      onChange={(e) => handleInstituteChange('name', e.target.value)}
-                      disabled={!isEditing}
-                      placeholder="Enter institute name"
-                    />
-                  </div>
-
-                  <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                    <label className={styles.inputLabel}>Institute Address</label>
-                    <textarea
-                      className={`${styles.inputField} ${styles.textArea}`}
-                      value={profileData.instituteDetails?.address || ''}
-                      onChange={(e) => handleInstituteChange('address', e.target.value)}
-                      disabled={!isEditing}
-                      placeholder="Enter institute address"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className={styles.inputGroup}>
-                    <label className={styles.inputLabel}>Institute Mobile</label>
-                    <input
-                      type="tel"
-                      className={styles.inputField}
-                      value={profileData.instituteDetails?.mobile || ''}
-                      onChange={(e) => handleInstituteChange('mobile', e.target.value)}
-                      disabled={!isEditing}
-                      placeholder="Enter institute mobile number"
-                    />
-                  </div>
-                </div>
               </div>
               {/* Save Profile Button */}
               {isEditing && (
@@ -1140,85 +1103,100 @@ const Admin_Profile = ({ onLogout }) => {
               </div>
               <div className={styles.cardBody}>
 
-                {/* Update Password Dropdown */}
+                {/* Update Password Section */}
                 <div className={styles.passwordSection}>
                   <button
-                    className={styles.dropdownButton}
+                    className={styles.primary}
                     onClick={() => {
-                      setShowUpdatePassword(!showUpdatePassword);
+                      setShowUpdatePassword(true);
                       if (showResetPassword) setShowResetPassword(false);
                     }}
                   >
-                    <span>Update Password</span>
-                    {showUpdatePassword ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    Update Password
                   </button>
 
                   {showUpdatePassword && (
                     <div className={styles.passwordForm}>
-                      <div className={styles.inputGroup}>
-                        <label className={styles.inputLabel}>Current Password</label>
-                        <div className={styles.passwordWrapper}>
-                          <input
-                            type={showPasswords.old ? 'text' : 'password'}
-                            className={styles.inputField}
-                            value={passwordData.oldPassword}
-                            onChange={(e) => setPasswordData(prev => ({ ...prev, oldPassword: e.target.value }))}
-                            placeholder="Enter current password"
-                          />
-                          <button
-                            type="button"
-                            className={styles.passwordToggle}
-                            onClick={() => togglePasswordVisibility('old')}
-                          >
-                            {showPasswords.old ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
-                        </div>
-                      </div>
+                      <button
+                        type="button"
+                        className={styles.closeBtn}
+                        onClick={() => {
+                          setShowUpdatePassword(false);
+                          setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+                        }}
+                        title="Close"
+                      >
+                        <X size={18} />
+                      </button>
 
-                      <div className={styles.inputGroup}>
-                        <label className={styles.inputLabel}>New Password</label>
-                        <div className={styles.passwordWrapper}>
-                          <input
-                            type={showPasswords.new ? 'text' : 'password'}
-                            className={styles.inputField}
-                            value={passwordData.newPassword}
-                            onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                            placeholder="Enter new password"
-                          />
-                          <button
-                            type="button"
-                            className={styles.passwordToggle}
-                            onClick={() => togglePasswordVisibility('new')}
-                          >
-                            {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
-                        </div>
-                      </div>
+                      <h4 className={styles.passwordFormTitle}>Update Password</h4>
 
-                      <div className={styles.inputGroup}>
-                        <label className={styles.inputLabel}>Confirm New Password</label>
-                        <div className={styles.passwordWrapper}>
-                          <input
-                            type={showPasswords.confirm ? 'text' : 'password'}
-                            className={styles.inputField}
-                            value={passwordData.confirmPassword}
-                            onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                            placeholder="Confirm new password"
-                          />
-                          <button
-                            type="button"
-                            className={styles.passwordToggle}
-                            onClick={() => togglePasswordVisibility('confirm')}
-                          >
-                            {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
+                      <div className={styles.passwordFormGrid}>
+                        <div className={styles.inputGroup}>
+                          <label className={styles.inputLabel}>Current Password</label>
+                          <div className={styles.passwordWrapper}>
+                            <input
+                              type={showPasswords.old ? 'text' : 'password'}
+                              className={styles.inputField}
+                              value={passwordData.oldPassword}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, oldPassword: e.target.value }))}
+                              placeholder="Enter current password"
+                            />
+                            <button
+                              type="button"
+                              className={styles.passwordToggle}
+                              onClick={() => togglePasswordVisibility('old')}
+                            >
+                              {showPasswords.old ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className={styles.inputGroup}>
+                          <label className={styles.inputLabel}>New Password</label>
+                          <div className={styles.passwordWrapper}>
+                            <input
+                              type={showPasswords.new ? 'text' : 'password'}
+                              className={styles.inputField}
+                              value={passwordData.newPassword}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                              placeholder="Enter new password"
+                            />
+                            <button
+                              type="button"
+                              className={styles.passwordToggle}
+                              onClick={() => togglePasswordVisibility('new')}
+                            >
+                              {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className={styles.inputGroup}>
+                          <label className={styles.inputLabel}>Confirm Password</label>
+                          <div className={styles.passwordWrapper}>
+                            <input
+                              type={showPasswords.confirm ? 'text' : 'password'}
+                              className={styles.inputField}
+                              value={passwordData.confirmPassword}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                              placeholder="Confirm new password"
+                            />
+                            <button
+                              type="button"
+                              className={styles.passwordToggle}
+                              onClick={() => togglePasswordVisibility('confirm')}
+                            >
+                              {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
                         </div>
                       </div>
 
                       <button
                         className={styles.primary}
                         onClick={handleUpdatePassword}
-                        disabled={saving}
+                        disabled={saving || !passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword}
                       >
                         {saving ? 'Updating...' : 'Update Password'}
                       </button>
@@ -1226,109 +1204,156 @@ const Admin_Profile = ({ onLogout }) => {
                   )}
                 </div>
 
-                {/* Reset Password Dropdown */}
+                {/* Reset Password Section */}
                 <div className={styles.passwordSection}>
-                  <button
-                    className={styles.dropdownButton}
-                    onClick={() => {
-                      setShowResetPassword(!showResetPassword);
-                      if (showUpdatePassword) setShowUpdatePassword(false);
-                    }}
-                  >
-                    <span>Reset Password</span>
-                    {showResetPassword ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                  </button>
-
-                  {showResetPassword && (
+                  {!showResetPassword ? (
+                    <button
+                      className={styles.primary}
+                      onClick={() => {
+                        setShowResetPassword(true);
+                        if (showUpdatePassword) setShowUpdatePassword(false);
+                      }}
+                    >
+                      Reset Password
+                    </button>
+                  ) : (
                     <div className={styles.passwordForm}>
+                      <button
+                        type="button"
+                        className={styles.closeBtn}
+                        onClick={() => {
+                          setShowResetPassword(false);
+                          setResetStep('none');
+                          setResetData(prev => ({ ...prev, otp: '', newPassword: '', confirmPassword: '' }));
+                          setOtpSent(false);
+                          setOtpVerified(false);
+                        }}
+                        title="Close"
+                      >
+                        <X size={18} />
+                      </button>
 
-                      {/* Mobile Input Step */}
-                      {resetStep === 'mobile' && (
-                        <div className={styles.resetStep}>
-                          <div className={styles.inputGroup}>
-                            <label className={styles.inputLabel}>Mobile Number</label>
-                            <input
-                              type="tel"
-                              className={styles.inputField}
-                              value={resetData.mobile}
-                              onChange={(e) => setResetData(prev => ({ ...prev, mobile: e.target.value }))}
-                              placeholder="Enter registered mobile number"
-                            />
+                      <h4 className={styles.passwordFormTitle}>Reset Password</h4>
+
+                      {/* Step Indicator */}
+                      <div className={styles.stepIndicator}>
+                        <div
+                          className={`${styles.stepDot} ${otpSent ? styles.completed : styles.active}`}
+                          onClick={() => setResetStep('none')}
+                          style={{ cursor: 'pointer' }}
+                          title="Send OTP"
+                        >
+                          {otpSent ? '✓' : '1'}
+                        </div>
+                        <div className={`${styles.stepConnector} ${otpSent ? styles.active : ''}`}></div>
+                        <div
+                          className={`${styles.stepDot} ${otpVerified ? styles.completed : ''} ${resetStep === 'otp' ? styles.active : ''}`}
+                          onClick={() => otpSent && setResetStep('otp')}
+                          style={{ cursor: otpSent ? 'pointer' : 'not-allowed', opacity: otpSent ? 1 : 0.6 }}
+                          title={!otpSent ? 'Complete Step 1 first' : 'Verify OTP'}
+                        >
+                          {otpVerified ? '✓' : '2'}
+                        </div>
+                        <div className={`${styles.stepConnector} ${otpVerified ? styles.active : ''}`}></div>
+                        <div
+                          className={`${styles.stepDot} ${resetStep === 'password' ? styles.active : ''}`}
+                          onClick={() => otpVerified && setResetStep('password')}
+                          style={{ cursor: otpVerified ? 'pointer' : 'not-allowed', opacity: otpVerified ? 1 : 0.6 }}
+                          title={!otpVerified ? 'Complete Step 2 first' : 'Set New Password'}
+                        >
+                          3
+                        </div>
+                      </div>
+
+                      {/* OTP Sending Step */}
+                      {resetStep === 'none' && (
+                        <div className={styles.resetButtonGroup}>
+                          <div style={{ width: '100%' }}>
+                            <div className={styles.noteBox}>
+                              <p>📱 <strong>Note:</strong> On clicking "Send OTP", a one-time password will be sent to your registered mobile number.</p>
+                            </div>
+                            <button
+                              className={styles.primary}
+                              onClick={handleSendOtp}
+                              disabled={saving || otpSent}
+                            >
+                              {saving ? 'Sending...' : 'Send OTP'}
+                            </button>
                           </div>
-                          <button
-                            className={styles.primary}
-                            onClick={handleSendOtp}
-                            disabled={saving || !resetData.mobile}
-                          >
-                            {saving ? 'Sending...' : 'Send OTP'}
-                          </button>
                         </div>
                       )}
 
                       {/* OTP Verification Step */}
                       {resetStep === 'otp' && (
-                        <div className={styles.resetStep}>
-                          <div className={styles.inputGroup}>
-                            <label className={styles.inputLabel}>Enter OTP</label>
-                            <input
-                              type="text"
-                              className={styles.inputField}
-                              value={resetData.otp}
-                              onChange={(e) => setResetData(prev => ({ ...prev, otp: e.target.value }))}
-                              placeholder="Enter 6-digit OTP"
-                              maxLength={6}
-                            />
+                        <>
+
+                          <div className={styles.otpStep}>
+                            <div className={styles.otpInputGroup}>
+                              <label className={styles.inputLabel}>Enter OTP</label>
+                              <input
+                                type="text"
+                                className={styles.inputField}
+                                value={resetData.otp}
+                                onChange={(e) => setResetData(prev => ({ ...prev, otp: e.target.value }))}
+                                placeholder="Enter 6-digit OTP"
+                                maxLength={6}
+                                disabled={otpVerified}
+                              />
+                            </div>
+                            <button
+                              className={`${styles.primary} ${styles.otpVerifyBtn}`}
+                              onClick={handleVerifyOtp}
+                              disabled={saving || !resetData.otp || otpVerified}
+                            >
+                              {saving ? 'Verifying...' : 'Verify OTP'}
+                            </button>
                           </div>
-                          <button
-                            className={styles.primary}
-                            onClick={handleVerifyOtp}
-                            disabled={saving || !resetData.otp}
-                          >
-                            {saving ? 'Verifying...' : 'Verify OTP'}
-                          </button>
-                        </div>
+                        </>
                       )}
 
                       {/* New Password Step */}
                       {resetStep === 'password' && (
-                        <div className={styles.resetStep}>
-                          <div className={styles.inputGroup}>
-                            <label className={styles.inputLabel}>New Password</label>
-                            <div className={styles.passwordWrapper}>
-                              <input
-                                type={showPasswords.resetNew ? 'text' : 'password'}
-                                className={styles.inputField}
-                                value={resetData.newPassword}
-                                onChange={(e) => setResetData(prev => ({ ...prev, newPassword: e.target.value }))}
-                                placeholder="Enter new password"
-                              />
-                              <button
-                                type="button"
-                                className={styles.passwordToggle}
-                                onClick={() => togglePasswordVisibility('resetNew')}
-                              >
-                                {showPasswords.resetNew ? <EyeOff size={18} /> : <Eye size={18} />}
-                              </button>
-                            </div>
-                          </div>
+                        <>
 
-                          <div className={styles.inputGroup}>
-                            <label className={styles.inputLabel}>Confirm New Password</label>
-                            <div className={styles.passwordWrapper}>
-                              <input
-                                type={showPasswords.resetConfirm ? 'text' : 'password'}
-                                className={styles.inputField}
-                                value={resetData.confirmPassword}
-                                onChange={(e) => setResetData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                                placeholder="Confirm new password"
-                              />
-                              <button
-                                type="button"
-                                className={styles.passwordToggle}
-                                onClick={() => togglePasswordVisibility('resetConfirm')}
-                              >
-                                {showPasswords.resetConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                              </button>
+                          <div className={styles.passwordFormGrid}>
+                            <div className={styles.inputGroup}>
+                              <label className={styles.inputLabel}>New Password</label>
+                              <div className={styles.passwordWrapper}>
+                                <input
+                                  type={showPasswords.resetNew ? 'text' : 'password'}
+                                  className={styles.inputField}
+                                  value={resetData.newPassword}
+                                  onChange={(e) => setResetData(prev => ({ ...prev, newPassword: e.target.value }))}
+                                  placeholder="Enter new password"
+                                />
+                                <button
+                                  type="button"
+                                  className={styles.passwordToggle}
+                                  onClick={() => togglePasswordVisibility('resetNew')}
+                                >
+                                  {showPasswords.resetNew ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className={styles.inputGroup}>
+                              <label className={styles.inputLabel}>Confirm Password</label>
+                              <div className={styles.passwordWrapper}>
+                                <input
+                                  type={showPasswords.resetConfirm ? 'text' : 'password'}
+                                  className={styles.inputField}
+                                  value={resetData.confirmPassword}
+                                  onChange={(e) => setResetData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                  placeholder="Confirm new password"
+                                />
+                                <button
+                                  type="button"
+                                  className={styles.passwordToggle}
+                                  onClick={() => togglePasswordVisibility('resetConfirm')}
+                                >
+                                  {showPasswords.resetConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                              </div>
                             </div>
                           </div>
 
@@ -1339,7 +1364,7 @@ const Admin_Profile = ({ onLogout }) => {
                           >
                             {saving ? 'Resetting...' : 'Reset Password'}
                           </button>
-                        </div>
+                        </>
                       )}
                     </div>
                   )}

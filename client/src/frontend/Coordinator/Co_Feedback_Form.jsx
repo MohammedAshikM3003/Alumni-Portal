@@ -21,6 +21,7 @@ const CoordinatorFeedbackForm = ({ onLogout }) => {
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     const fetchFeedback = async () => {
@@ -128,6 +129,10 @@ const CoordinatorFeedbackForm = ({ onLogout }) => {
     );
   }
 
+  const signatureId = feedback.signature && typeof feedback.signature === 'object'
+    ? feedback.signature._id || feedback.signature.toString()
+    : feedback.signature;
+
   const assessments = [
     {
       id: 'vision_iv',
@@ -168,8 +173,10 @@ const CoordinatorFeedbackForm = ({ onLogout }) => {
       {/* Main Content Area */}
       <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
         <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} bg-[#F8FAFC]`}>
-          <Back to={'/coordinator/feedback_history'} />
-          <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-10" ref={formCardRef}>
+          <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-10 relative" ref={formCardRef}>
+            <div className="mb-6 -ml-16">
+              <Back to={'/coordinator/feedback_history'} />
+            </div>
             {/* Form Header */}
             <div className="text-center mb-10 border-b border-slate-100 pb-10">
               <h2 className="text-2xl font-bold text-slate-900 mb-2 uppercase tracking-tight">K.S.R. COLLEGE OF ENGINEERING (Autonomous), TIRUCHENGODE – 637 215</h2>
@@ -271,28 +278,30 @@ const CoordinatorFeedbackForm = ({ onLogout }) => {
                 <div className="mt-8 pt-6 border-t border-slate-100">
                   <div className="mb-6">
                     <p className="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Digital Signature (E-Sign)</p>
-                    <div className="w-full border border-slate-200 rounded-xl h-32 flex items-center justify-center bg-slate-50">
-                      {feedback.signature ? (
+                    <div className={styles.signatureDisplay}>
+                      {signatureId && !imageError ? (
                         <img
-                          src={`${API_BASE}/api/feedback/image/${feedback.signature}`}
-                          alt="Signature"
-                          className="max-h-28 max-w-full object-contain"
+                          src={`${API_BASE}/api/feedback/image/${signatureId}`}
+                          alt="Digital signature"
+                          title="Digital signature"
+                          className={styles.signatureImage}
+                          onError={() => setImageError(true)}
                         />
                       ) : (
-                        <span className={styles.digitalSignature}>{feedback.submittedBy?.name?.split(' ')[0] || 'N/A'}</span>
+                        <span className={styles.digitalSignature}>Signature unavailable</span>
                       )}
                     </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <button onClick={handleDownload} className="bg-[#FF3D00] hover:bg-red-600 text-white font-bold py-3 px-10 rounded-lg transition-all shadow-md active:scale-95 uppercase tracking-wider text-sm">
-                      Download
-                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
+          <div className="max-w-7xl mx-auto mt-6 flex justify-end pb-6">
+            <button onClick={handleDownload} className="bg-[#FF3D00] hover:bg-red-600 text-white font-bold py-3 px-10 rounded-lg transition-all shadow-md active:scale-95 uppercase tracking-wider text-sm">
+              Download
+            </button>
+          </div>
         </div>
       </main>
     </div>

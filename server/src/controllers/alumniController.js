@@ -357,3 +357,37 @@ export const deleteAlumni = async (req, res) => {
 		res.status(500).json({ success: false, message: 'Server error' });
 	}
 };
+
+// Search alumni by name
+export const searchAlumni = async (req, res) => {
+	try {
+		const { name } = req.query;
+
+		if (!name || name.trim().length === 0) {
+			return res.status(400).json({
+				success: false,
+				message: 'Search query is required'
+			});
+		}
+
+		// Search alumni by name (case-insensitive, partial match)
+		const alumni = await Alumni.find({
+			name: { $regex: name, $options: 'i' },
+			isActive: true
+		})
+			.select('name email branch yearFrom yearTo profilePhoto')
+			.limit(10)
+			.lean();
+
+		res.status(200).json({
+			success: true,
+			data: alumni
+		});
+	} catch (error) {
+		console.error('Error searching alumni:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Server error'
+		});
+	}
+};

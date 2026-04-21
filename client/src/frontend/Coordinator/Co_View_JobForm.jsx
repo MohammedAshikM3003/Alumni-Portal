@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styles from './Co_View_JobForm.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from './Components/BackButton/Back';
@@ -25,9 +25,21 @@ const formatDate = (dateString) => {
 const CoordinatorViewJobForm = ({ onLogout }) => {
     const { id } = useParams();
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [jobReference, setJobReference] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const getBorderClassByStatus = (status) => {
+        switch (status) {
+            case 'approved':
+                return styles.borderGreen;
+            case 'rejected':
+                return styles.borderRed;
+            default:
+                return styles.borderGrey;
+        }
+    };
 
     useEffect(() => {
         const fetchJobReference = async () => {
@@ -86,8 +98,10 @@ const CoordinatorViewJobForm = ({ onLogout }) => {
             <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
                 <Sidebar currentView="job_and_reference" onLogout={onLogout} />
                 <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                    <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
+                    <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
                         <Back to={'/coordinator/job_and_reference'} />
+                    </div>
+                    <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
                         <div className="flex-1 flex items-center justify-center">
                             <p className="text-red-500">{error || 'Job reference not found'}</p>
                         </div>
@@ -103,8 +117,10 @@ const CoordinatorViewJobForm = ({ onLogout }) => {
             <Sidebar currentView="job_and_reference" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
+                <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
                     <Back to={'/coordinator/job_and_reference'} />
+                </div>
+                <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
                     <header className="bg-white border-b border-slate-200 p-3 flex items-center mb-8 rounded-xl shadow-sm">
                         <div className="flex items-center gap-4 w-full px-4">
                             <div className="relative w-full">
@@ -126,8 +142,38 @@ const CoordinatorViewJobForm = ({ onLogout }) => {
                             </span>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-                            <div className="p-8">
+                        <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8 ${getBorderClassByStatus(jobReference.status)}`}>
+                            <div className="p-8 pb-0">
+                                {/* Alumni Section */}
+                                <div className="mb-8 pb-8 border-b border-slate-200">
+                                    <div className="flex items-center gap-4">
+                                        <div>
+                                            {jobReference.submittedBy?.profilePhoto ? (
+                                                <img
+                                                    src={jobReference.submittedBy.profilePhoto}
+                                                    alt={jobReference.submittedBy?.name}
+                                                    className="w-20 h-20 rounded-full object-cover border-2 border-slate-200"
+                                                />
+                                            ) : (
+                                                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-2xl border-2 border-slate-200">
+                                                    {jobReference.submittedBy?.name?.charAt(0).toUpperCase() || 'A'}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-bold text-slate-900">{jobReference.submittedBy?.name || 'Unknown'}</h3>
+                                            <p className="text-sm text-slate-600">{jobReference.submittedBy?.jobRole || 'Not specified'}</p>
+                                        </div>
+                                        <a
+                                            href={`/coordinator/alumni/${jobReference.submittedBy?._id}`}
+                                            className="text-orange-500 font-semibold hover:text-orange-600 hover:underline cursor-pointer transition-all"
+                                        >
+                                            View Alumni
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {/* Job Details Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12">
                                     <div>
                                         <label className="block text-sm font-medium text-slate-500 mb-1.5 uppercase tracking-wider">Company Name</label>

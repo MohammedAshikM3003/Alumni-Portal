@@ -89,3 +89,13 @@
 .customSidebarScrollbar::-webkit-scrollbar-button {
     display: none;
 }
+
+.noPrint {
+    display: block;
+}
+
+@media print {
+    .noPrint {
+        display: none !important;
+    }
+}

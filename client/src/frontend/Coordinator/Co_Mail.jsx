@@ -1,4 +1,4 @@
-import {  useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import styles from './Co_Mail.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
@@ -103,16 +103,16 @@ const CoordinatorMail = ({ onLogout }) => {
         return classes[index % classes.length];
     };
 
-    // Function to get border color based on response status
-    const getBorderColorByStatus = (status) => {
+    // Function to get border class based on response status
+    const getBorderClassByStatus = (status) => {
         switch (status) {
             case 'accept':
-                return '3px solid #16a34a'; // Green border for accepted
+                return styles.borderGreen;
             case 'reject':
-                return '3px solid #dc2626'; // Red border for rejected
+                return styles.borderRed;
             case 'pending':
             default:
-                return '3px solid #6b7280'; // Grey border for pending
+                return styles.borderGrey;
         }
     };
 
@@ -143,9 +143,10 @@ const CoordinatorMail = ({ onLogout }) => {
             <Sidebar currentView="mail" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-
-                <div className={`flex-1 overflow-y-auto ${styles.mainScrollable}`}>
+                <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
                     <Back to={'/coordinator/dashboard'} />
+                </div>
+                <div className={`flex-1 overflow-y-auto ${styles.mainScrollable}`}>
                     <div className="w-full p-8">
                         <div className="flex items-center justify-between mb-8">
                             <div>
@@ -200,31 +201,29 @@ const CoordinatorMail = ({ onLogout }) => {
                                 {filteredMails.map((mail, index) => (
                                     <div
                                         key={mail.id}
-                                        className={styles.mailCard}
-                                        style={{ border: getBorderColorByStatus(mail.dominantStatus) }}
+                                        className={`${styles.mailCard} ${getBorderClassByStatus(mail.dominantStatus)}`}
                                     >
-                                        <div className="mb-4">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="font-bold text-[#001E2B] text-lg">{mail.sender}</span>
-                                                <div className="flex items-center gap-2">
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem' }}>
+                                                <span style={{ fontWeight: 600, color: '#001E2B', fontSize: '0.95rem' }}>{mail.sender}</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                     {mail.type && (
-                                                        <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[11px] font-bold rounded-full uppercase">{mail.type}</span>
+                                                        <span style={{ paddingLeft: '0.75rem', paddingRight: '0.75rem', paddingTop: '0.25rem', paddingBottom: '0.25rem', background: '#f1f5f9', color: '#475569', fontSize: '0.7rem', fontWeight: 'bold', borderRadius: '9999px', textTransform: 'uppercase' }}>{mail.type}</span>
                                                     )}
-                                                    {/* Response Statistics Badge */}
                                                     {mail.responseStats && mail.responseStats.total > 0 && (
-                                                        <div className="flex items-center gap-1 text-[10px] font-bold">
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 'bold' }}>
                                                             {mail.responseStats.accepted > 0 && (
-                                                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                                                                <span style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem', paddingTop: '0.25rem', paddingBottom: '0.25rem', background: '#dcfce7', color: '#166534', borderRadius: '9999px' }}>
                                                                     ✓ {mail.responseStats.accepted}
                                                                 </span>
                                                             )}
                                                             {mail.responseStats.rejected > 0 && (
-                                                                <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full">
+                                                                <span style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem', paddingTop: '0.25rem', paddingBottom: '0.25rem', background: '#fee2e2', color: '#991b1b', borderRadius: '9999px' }}>
                                                                     ✗ {mail.responseStats.rejected}
                                                                 </span>
                                                             )}
                                                             {mail.responseStats.pending > 0 && (
-                                                                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
+                                                                <span style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem', paddingTop: '0.25rem', paddingBottom: '0.25rem', background: '#f3f4f6', color: '#374151', borderRadius: '9999px' }}>
                                                                     ⏳ {mail.responseStats.pending}
                                                                 </span>
                                                             )}
@@ -232,12 +231,12 @@ const CoordinatorMail = ({ onLogout }) => {
                                                     )}
                                                 </div>
                                             </div>
-                                            <p className="text-slate-600 text-base line-clamp-3 leading-relaxed">
+                                            <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                 {mail.message.length > 150 ? mail.message.substring(0, 150) + '...' : mail.message}
                                             </p>
                                         </div>
-                                        <div className="mt-auto flex flex-col items-center gap-3">
-                                            <span className="text-xs font-bold text-slate-400">{mail.time}</span>
+                                        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem', marginLeft: '1rem', whiteSpace: 'nowrap' }}>
+                                            <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#94a3b8' }}>{mail.time}</span>
                                             <button
                                                 onClick={() => handleViewMail(mail)}
                                                 className={`${styles.btnView} ${mail.btnClass}`}

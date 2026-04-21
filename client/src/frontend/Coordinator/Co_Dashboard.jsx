@@ -22,7 +22,7 @@ const Coordinator_Dashboard = ( { onLogout } ) => {
                                 <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white"></span>
                             </button>
                             <div className="h-8 w-[1px] bg-slate-200"></div>
-                            <div className="flex items-center gap-3">
+                            <Link to="/coordinator/profile" className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
                                 <div className="text-right hidden lg:block">
                                     <p className="text-sm font-bold text-[#001E2B]">Mohammed Ashik M</p>
                                     <p className="text-xs text-slate-500">Class of 2018</p>
@@ -30,7 +30,7 @@ const Coordinator_Dashboard = ( { onLogout } ) => {
                                 <div className="size-10 rounded-full bg-slate-100 border-2 border-[#FF3D00] overflow-hidden">
                                     <img alt="User profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCy29l1WzunyAjiRD6SzVOveOoOJ4sRZWjusYjhMmBN8mEcEU612GP9-RWaw7OPzq_9vdwrx7a-_tRk7usal0ltsyGKefbK7NlKRwNMKlx5dyAsY_t6_9foDZay8Za9LYG4PLA2ZOORrD_AKThNfSBNKXRXR0GqVHV49AkIoLI4Z42dUOGQn1S5Do6x-CeFLH6R9seCFXLyF2BGuBd2sm2dDHuA1ffwbhc-f8KrfvnqpWMrPvcTMvaeWMqC26-CypNOPXTK_hzGfbPX" />
                                 </div>
-                            </div>
+                            </Link>
                         </div>
                     </div>
                 </header>
@@ -135,9 +135,6 @@ const Coordinator_Dashboard = ( { onLogout } ) => {
                                         </div>
                                         <h3 className="text-lg font-bold text-[#001E2B]">Achievements & News</h3>
                                     </div>
-                                    <button className="text-xs font-bold text-[#FF3D00] hover:underline flex items-center gap-1">
-                                        View All <span className="material-symbols-outlined text-xs">open_in_new</span>
-                                    </button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
                                     <div className="group border border-slate-100 p-4 rounded-xl hover:bg-slate-50 transition-all hover:border-[#FF3D00]/20 flex flex-col bg-slate-50/30">

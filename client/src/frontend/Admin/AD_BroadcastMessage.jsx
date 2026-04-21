@@ -9,13 +9,17 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 // Default alumni entry structure
 const createEmptyAlumniEntry = () => ({
   alumniName: '',
+  alumniId: '',
   department: '',
   batchStart: '',
   alumniEmail: '',
   alumniPhoto: null,
   matchedAlumni: [],
   showEmailDropdown: false,
-  fetchingPhoto: false
+  fetchingPhoto: false,
+  showNameDropdown: false,
+  searchResults: [],
+  searchingName: false
 });
 
 const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
@@ -40,16 +44,17 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
   } = location.state || {};
 
   // Alumni entries array - each entry has its own alumni-specific data
-  const [alumniEntries, setAlumniEntries] = useState([{
-    alumniName: initialAlumniName,
-    department: initialDepartment,
-    batchStart: initialBatch ? initialBatch.split('-')[0] : '',
-    alumniEmail: initialAlumniEmail,
-    alumniPhoto: null,
-    matchedAlumni: [],
-    showEmailDropdown: false,
-    fetchingPhoto: false
-  }]);
+  const [alumniEntries, setAlumniEntries] = useState([
+    initialAlumniName || initialAlumniEmail
+      ? {
+          ...createEmptyAlumniEntry(),
+          alumniName: initialAlumniName,
+          department: initialDepartment,
+          batchStart: initialBatch ? initialBatch.split('-')[0] : '',
+          alumniEmail: initialAlumniEmail,
+        }
+      : createEmptyAlumniEntry()
+  ]);
 
   // Shared form data (event info, subject, message)
   const [sharedData, setSharedData] = useState({
@@ -63,6 +68,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
 
   const [isPreMessageFormEnabled, setIsPreMessageFormEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(draftId ? true : false);
   const [alert, setAlert] = useState({ show: false, message: '', type: '' });
   const [formSent, setFormSent] = useState(false);
   const [formCleared, setFormCleared] = useState(false);
@@ -70,12 +76,80 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [isEventFormEnabled, setIsEventFormEnabled] = useState(false);
   const [generatingEmail, setGeneratingEmail] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
 
   // Helper function to get cookie value
   const getCookie = (name) => {
     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
     return match ? decodeURIComponent(match[2]) : null;
   };
+
+  // Fetch draft data when editing a draft
+  useEffect(() => {
+    if (draftId) {
+      const fetchDraft = async () => {
+        try {
+          setInitialLoading(true);
+          const response = await fetch(`${API_BASE_URL}/api/drafts/${draftId}`, {
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const data = await response.json();
+          if (data.success && data.draft) {
+            const draft = data.draft;
+
+            // Load recipients into alumni entries
+            const recipients = draft.recipients && draft.recipients.length > 0
+              ? draft.recipients
+              : [{
+                  name: draft.recipientName || '',
+                  email: draft.recipientEmail || '',
+                  department: draft.department || '',
+                  batch: draft.batch || ''
+                }];
+
+            // Convert to alumni entries format
+            const alumniData = recipients.map(r => ({
+              ...createEmptyAlumniEntry(),
+              alumniName: r.name || '',
+              alumniEmail: r.email || '',
+              department: r.department || '',
+              batchStart: r.batch ? r.batch.split('-')[0] : ''
+            }));
+
+            setAlumniEntries(alumniData.length > 0 ? alumniData : [createEmptyAlumniEntry()]);
+
+            // Parse event location to extract venue and time
+            let eventVenue = '';
+            let eventTime = '';
+            if (draft.eventLocation) {
+              const parts = draft.eventLocation.split('|');
+              eventVenue = parts[0]?.trim() || '';
+              eventTime = parts[1]?.trim() || '';
+            }
+
+            // Load shared data
+            setSharedData({
+              eventName: draft.eventName || '',
+              eventDate: draft.eventDate || '',
+              eventVenue: eventVenue,
+              eventTime: eventTime,
+              title: draft.title || '',
+              message: draft.content || ''
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching draft:', error);
+          showAlert('Failed to load draft', 'error');
+        } finally {
+          setInitialLoading(false);
+        }
+      };
+
+      fetchDraft();
+    }
+  }, [draftId]);
 
   // Fetch events from the database
   useEffect(() => {
@@ -103,6 +177,35 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
     // Only fetch when user is available
     if (user) {
       fetchEvents();
+    }
+  }, [user]);
+
+  // Fetch departments from the database
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      setLoadingDepartments(true);
+      try {
+        const token = getCookie('token') || user?.token;
+        const response = await fetch(`${API_BASE_URL}/api/departments`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setDepartments(data.departments || []);
+        }
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+      } finally {
+        setLoadingDepartments(false);
+      }
+    };
+
+    // Only fetch when user is available
+    if (user) {
+      fetchDepartments();
     }
   }, [user]);
 
@@ -192,6 +295,63 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
       index !== currentIndex &&
       entry.alumniEmail.trim().toLowerCase() === email.trim().toLowerCase()
     );
+  };
+
+  // Search alumni by name
+  const handleSearchAlumniName = async (index, searchValue) => {
+    setAlumniEntries(prev => prev.map((entry, i) =>
+      i === index ? { ...entry, alumniName: searchValue, showNameDropdown: true, searchingName: true } : entry
+    ));
+
+    if (!searchValue.trim()) {
+      setAlumniEntries(prev => prev.map((entry, i) =>
+        i === index ? { ...entry, searchResults: [], showNameDropdown: false } : entry
+      ));
+      return;
+    }
+
+    try {
+      const token = getCookie('token') || user?.token;
+      const response = await fetch(`${API_BASE_URL}/api/alumni/search?name=${encodeURIComponent(searchValue)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      setAlumniEntries(prev => prev.map((entry, i) =>
+        i === index ? {
+          ...entry,
+          searchResults: data.success ? (data.data || []) : [],
+          showNameDropdown: true,
+          searchingName: false
+        } : entry
+      ));
+    } catch (error) {
+      console.error('Error searching alumni:', error);
+      setAlumniEntries(prev => prev.map((entry, i) =>
+        i === index ? { ...entry, searchResults: [], searchingName: false } : entry
+      ));
+    }
+  };
+
+  // Handle alumni selection from search results
+  const handleSelectAlumni = (index, alumni) => {
+    setAlumniEntries(prev => prev.map((entry, i) =>
+      i === index ? {
+        ...entry,
+        alumniName: alumni.name,
+        alumniId: alumni._id,
+        alumniEmail: alumni.email,
+        department: alumni.branch || entry.department,
+        batchStart: alumni.yearFrom ? String(alumni.yearFrom) : entry.batchStart,
+        showNameDropdown: false,
+        searchResults: [],
+        alumniPhoto: alumni.profilePhoto ? `${API_BASE_URL}/api/images/${alumni.profilePhoto}` : null
+      } : entry
+    ));
   };
 
   // Get duplicate emails info
@@ -326,6 +486,34 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
       await autoSaveDraft();
     }
     window.history.back();
+  };
+
+  // Handle delete draft
+  const handleDeleteDraft = async () => {
+    if (!editDraft || !draftId) return;
+
+    const confirmDelete = window.confirm('Are you sure you want to delete this draft? This action cannot be undone.');
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/drafts/${draftId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        showAlert('Draft deleted successfully', 'success');
+        setTimeout(() => {
+          navigate('/admin/broadcast-message');
+        }, 1000);
+      } else {
+        const error = await response.json();
+        showAlert(error.message || 'Failed to delete draft', 'error');
+      }
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      showAlert('Error deleting draft', 'error');
+    }
   };
 
   // Auto-save before page unload
@@ -536,6 +724,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
       return null;
     });
 
+    
     return () => {
       timeouts.forEach(timeout => {
         if (timeout) clearTimeout(timeout);
@@ -585,6 +774,18 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
       return;
     }
 
+    // Validation: if event form is not toggled, subject and message are required
+    if (!isEventFormEnabled && (!sharedData.title.trim() || !sharedData.message.trim())) {
+      showAlert('What to generate', 'error');
+      return;
+    }
+
+    // Validation: if event form is toggled, event details should be filled
+    if (isEventFormEnabled && (!sharedData.eventName.trim() || !sharedData.eventDate)) {
+      showAlert('Please fill event details (Event Name and Date are required)', 'error');
+      return;
+    }
+
     setGeneratingEmail(true);
 
     try {
@@ -599,13 +800,14 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
         senderName: adminName || user?.name || 'Admin',
         collegeName: 'K.S.R. College of Engineering',
         purpose: 'Alumni outreach and engagement',
-        eventDetails: isEventFormEnabled ? {
-          eventName: sharedData.eventName.trim(),
-          eventDate: sharedData.eventDate,
-          eventVenue: sharedData.eventVenue.trim(),
-          eventTime: sharedData.eventTime.trim()
-        } : null,
-        additionalContext: sharedData.message.trim() || 'General alumni communication'
+        eventDetails: {
+          eventName: sharedData.eventName?.trim() || '',
+          eventDate: sharedData.eventDate || '',
+          eventVenue: sharedData.eventVenue?.trim() || '',
+          eventTime: sharedData.eventTime?.trim() || ''
+        },
+        additionalContext: sharedData.message.trim() || 'General alumni communication',
+        subject: sharedData.title.trim() || ''
       };
 
       const response = await fetch(`${API_BASE_URL}/api/ai/generate-email`, {
@@ -837,7 +1039,19 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
             </p>
           </div>
 
-          <div className={styles.headerSpacer} aria-hidden="true"></div>
+          {editDraft ? (
+            <button
+              className={styles.deleteDraftBtn}
+              onClick={handleDeleteDraft}
+              type="button"
+              title="Delete this draft"
+            >
+              <span className="material-symbols-outlined">delete</span>
+              <span>Delete Draft</span>
+            </button>
+          ) : (
+            <div className={styles.headerSpacer} aria-hidden="true"></div>
+          )}
         </div>
 
         {alert.show && (
@@ -849,7 +1063,20 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
           </div>
         )}
 
-        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        {initialLoading ? (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '400px',
+            flexDirection: 'column',
+            gap: '1rem'
+          }}>
+            <div className={styles.spinner}></div>
+            <p>Loading draft...</p>
+          </div>
+        ) : (
+          <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.optionalFormCard}>
             <div className={styles.optionalFormHeader}>
               <div className={styles.optionalFormTitleWrap}>
@@ -868,7 +1095,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
                     type="checkbox"
                     checked={isEventFormEnabled}
                     onChange={handleEventFormToggleChange}
-                    disabled={loading}
+                    disabled={loading || generatingEmail}
                   />
                   <span className={styles.toggleSlider}></span>
                 </label>
@@ -972,32 +1199,83 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
                       <label htmlFor={`alumniName-${index}`}>
                         Alumni Name <span className={styles.required}>*</span>
                       </label>
-                      <input
-                        type="text"
-                        id={`alumniName-${index}`}
-                        name="alumniName"
-                        placeholder="Enter alumni name"
-                        className={styles.inputField}
-                        value={entry.alumniName}
-                        onChange={(e) => handleAlumniInputChange(index, e)}
-                        disabled={loading}
-                      />
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="text"
+                          id={`alumniName-${index}`}
+                          placeholder="Search alumni by name..."
+                          className={styles.inputField}
+                          value={entry.alumniName}
+                          onChange={(e) => handleSearchAlumniName(index, e.target.value)}
+                          onFocus={() => setAlumniEntries(prev => prev.map((e, i) =>
+                            i === index ? { ...e, showNameDropdown: true } : e
+                          ))}
+                          disabled={loading}
+                          autoComplete="off"
+                        />
+                        {entry.showNameDropdown && (entry.alumniName || entry.searchResults.length > 0) && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            right: 0,
+                            backgroundColor: 'white',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            zIndex: 10,
+                            marginTop: '4px'
+                          }}>
+                            {entry.searchingName ? (
+                              <div style={{ padding: '10px', textAlign: 'center' }}>Searching...</div>
+                            ) : entry.searchResults.length > 0 ? (
+                              entry.searchResults.map((alumni) => (
+                                <div
+                                  key={alumni._id}
+                                  onClick={() => handleSelectAlumni(index, alumni)}
+                                  style={{
+                                    padding: '10px',
+                                    borderBottom: '1px solid #eee',
+                                    cursor: 'pointer',
+                                    hover: { backgroundColor: '#f5f5f5' }
+                                  }}
+                                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                >
+                                  <div style={{ fontWeight: '500' }}>{alumni.name}</div>
+                                  <div style={{ fontSize: '0.85em', color: '#666' }}>
+                                    {alumni.branch} • Batch {alumni.yearFrom}-{alumni.yearTo}
+                                  </div>
+                                </div>
+                              ))
+                            ) : entry.alumniName && !entry.searchingName ? (
+                              <div style={{ padding: '10px', textAlign: 'center', color: '#999' }}>No alumni found</div>
+                            ) : null}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className={styles.inputGroup}>
                       <label htmlFor={`department-${index}`}>
                         Department <span className={styles.required}>*</span>
                       </label>
-                      <input
-                        type="text"
+                      <select
                         id={`department-${index}`}
                         name="department"
-                        placeholder="Enter department"
                         className={styles.inputField}
                         value={entry.department}
                         onChange={(e) => handleAlumniInputChange(index, e)}
-                        disabled={loading}
-                      />
+                        disabled={loading || loadingDepartments}
+                      >
+                        <option value="">Select Department</option>
+                        {departments.map((dept) => (
+                          <option key={dept._id} value={dept.branch}>
+                            {dept.branch}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -1176,24 +1454,34 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
             {/* Character count and AI Generate Button */}
             <div className={styles.messageActionRow}>
               <div className={styles.charCount}>{sharedData.message.length} characters</div>
-              <button
-                type="button"
-                className={styles.generateBtn}
-                onClick={handleGenerateEmail}
-                disabled={loading || generatingEmail || !alumniEntries[0]?.alumniName.trim()}
-              >
-                {generatingEmail ? (
-                  <>
-                    <span className={styles.spinner}></span>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined">auto_awesome</span>
-                    Generate
-                  </>
-                )}
-              </button>
+              {(() => {
+                const firstAlumni = alumniEntries[0];
+                const isAlumniDetailsValid =
+                  firstAlumni?.alumniName.trim() &&
+                  firstAlumni?.department.trim() &&
+                  firstAlumni?.batchStart.trim() &&
+                  (isEventFormEnabled || (sharedData.title.trim() && sharedData.message.trim()));
+                return (
+                  <button
+                    type="button"
+                    className={styles.generateBtn}
+                    onClick={handleGenerateEmail}
+                    disabled={loading || generatingEmail || !isAlumniDetailsValid}
+                  >
+                    {generatingEmail ? (
+                      <>
+                        <span className={styles.spinner}></span>
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined">auto_awesome</span>
+                        Generate
+                      </>
+                    )}
+                  </button>
+                );
+              })()}
             </div>
           </div>
 
@@ -1250,6 +1538,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }) => {
             </div>
           </div>
         </form>
+        )}
       </main>
     </div>
   );
