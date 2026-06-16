@@ -212,8 +212,8 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
               <div className={`${styles.mailCard} ${styles.mailCardNew} `} onClick={() => navigate('/admin/mail/broadcast_message') }>
                 <div className={styles.newMailContainer}>
                   <span className={`material-symbols-outlined ${styles.newMailIcon}`}>add</span>
-                  <span className={styles.newMailText1}>New mail</span>
-                  <p className={styles.mailMessage}>Click to compose a new message to alumni members</p>
+                  <span className={styles.newMailText1}>Compose Mail</span>
+                  <p className={styles.mailMessage}>Click to compose a message for one or more alumni recipients</p>
                 </div>
               </div>
 

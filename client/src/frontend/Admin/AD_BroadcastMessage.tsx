@@ -36,6 +36,7 @@ interface Event {
   eventDate?: string;
   venue?: string;
   eventTime?: string;
+  status?: 'pending' | 'completed' | 'cancelled';
 }
 
 interface Department {
@@ -242,7 +243,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
         });
         const data = await response.json();
         if (data.success) {
-          setEvents(data.data || []);
+          setEvents((data.data || []).filter((event: Event) => event.status !== 'completed'));
         }
       } catch (error: any) {
           if (error.name === 'AbortError') return;
@@ -326,6 +327,8 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
       }));
     }
   };
+
+  const visibleEvents = events.filter((event: Event) => event.status !== 'completed');
 
   // Calculate ending year for a specific alumni entry
   const getBatchEnd = (batchStart: string) => batchStart ? String(Number(batchStart) + 4) : '';
@@ -1197,14 +1200,14 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
                     id="eventName"
                     name="eventName"
                     className={styles.inputField}
-                    value={events.find(ev => ev.eventName === sharedData.eventName)?._id || ''}
+                    value={visibleEvents.find(ev => ev.eventName === sharedData.eventName)?._id || ''}
                     onChange={handleEventSelect}
                     disabled={loading || loadingEvents}
                   >
                     <option value="">
                       {loadingEvents ? 'Loading events...' : 'Select an event'}
                     </option>
-                    {events.map((event) => (
+                    {visibleEvents.map((event) => (
                       <option key={event._id} value={event._id}>
                         {event.eventName}
                       </option>

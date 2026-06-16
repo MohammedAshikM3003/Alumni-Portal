@@ -7,6 +7,19 @@ import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+interface RecipientInfo {
+  name?: string;
+  email?: string;
+  profilePhoto?: string;
+  branch?: string | null;
+  batch?: string | null;
+}
+
+interface MailWithRecipients {
+  recipientEmails?: string[];
+  recipients?: RecipientInfo[];
+}
+
 const Admin_ViewMail = ({ onLogout }: { onLogout?: () => void }) => {
   const [mail, setMail] = useState<any>(null);
   const [responses, setResponses] = useState<any[]>([]);
@@ -18,6 +31,10 @@ const Admin_ViewMail = ({ onLogout }: { onLogout?: () => void }) => {
   const { user } = useAuth();
   const mailId = location.state?.mailId;
   const passedMailData = location.state?.mailData;
+  const recipients = (mail as MailWithRecipients | null)?.recipients || [];
+  const primaryRecipient = recipients[0];
+  const alumniEmail = primaryRecipient?.email || (mail as MailWithRecipients | null)?.recipientEmails?.[0] || 'Not specified';
+  const alumniName = primaryRecipient?.name || alumniEmail.split('@')[0] || 'Not specified';
 
   useEffect(() => {
     const controller = new AbortController();
@@ -229,32 +246,22 @@ const Admin_ViewMail = ({ onLogout }: { onLogout?: () => void }) => {
         {/* Input Section */}
         <section className={styles.inputSection}>
           <div className={styles.inputGroup}>
-            <label htmlFor="admin-email">Admin Email</label>
+            <label htmlFor="alumni-email">Alumni Email</label>
             <input
               type="email"
-              id="admin-email"
+              id="alumni-email"
               className={styles.inputField}
-              value={mail.senderEmail}
+              value={alumniEmail}
               readOnly
             />
           </div>
           <div className={styles.inputGroup}>
-            <label htmlFor="admin-name">Admin Name</label>
+            <label htmlFor="alumni-name">Alumni Name</label>
             <input
               type="text"
-              id="admin-name"
+              id="alumni-name"
               className={styles.inputField}
-              value={mail.senderName}
-              readOnly
-            />
-          </div>
-          <div className={styles.inputGroup}>
-            <label htmlFor="recipients">Recipients</label>
-            <input
-              type="text"
-              id="recipients"
-              className={styles.inputField}
-              value={`${mail.recipientCount} recipient${mail.recipientCount > 1 ? 's' : ''}`}
+              value={alumniName}
               readOnly
             />
           </div>
@@ -266,16 +273,6 @@ const Admin_ViewMail = ({ onLogout }: { onLogout?: () => void }) => {
             <div className={styles.eventCard}>
               <div className={styles.eventHeader}>
                 <h3>{mail.title || 'No Title'}</h3>
-              </div>
-              <div className={styles.eventMetadata}>
-                <div className={styles.metadataBlock}>
-                  <span className={styles.metadataLabel}>Date</span>
-                  <span className={styles.metadataValue}>{formatDate(mail.createdAt)}</span>
-                </div>
-                <div className={styles.metadataBlock}>
-                  <span className={styles.metadataLabel}>Type</span>
-                  <span className={styles.metadataValue}>{mail.isBroadcast ? 'Broadcast' : 'Direct Mail'}</span>
-                </div>
               </div>
               <div className={styles.eventDescription}>
                 <span className={styles.metadataLabel}>Message</span>

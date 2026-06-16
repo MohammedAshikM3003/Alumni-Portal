@@ -519,39 +519,23 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
           }}>
             <h2 style={{ marginTop: 0, color: '#111827', fontSize: '1.25rem' }}>Multiple Recipients Detected</h2>
             <p style={{ color: '#6B7280' }}>
-              You have {guests.length} guests/recipients. How would you like to create flyers?
+                You have {guests.length} guests/recipients. Create flyers one at a time.
             </p>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-              <button
-                onClick={() => handleGuestModeSelection('single')}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#2E6F40',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.75rem',
-                  cursor: 'pointer',
-                  fontWeight: 600
-                }}
-              >
-                🎯 Separate Flyer for Each
-              </button>
-              <button
-                onClick={() => handleGuestModeSelection('multiple')}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#16A34A',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.75rem',
-                  cursor: 'pointer',
-                  fontWeight: 600
-                }}
-              >
-                👥 One Flyer with All
-              </button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                <button
+                  onClick={() => handleGuestModeSelection('single')}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: '#2E6F40',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.75rem',
+                    cursor: 'pointer',
+                    fontWeight: 600
+                  }}
+                >
+                  Generate One at a Time
+                </button>
             </div>
           </div>
         </div>
