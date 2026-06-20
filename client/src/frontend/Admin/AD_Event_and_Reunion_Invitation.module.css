@@ -570,7 +570,7 @@
 .formInput {
   display: block;
   width: 100%;
-  border-radius: 0.5rem;
+  border-radius: 1rem;
   border: 1px solid var(--border-light);
   background-color: var(--bg-white);
   padding: 0.875rem 1rem;

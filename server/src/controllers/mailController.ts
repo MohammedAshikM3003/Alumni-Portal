@@ -288,6 +288,7 @@ export const sendMail = async (req: Request, res: Response): Promise<void | any>
             senderId,
             senderName,
             senderEmail,
+            senderLabel,
             adminName,
             collegeName,
             email,
@@ -330,6 +331,7 @@ export const sendMail = async (req: Request, res: Response): Promise<void | any>
         const mailRecord = new Mail({
             senderId: senderId || 'admin',
             senderName: senderName || adminName,
+            senderLabel: senderLabel || '',
             senderEmail: senderEmail || process.env.EMAIL_USER,
             title: title || `Message from ${collegeName}`,
             content: message,
@@ -569,7 +571,7 @@ export const getSentMails = async (req: Request, res: Response): Promise<void | 
         const mails = await Mail.find({})
             .sort({ createdAt: -1 })
             .select(
-                'senderId senderName senderEmail title content recipientCount isBroadcast isEventInvitation status createdAt recipientEmails'
+                'senderId senderName senderLabel senderEmail title content recipientCount isBroadcast isEventInvitation status createdAt recipientEmails'
             );
 
         const { default: MailResponse } = await import('../models/mailResponse.js');

@@ -24,7 +24,7 @@ interface TransformedMail {
   id: string;
   sender: string;
   title: string;
-  badge: string;
+    badge: string;
   text: string;
   date: Date;
   responseStatus?: string;
@@ -67,11 +67,21 @@ export default function Alumini_Mail({ onLogout }: AluminiMailProps) {
       const data = await response.json();
 
       if (data.success) {
+        const deriveSenderLabel = (name: string | undefined) => {
+          if (!name) return '';
+          const n = name.toLowerCase();
+          if (n.includes('career')) return 'Career Cell';
+          if (n.includes('admin')) return 'Admin';
+          if (n.includes('office')) return 'Alumni Office';
+          return '';
+        };
+
         const transformedMails = data.mails.map((mail: MailItem): TransformedMail => ({
           id: mail._id,
           sender: mail.senderName,
           title: mail.title || 'No Subject',
-          badge: mail.isBroadcast ? "Broadcast" : "",
+          // show explicit senderLabel if present; otherwise derive from senderName
+          badge: mail.isBroadcast ? (mail.senderLabel || deriveSenderLabel(mail.senderName) || '') : '',
           text: mail.content,
           date: new Date(mail.createdAt),
           responseStatus: mail.responseStatus,

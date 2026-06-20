@@ -136,6 +136,8 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
     title: initialTitle,
     message: initialMessage,
   });
+  const [senderLabel, setSenderLabel] = useState<string>('');
+  const [otherSenderLabel, setOtherSenderLabel] = useState<string>('');
 
   const [isPreMessageFormEnabled, setIsPreMessageFormEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -537,6 +539,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
       const draftPayload = {
         senderId: user?.userId || 'admin',
         senderName: adminName || user?.name || 'Admin',
+        senderLabel: senderLabel === 'Other' ? (otherSenderLabel || '') : (senderLabel || ''),
         senderEmail: adminEmail || user?.email || '',
         // Store all recipients
         recipients: recipients,
@@ -1019,9 +1022,10 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
           const personalizedTitle = personalizeContent(sharedData.title.trim(), entry, firstEntry);
           const personalizedMessage = personalizeContent(sharedData.message.trim(), entry, firstEntry);
 
-          const emailPayload = {
+            const emailPayload = {
             senderId: user?.userId,
             senderName: adminName || user?.name || 'Admin',
+            senderLabel: senderLabel === 'Other' ? (otherSenderLabel || '') : (senderLabel || ''),
             senderEmail: adminEmail || user?.email,
             adminName: (adminName || user?.name || 'Admin').trim(),
             collegeName: 'K.S.R. College of Engineering',
@@ -1191,6 +1195,8 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
             </div>
           </div>
 
+
+
           {isEventFormEnabled && (
             <div className={styles.eventFieldsTop}>
               <div className={styles.eventFieldsRow}>
@@ -1260,6 +1266,8 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
               <hr />
             </div>
           )}
+
+
 
           {/* Alumni Entries */}
           {alumniEntries.map((entry, index) => (
@@ -1570,6 +1578,35 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
                 );
               })()}
             </div>
+                      {/* Sender Label - choose how the mail appears to recipients */}
+          <div className={styles.inputGroup} style={{ marginTop: '12px' }}>
+            <label htmlFor="senderLabel">Sender Label</label>
+            <select
+              id="senderLabel"
+              name="senderLabel"
+              className={styles.inputField}
+              value={senderLabel}
+              onChange={(e) => setSenderLabel(e.target.value)}
+              disabled={loading}
+            >
+              <option value="">(Use sender name)</option>
+              <option value="Admin">Admin</option>
+              <option value="Career Cell">Career Cell</option>
+              <option value="Alumni Office">Alumni Office</option>
+              <option value="Other">Other</option>
+            </select>
+            <br />
+            {senderLabel === 'Other' && (
+              <input
+                type="text"
+                placeholder="Custom sender label"
+                className={`${styles.inputField} ${styles.mt8}`}
+                value={otherSenderLabel}
+                onChange={(e) => setOtherSenderLabel(e.target.value)}
+                disabled={loading}
+              />
+            )}
+          </div>
           </div>
 
 

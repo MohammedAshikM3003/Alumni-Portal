@@ -722,6 +722,7 @@ const Admin_Draft = ({ onLogout, adminName, adminEmail }: { onLogout?: () => voi
           const emailPayload = {
             senderId: user?.userId,
             senderName: adminName || user?.name || 'Admin',
+            senderLabel: adminName || user?.name || 'Admin',
             senderEmail: adminEmail || user?.email,
             adminName: (adminName || user?.name || 'Admin').trim(),
             collegeName: 'K.S.R. College of Engineering',

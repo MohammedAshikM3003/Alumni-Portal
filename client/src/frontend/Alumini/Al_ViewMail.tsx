@@ -65,6 +65,15 @@ const Alumini_ViewMail = ({ onLogout }: AluminiViewMailProps) => {
     });
   };
 
+  const deriveSenderLabel = (name: string | undefined) => {
+    if (!name) return '';
+    const n = name.toLowerCase();
+    if (n.includes('career')) return 'Career Cell';
+    if (n.includes('admin')) return 'Admin';
+    if (n.includes('office')) return 'Alumni Office';
+    return '';
+  };
+
   const getStatusColor = (status: string | null | undefined) => {
     switch (status) {
       case 'accept':
@@ -108,7 +117,7 @@ const Alumini_ViewMail = ({ onLogout }: AluminiViewMailProps) => {
                     </div>
                     <div className={styles.senderInfo}>
                       <h2>{mailData.senderName}</h2>
-                      <p>{mailData.isBroadcast ? 'BROADCAST COMMUNICATION' : 'OFFICIAL COMMUNICATION'}</p>
+                      <p>{mailData.isBroadcast ? (mailData.senderLabel || deriveSenderLabel(mailData.senderName) || 'Official Communication') : 'Official Communication'}</p>
                     </div>
                   </div>
                   <div className={styles.headerRight}>

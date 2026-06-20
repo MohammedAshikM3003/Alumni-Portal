@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
-import { submitJobReference, getMyJobReferences, getAllJobReferences, getDepartmentJobReferences, getJobReferenceById, deleteJobReference } from '../controllers/jobController.js';
+import { submitJobReference, getMyJobReferences, getAllJobReferences, getDepartmentJobReferences, getJobReferenceById, deleteJobReference, updateJobReferenceStatus } from '../controllers/jobController.js';
 
 const router = Router();
 
@@ -21,5 +21,8 @@ router.get('/:id', authenticate, getJobReferenceById);
 
 // Alumni deletes their own job reference
 router.delete('/:id', authenticate, deleteJobReference);
+
+// Alumni updates their own job reference status
+router.patch('/:id/status', authenticate, updateJobReferenceStatus);
 
 export default router;

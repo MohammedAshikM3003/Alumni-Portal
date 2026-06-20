@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Al_JobReference_History.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
@@ -63,9 +63,7 @@ interface AluminiJobReferenceHistoryProps {
 const Alumini_JobReference_History = ({ onLogout }: AluminiJobReferenceHistoryProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const menuRef = useRef<HTMLDivElement>(null);
 
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [jobsData, setJobsData] = useState<JobRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -128,49 +126,8 @@ const Alumini_JobReference_History = ({ onLogout }: AluminiJobReferenceHistoryPr
 
   const toggleCardMenu = (id: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    setActiveMenuId(activeMenuId === id ? null : id);
+    navigate(`/alumini/JobReference_History/view/${id}`);
   };
-
-  const handleDelete = async (jobId: string) => {
-    if (!window.confirm('Are you sure you want to remove this job reference?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE}/api/jobs/${jobId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete job reference');
-      }
-
-      // Remove the job from the local state
-      setJobsData(prevJobs => prevJobs.filter(job => job.id !== jobId));
-      setActiveMenuId(null);
-      alert('Job reference removed successfully');
-    } catch (err: any) {
-      alert(err.message);
-    }
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setActiveMenuId(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   if (loading) {
     return (
@@ -212,7 +169,7 @@ const Alumini_JobReference_History = ({ onLogout }: AluminiJobReferenceHistoryPr
         </header>
 
         {/* Jobs Grid */}
-        <div className={styles.jobsGrid} ref={menuRef}>
+        <div className={styles.jobsGrid}>
           
           {/* Post New Job Card (Dashed Border) */}
           <div className={`${styles.jobCard} ${styles.postNewCard}`} onClick={() => { navigate('/alumini/JobReference_History/JobReference_Form') }} >
@@ -236,21 +193,12 @@ const Alumini_JobReference_History = ({ onLogout }: AluminiJobReferenceHistoryPr
 
                   <div className={styles.menuContainer}>
                     <button
-                      className={`${styles.moreBtn} ${activeMenuId === job.id ? styles.moreBtnActive : ''}`}
+                      className={styles.viewBtn}
                       onClick={(e) => toggleCardMenu(job.id, e)}
                     >
-                      <span className="material-symbols-outlined">more_vert</span>
+                      <span className="material-symbols-outlined">visibility</span>
+                      View
                     </button>
-
-                    {/* Dropdown Menu */}
-                    {activeMenuId === job.id && (
-                      <div className={styles.dropdownMenu}>
-                        <button className={styles.dropdownItem} onClick={() => handleDelete(job.id)}>
-                          <span className="material-symbols-outlined">delete</span>
-                          Remove
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
 

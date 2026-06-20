@@ -245,7 +245,7 @@ const Admin_Add_Faculty = ({ onLogout }: AdminAddFacultyProps) => {
           {/* Page Header */}
           <div className={styles.pageHeader}>
             <button className={styles.backBtn} onClick={handleBack}>
-              <ArrowLeft size={16} /> Back to Department
+              <ArrowLeft size={16} /> Back
             </button>
             <div className={styles.headerContent}>
               <h1 className={styles.pageTitle}>Add New Coordinator</h1>

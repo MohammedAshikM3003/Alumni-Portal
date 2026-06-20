@@ -133,6 +133,51 @@ export const deleteJobReference = async (req: Request, res: Response): Promise<v
 	}
 };
 
+export const updateJobReferenceStatus = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { id } = req.params as { id: string };
+		const { status } = req.body as { status?: string };
+
+		if (!req.user) {
+			res.status(401).json({ success: false, message: 'Unauthorized' });
+			return;
+		}
+
+		if (!mongoose.Types.ObjectId.isValid(id)) {
+			res.status(400).json({ success: false, message: 'Invalid job reference ID' });
+			return;
+		}
+
+		if (!status || !['pending', 'approved', 'rejected'].includes(status)) {
+			res.status(400).json({ success: false, message: 'Invalid status value' });
+			return;
+		}
+
+		const jobReference = await JobReference.findById(id);
+
+		if (!jobReference) {
+			res.status(404).json({ success: false, message: 'Job reference not found' });
+			return;
+		}
+
+		if (jobReference.submittedBy.toString() !== req.user._id.toString()) {
+			res.status(403).json({ success: false, message: 'Not authorized to update this job reference' });
+			return;
+		}
+
+		jobReference.status = status as 'pending' | 'approved' | 'rejected';
+		await jobReference.save();
+
+		res.status(200).json({
+			success: true,
+			message: 'Job reference status updated successfully',
+			jobReference,
+		});
+	} catch {
+		res.status(500).json({ success: false, message: 'Server error' });
+	}
+};
+
 export const getDepartmentJobReferences = async (req: Request, res: Response): Promise<void> => {
 	try {
 		// Get coordinator's department

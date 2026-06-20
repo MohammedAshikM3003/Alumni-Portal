@@ -1,6 +1,10 @@
 import styles from "./Al_Dashboard.module.css";
 import Sidebar from "./Components/Sidebar/Sidebar";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/authContext/authContext';
+import { useEffect, useState } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 
 interface DashboardProps {
@@ -9,6 +13,51 @@ interface DashboardProps {
 
 export default function Alumini_Dashboard({ onLogout }: DashboardProps) {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const [alumniName, setAlumniName] = useState<string | null>(user?.name || null);
+    const [batchLabel, setBatchLabel] = useState<string | null>(null);
+    const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+
+    const isGridFSId = (value: string | null | undefined): value is string => {
+      return !!(value && typeof value === 'string' && /^[a-f\d]{24}$/i.test(value));
+    };
+
+    const getImageUrl = (value: string | null | undefined) => {
+      if (!value) return null;
+      if (isGridFSId(value)) {
+        return `${API_BASE}/api/images/${value}`;
+      }
+      return value; // legacy base64 or data URL
+    };
+
+    useEffect(() => {
+      const controller = new AbortController();
+      const fetchAlumni = async () => {
+        if (!user?.token) return;
+        try {
+          const res = await fetch(`${API_BASE}/api/alumni/me`, {
+            signal: controller.signal,
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
+          const data = await res.json();
+          if (res.ok && data.success && data.alumni) {
+            setAlumniName(data.alumni.name || user?.name || null);
+            // Prefer yearTo as graduation year
+            const yearTo = data.alumni.yearTo;
+            if (yearTo) setBatchLabel(`Batch of ${yearTo}`);
+            // Profile photo (GridFS id or base64)
+            const photoVal = data.alumni.profilePhoto || data.alumni.profilePhotoId || null;
+            const url = getImageUrl(photoVal);
+            if (url) setProfilePhotoUrl(url);
+          }
+        } catch (e) {
+          // ignore network errors here - keep user.name as fallback
+        }
+      };
+
+      fetchAlumni();
+      return () => controller.abort();
+    }, [user?.token]);
   
   return (
     <div className={styles.dashboardContainer}>
@@ -28,35 +77,18 @@ export default function Alumini_Dashboard({ onLogout }: DashboardProps) {
           </div>
 
           <div className={styles.headerRight}>
-            <div className={`${styles.searchContainer} ${styles.hideOnSmall}`}>
-              <input
-                type="text"
-                placeholder="Search alumni, jobs..."
-                className={styles.searchInput}
-              />
-              <span className={`material-symbols-outlined ${styles.searchIcon}`}>
-                search
-              </span>
-            </div>
 
             <div className={styles.headerFlexContainer}>
-              <button className={styles.notificationBtn}>
-                <span className="material-symbols-outlined">notifications</span>
-                <span className={styles.notificationDot}></span>
-              </button>
-
-              <div className={styles.divider}></div>
-
               <div className={styles.userInfo}>
-                <div className={`${styles.userDetails} ${styles.hideOnLarge}`}>
-                  <p className={styles.userName}>Mohammed Ashik M</p>
-                  <p className={styles.userClass}>Class of 2018</p>
-                </div>
+                  <div className={`${styles.userDetails} ${styles.hideOnLarge}`}>
+                    <p className={styles.userName}>{alumniName || 'Alumni'}</p>
+                    <p className={styles.userClass}>{batchLabel || 'Batch information'}</p>
+                  </div>
                 <div className={styles.userAvatar}>
                   <img
                     alt="User profile"
                     className={styles.imageFullCover}
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCy29l1WzunyAjiRD6SzVOveOoOJ4sRZWjusYjhMmBN8mEcEU612GP9-RWaw7OPzq_9vdwrx7a-_tRk7usal0ltsyGKefbK7NlKRwNMKlx5dyAsY_t6_9foDZay8Za9LYG4PLA2ZOORrD_AKThNfSBNKXRXR0GqVHV49AkIoLI4Z42dUOGQn1S5Do6x-CeFLH6R9seCFXLyF2BGuBd2sm2dDHuA1ffwbhc-f8KrfvnqpWMrPvcTMvaeWMqC26-CypNOPXTK_hzGfbPX"
+                    src={profilePhotoUrl || 'https://via.placeholder.com/160?text=Profile'}
                   />
                 </div>
               </div>

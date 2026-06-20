@@ -50,6 +50,12 @@ const mailSchema = new Schema<IMail>(
       required: true,
       trim: true,
     },
+    // Optional explicit sender label entered by admins (e.g., "Admin", "Career Cell")
+    senderLabel: {
+      type: String,
+      trim: true,
+      default: ''
+    },
     content: {
       type: String,
       required: true,

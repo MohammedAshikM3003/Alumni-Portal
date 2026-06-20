@@ -19,6 +19,7 @@ import Alumini_DonationFormPage from './frontend/Alumini/Al_Donation_Form';
 import Alumini_JobReference_History from './frontend/Alumini/Al_JobReference_History';
 import Alumini_Feedback from './frontend/Alumini/Al_Feedback';
 import Alumini_JobReference_Form from './frontend/Alumini/Al_JobReference_Form';
+import Alumini_View_Job from './frontend/Alumini/Al_View_Job';
 import Alumini_Profile from './frontend/Alumini/Al_Profile';
 
 // Admin Imports
@@ -191,6 +192,10 @@ function App() {
         <Route
           path="/alumini/JobReference_History/JobReference_Form"
           element={guard('alumni', <Alumini_JobReference_Form onLogout={logout} />)}
+        />
+        <Route
+          path="/alumini/JobReference_History/view/:id"
+          element={guard('alumni', <Alumini_View_Job onLogout={logout} />)}
         />
 
 {/* Alumini Feedback */}
