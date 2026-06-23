@@ -13,6 +13,7 @@ interface AluminiMailProps {
 interface MailItem {
   _id: string;
   senderName: string;
+  senderLabel?: string;
   title?: string;
   isBroadcast?: boolean;
   content: string;
