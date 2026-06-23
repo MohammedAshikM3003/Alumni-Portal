@@ -1,0 +1,16 @@
+.backButton {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+	padding: 0;
+}
+
+.backButton span {
+	display: inline-flex;
+	align-items: center;
+}
