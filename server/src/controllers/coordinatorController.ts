@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 import User from '../models/user.js';
 import Coordinator from '../models/coordinator.js';
 import Department from '../models/department.js';
-import { sendSmsOtp, verifySmsOtp } from '../utils/messenger.js';
+import { generateOtp, sendOtpEmail, OTP_TTL_MINUTES } from '../utils/emailOtp.js';
 
 const cleanString = (value: any): string | undefined => {
   if (typeof value !== 'string') return undefined;
@@ -585,25 +585,33 @@ export const sendCoordinatorResetOtp = async (req: Request, res: Response): Prom
       return;
     }
 
-    const phoneForTwilio = mobile.startsWith('+') ? mobile : `+91${cleanIncoming}`;
-    const smsResult = await sendSmsOtp(phoneForTwilio);
-
-    if (!smsResult.success) {
-      res.status(500).json({
+    if (!coordinator.email) {
+      res.status(400).json({
         success: false,
-        message: `Failed to send OTP via SMS: ${smsResult.message}`,
+        message: 'Coordinator profile has no email address',
       });
       return;
     }
 
-    coordinator.resetPhoneNumber = phoneForTwilio;
-    coordinator.twilioVerificationSid = smsResult.verificationSid;
+    const otp = generateOtp();
+    coordinator.resetOtp = await bcrypt.hash(otp, 10);
+    coordinator.resetOtpExpiry = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000);
+    coordinator.resetOtpVerifiedAt = undefined;
+
+    await sendOtpEmail({
+      to: coordinator.email,
+      recipientName: coordinator.name || 'Coordinator',
+      otp,
+      subject: 'Coordinator password reset code',
+      purpose: 'reset your password',
+    });
+
     coordinator.resetOtpVerifiedAt = undefined;
     await coordinator.save();
 
     res.status(200).json({
       success: true,
-      message: 'OTP sent successfully to your registered mobile number',
+      message: 'OTP sent successfully to your registered email address',
     });
   } catch (error: any) {
     console.error('[CoordinatorController] sendCoordinatorResetOtp error:', error);
@@ -646,7 +654,7 @@ export const verifyCoordinatorResetOtp = async (req: Request, res: Response): Pr
       return;
     }
 
-    if (!coordinator.resetPhoneNumber) {
+    if (!coordinator.resetOtp || !coordinator.resetOtpExpiry) {
       res.status(400).json({
         success: false,
         message: 'No OTP request found. Please request a new OTP.',
@@ -654,19 +662,32 @@ export const verifyCoordinatorResetOtp = async (req: Request, res: Response): Pr
       return;
     }
 
-    const verifyResult = await verifySmsOtp(coordinator.resetPhoneNumber, code);
+    if (new Date(coordinator.resetOtpExpiry).getTime() < Date.now()) {
+      coordinator.resetOtp = undefined;
+      coordinator.resetOtpExpiry = undefined;
+      coordinator.resetOtpVerifiedAt = undefined;
+      await coordinator.save();
 
-    if (!verifyResult.success) {
       res.status(400).json({
         success: false,
-        message: verifyResult.message,
+        message: 'OTP verification expired. Please request a new OTP.',
+      });
+      return;
+    }
+
+    const isValid = await bcrypt.compare(code, coordinator.resetOtp);
+
+    if (!isValid) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid OTP code',
       });
       return;
     }
 
     coordinator.resetOtpVerifiedAt = new Date();
-    coordinator.resetPhoneNumber = undefined;
-    coordinator.twilioVerificationSid = undefined;
+    coordinator.resetOtp = undefined;
+    coordinator.resetOtpExpiry = undefined;
     await coordinator.save();
 
     res.status(200).json({

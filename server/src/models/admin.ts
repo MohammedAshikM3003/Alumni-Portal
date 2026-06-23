@@ -29,8 +29,6 @@ export interface IAdmin {
   instituteDetails?: IInstituteDetails;
   resetOtp?: string;
   resetOtpExpiry?: Date;
-  resetPhoneNumber?: string;
-  twilioVerificationSid?: string;
   resetOtpVerifiedAt?: Date;
   isActive: boolean;
   createdAt: Date;
@@ -118,14 +116,6 @@ const adminSchema = new Schema<IAdmin>(
     },
     resetOtpExpiry: {
       type: Date,
-    },
-    // Twilio OTP verification fields
-    resetPhoneNumber: {
-      type: String,
-      trim: true,
-    },
-    twilioVerificationSid: {
-      type: String,
     },
     resetOtpVerifiedAt: {
       type: Date,

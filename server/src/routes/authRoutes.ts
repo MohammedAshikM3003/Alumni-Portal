@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { login, googleLogin } from '../controllers/authController.js';
-import { sendOtp, verifyOtp, resendOtp } from '../controllers/smsOtpController.js';
+import { sendOtp, verifyOtp, resendOtp, resetPassword } from '../controllers/emailOtpController.js';
 
 const router = Router();
 
@@ -8,9 +8,10 @@ const router = Router();
 router.post('/login', login);
 router.post('/google-login', googleLogin);
 
-// SMS OTP authentication routes
+// Email OTP authentication routes
 router.post('/send-otp', sendOtp);
 router.post('/verify-otp', verifyOtp);
 router.post('/resend-otp', resendOtp);
+router.post('/reset-password', resetPassword);
 
 export default router;

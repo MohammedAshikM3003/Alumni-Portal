@@ -30,8 +30,8 @@ export interface ICoordinator {
   experience?: string;
   publications: number;
   patents: number;
-  resetPhoneNumber?: string;
-  twilioVerificationSid?: string;
+	resetOtp?: string;
+	resetOtpExpiry?: Date;
   resetOtpVerifiedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -149,13 +149,12 @@ const coordinatorSchema = new Schema<ICoordinator>(
 			type: Number,
 			default: 0,
 		},
-		// OTP reset flow state (mirrors admin flow)
-		resetPhoneNumber: {
+		// OTP reset flow state
+		resetOtp: {
 			type: String,
-			trim: true,
 		},
-		twilioVerificationSid: {
-			type: String,
+		resetOtpExpiry: {
+			type: Date,
 		},
 		resetOtpVerifiedAt: {
 			type: Date,

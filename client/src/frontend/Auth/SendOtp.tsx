@@ -1,12 +1,25 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './SendOtp.module.css';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+const OTP_LENGTH = 6;
 
 export default function SendOtp() {
   const navigate = useNavigate();
-  const [otp, setOtp] = useState<string[]>(['', '', '', '']);
+  const location = useLocation();
+  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [resendTimer, setResendTimer] = useState(30);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const email = (location.state as { email?: string } | null)?.email || sessionStorage.getItem('forgotPasswordEmail') || '';
+
+  useEffect(() => {
+    if (!email) {
+      navigate('/forgot-password', { replace: true });
+    }
+  }, [email, navigate]);
 
   useEffect(() => {
     // Timer for resend code
@@ -31,7 +44,7 @@ export default function SendOtp() {
     setOtp(newOtp);
 
     // Auto-focus next input after state update
-    if (value && index < 3) {
+    if (value && index < OTP_LENGTH - 1) {
       // Use setTimeout to ensure state has updated before focusing
       setTimeout(() => {
         inputRefs.current[index + 1]?.focus();
@@ -66,7 +79,7 @@ export default function SendOtp() {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').slice(0, 4);
+    const pastedData = e.clipboardData.getData('text').slice(0, OTP_LENGTH);
     const digits = pastedData.split('').filter(char => /^\d$/.test(char));
     
     const newOtp = [...otp];
@@ -76,26 +89,67 @@ export default function SendOtp() {
     setOtp(newOtp);
 
     // Focus last filled or next empty input
-    const nextIndex = Math.min(digits.length, 3);
+    const nextIndex = Math.min(digits.length, OTP_LENGTH - 1);
     inputRefs.current[nextIndex]?.focus();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const otpCode = otp.join('');
-    if (otpCode.length === 4) {
-      console.log('OTP submitted:', otpCode);
-      // Navigate to update password step
-      navigate('/update-password');
+    if (otpCode.length !== OTP_LENGTH) {
+      setError('Enter the complete verification code');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: otpCode }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Invalid OTP');
+      }
+
+      sessionStorage.setItem('forgotPasswordEmail', email);
+      navigate('/update-password', { state: { email } });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to verify OTP');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleResendCode = () => {
+  const handleResendCode = async () => {
     if (resendTimer === 0) {
-      console.log('Resending OTP...');
-      setResendTimer(30);
-      setOtp(['', '', '', '']);
-      inputRefs.current[0]?.focus();
+      try {
+        setLoading(true);
+        setError('');
+        const response = await fetch(`${API_BASE_URL}/api/auth/resend-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to resend OTP');
+        }
+
+        setResendTimer(30);
+        setOtp(Array(OTP_LENGTH).fill(''));
+        inputRefs.current[0]?.focus();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to resend OTP');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -138,7 +192,7 @@ export default function SendOtp() {
           <div className={styles.header}>
             <h2 className={styles.title}>Verify Email</h2>
             <p className={styles.subtitle}>
-              We've sent a 4-digit verification code to your registered email address.
+              We've sent a 6-digit verification code to {email || 'your registered email address'}.
             </p>
           </div>
 
@@ -159,15 +213,17 @@ export default function SendOtp() {
                   onFocus={() => handleFocus(index)}
                   onPaste={handlePaste}
                   placeholder="•"
-                  disabled={isInputDisabled(index)}
+                  disabled={isInputDisabled(index) || loading}
                 />
               ))}
             </div>
 
+            {error && <div className={styles.errorMessage}>{error}</div>}
+
             {/* Actions */}
             <div className={styles.actions}>
-              <button type="submit" className={styles.submitButton}>
-                <span>Verify &amp; Continue</span>
+              <button type="submit" className={styles.submitButton} disabled={loading}>
+                <span>{loading ? 'Verifying...' : 'Verify &amp; Continue'}</span>
                 <span className="material-symbols-outlined">check_circle</span>
               </button>
 
@@ -176,7 +232,7 @@ export default function SendOtp() {
                   type="button"
                   className={styles.resendButton}
                   onClick={handleResendCode}
-                  disabled={resendTimer > 0}
+                  disabled={resendTimer > 0 || loading}
                 >
                   Resend code {resendTimer > 0 && (
                     <span className={styles.timer}>in {resendTimer}s</span>

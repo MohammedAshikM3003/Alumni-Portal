@@ -11,6 +11,7 @@ export interface IEventDetails {
 export interface IMail {
   senderId: string;
   senderName: string;
+  senderLabel?: string;
   senderEmail: string;
   title: string;
   content: string;

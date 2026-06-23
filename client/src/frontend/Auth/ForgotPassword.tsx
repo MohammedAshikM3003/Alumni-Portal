@@ -1,17 +1,48 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ForgotPassword.module.css';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [currentStep, setCurrentStep] = useState(1); // 1: Details, 2: Verify, 3: Security
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('OTP requested for:', email);
-    // Navigate to OTP verification page
-    navigate('/send-otp');
+
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) {
+      setError('Email address is required');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmedEmail }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send OTP');
+      }
+
+      sessionStorage.setItem('forgotPasswordEmail', trimmedEmail);
+      navigate('/send-otp', { state: { email: trimmedEmail } });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const steps = [
@@ -53,7 +84,7 @@ export default function ForgotPassword() {
           <div className={styles.header}>
             <h1 className={styles.title}>Alumni Access</h1>
             <p className={styles.subtitle}>
-              Enter your registered email to begin the verification process.
+              Enter your registered email to receive a verification code.
             </p>
           </div>
 
@@ -88,11 +119,11 @@ export default function ForgotPassword() {
                   <ul className={styles.helpList}>
                     <li>
                       <span className={styles.stepNumber}>1</span>
-                      <span>We'll send a verification code to your email</span>
+                      <span>We'll send a verification code to your registered email</span>
                     </li>
                     <li>
                       <span className={styles.stepNumber}>2</span>
-                      <span>Enter the 4-digit code to verify your identity</span>
+                      <span>Enter the 6-digit code to verify your identity</span>
                     </li>
                     <li>
                       <span className={styles.stepNumber}>3</span>
@@ -103,8 +134,10 @@ export default function ForgotPassword() {
               </div>
             </div>
 
-            <button type="submit" className={styles.submitButton}>
-              <span>Send OTP</span>
+            {error && <div className={styles.errorMessage}>{error}</div>}
+
+            <button type="submit" className={styles.submitButton} disabled={loading}>
+              <span>{loading ? 'Sending...' : 'Send OTP'}</span>
               <span className="material-symbols-outlined">arrow_forward</span>
             </button>
           </form>

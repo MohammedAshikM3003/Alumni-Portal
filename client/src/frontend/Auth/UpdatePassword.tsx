@@ -1,16 +1,29 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './UpdatePassword.module.css';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function UpdatePassword() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const email = (location.state as { email?: string } | null)?.email || sessionStorage.getItem('forgotPasswordEmail') || '';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!email) {
+      navigate('/forgot-password', { replace: true });
+    }
+  }, [email, navigate]);
+
+  if (!email) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -25,9 +38,28 @@ export default function UpdatePassword() {
       return;
     }
 
-    console.log('Password updated successfully');
-    // Navigate to login or success page
-    navigate('/login');
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, newPassword, confirmPassword }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to reset password');
+      }
+
+      sessionStorage.removeItem('forgotPasswordEmail');
+      navigate('/login');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reset password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoBack = () => {
@@ -79,7 +111,7 @@ export default function UpdatePassword() {
           <div className={styles.header}>
             <h2 className={styles.title}>Update Security</h2>
             <p className={styles.subtitle}>
-              Create a strong password to protect your alumni account and personal data.
+              Create a strong password for {email || 'your alumni account'}.
             </p>
           </div>
 
@@ -144,8 +176,8 @@ export default function UpdatePassword() {
 
             {/* Actions */}
             <div className={styles.actions}>
-              <button type="submit" className={styles.submitButton}>
-                <span>Update Password</span>
+              <button type="submit" className={styles.submitButton} disabled={loading}>
+                <span>{loading ? 'Updating...' : 'Update Password'}</span>
                 <span className="material-symbols-outlined">lock</span>
               </button>
             </div>

@@ -6,6 +6,9 @@ export interface IUser {
   email: string;
   password: string;
   role: 'alumni' | 'admin' | 'coordinator';
+  resetOtp?: string;
+  resetOtpExpiry?: Date;
+  resetOtpVerifiedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,6 +56,15 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: true,
+    },
+    resetOtp: {
+      type: String,
+    },
+    resetOtpExpiry: {
+      type: Date,
+    },
+    resetOtpVerifiedAt: {
+      type: Date,
     },
     role: {
       type: String,

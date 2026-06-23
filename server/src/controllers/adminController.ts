@@ -10,7 +10,7 @@ import JobReference from '../models/jobReference.js';
 import Payment from '../models/payment.js';
 import Admin from '../models/admin.js';
 import User from '../models/user.js';
-import { sendSmsOtp, verifySmsOtp } from '../utils/messenger.js';
+import { generateOtp, sendOtpEmail, OTP_TTL_MINUTES } from '../utils/emailOtp.js';
 import { io } from '../server.js';
 
 /**
@@ -513,24 +513,32 @@ export const sendResetOtp = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const phoneForTwilio = mobile.startsWith('+') ? mobile : `+91${cleanMobile}`;
-    const smsResult = await sendSmsOtp(phoneForTwilio);
-
-    if (!smsResult.success) {
-      res.status(500).json({
+    if (!admin.email) {
+      res.status(400).json({
         success: false,
-        message: 'Failed to send OTP via SMS: ' + smsResult.message,
+        message: 'Admin profile has no email address',
       });
       return;
     }
 
-    admin.resetPhoneNumber = phoneForTwilio;
-    admin.twilioVerificationSid = smsResult.verificationSid;
+    const otp = generateOtp();
+    admin.resetOtp = await bcrypt.hash(otp, 10);
+    admin.resetOtpExpiry = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000);
+    admin.resetOtpVerifiedAt = undefined;
+
+    await sendOtpEmail({
+      to: admin.email,
+      recipientName: admin.name || 'Admin',
+      otp,
+      subject: 'Admin password reset code',
+      purpose: 'reset your password',
+    });
+
     await admin.save();
 
     res.status(200).json({
       success: true,
-      message: 'OTP sent successfully to your registered mobile number',
+      message: 'OTP sent successfully to your registered email address',
     });
   } catch (error: any) {
     console.error('[AdminController] sendResetOtp error:', error);
@@ -577,7 +585,7 @@ export const verifyResetOtp = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    if (!admin.resetPhoneNumber) {
+    if (!admin.resetOtp || !admin.resetOtpExpiry) {
       res.status(400).json({
         success: false,
         message: 'No OTP request found. Please request a new OTP.',
@@ -585,19 +593,32 @@ export const verifyResetOtp = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const verifyResult = await verifySmsOtp(admin.resetPhoneNumber, code);
+    if (new Date(admin.resetOtpExpiry).getTime() < Date.now()) {
+      admin.resetOtp = undefined;
+      admin.resetOtpExpiry = undefined;
+      admin.resetOtpVerifiedAt = undefined;
+      await admin.save();
 
-    if (!verifyResult.success) {
       res.status(400).json({
         success: false,
-        message: verifyResult.message,
+        message: 'OTP verification expired. Please request a new OTP.',
+      });
+      return;
+    }
+
+    const isValid = await bcrypt.compare(code, admin.resetOtp);
+
+    if (!isValid) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid OTP code',
       });
       return;
     }
 
     admin.resetOtpVerifiedAt = new Date();
-    admin.resetPhoneNumber = undefined;
-    admin.twilioVerificationSid = undefined;
+    admin.resetOtp = undefined;
+    admin.resetOtpExpiry = undefined;
     await admin.save();
 
     res.status(200).json({
