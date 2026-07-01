@@ -281,11 +281,6 @@ const Coordinator_ViewMail: FC<CoordinatorViewMailProps> = ({ onLogout }) => {
                         <div className={styles.eventCard}>
                             <div className={styles.eventHeader}>
                                 <h3>{mail.title || 'No Title'}</h3>
-                                {user?.department && (
-                                    <div className={styles.departmentBadge}>
-                                        {user.department} Department Only
-                                    </div>
-                                )}
                             </div>
                             <div className={styles.eventMetadata}>
                                 <div className={styles.metadataBlock}>
@@ -312,11 +307,6 @@ const Coordinator_ViewMail: FC<CoordinatorViewMailProps> = ({ onLogout }) => {
                             <div className={styles.eventCard}>
                                 <div className={styles.eventHeader}>
                                     <h3>Individual Responses ({responses.length})</h3>
-                                    {user?.department && (
-                                        <div className={styles.departmentBadge}>
-                                            {user.department} Department
-                                        </div>
-                                    )}
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginTop: '20px' }}>
                                     {responses.map((response, index) => (
