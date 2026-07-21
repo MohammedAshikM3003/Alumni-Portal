@@ -196,7 +196,7 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
                 <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
               </div>
               <button className={styles.refreshBtn} onClick={handleRefresh} disabled={loading}>
-                <span className="material-symbols-outlined">refresh</span>
+                <span className={`material-symbols-outlined ${loading ? styles.refreshIconSpin : ''}`}>refresh</span>
               </button>
             </div>
           </div>

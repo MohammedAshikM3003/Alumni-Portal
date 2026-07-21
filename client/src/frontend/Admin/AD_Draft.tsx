@@ -247,15 +247,6 @@ const Admin_Draft = ({ onLogout, adminName, adminEmail }: { onLogout?: () => voi
   const handleAlumniInputChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    // Check for duplicate email when email changes
-    if (name === 'alumniEmail' && value.trim()) {
-      const isDuplicate = checkDuplicateEmail(value, index);
-      if (isDuplicate) {
-        showAlert(`This email is already added for another alumni. Please use a different email.`, 'error');
-        return;
-      }
-    }
-
     setAlumniEntries(prev => prev.map((entry, i) =>
       i === index ? { ...entry, [name]: value } : entry
     ));
@@ -539,12 +530,6 @@ const Admin_Draft = ({ onLogout, adminName, adminEmail }: { onLogout?: () => voi
     const selectedAlumni = entry.matchedAlumni.find(a => a.email === selectedEmail);
 
     if (selectedAlumni) {
-      const isDuplicate = checkDuplicateEmail(selectedEmail, index);
-      if (isDuplicate) {
-        showAlert(`This email is already added for another alumni. Please select a different alumni.`, 'error');
-        return;
-      }
-
       const photoUrl = selectedAlumni.profilePicture
         ? (selectedAlumni.profilePicture.startsWith('http') ? selectedAlumni.profilePicture : `${API_BASE_URL}${selectedAlumni.profilePicture}`)
         : null;
@@ -799,7 +784,7 @@ const Admin_Draft = ({ onLogout, adminName, adminEmail }: { onLogout?: () => voi
 
       const data = await response.json();
       if (data.success) {
-        navigate('/admin/mail/draft_history');
+        navigate('/admin/mail');
       } else {
         showAlert(data.message || 'Failed to delete draft', 'error');
       }
@@ -1146,6 +1131,14 @@ const Admin_Draft = ({ onLogout, adminName, adminEmail }: { onLogout?: () => voi
                     <div className={styles.duplicateWarning}>
                       <span className="material-symbols-outlined">warning</span>
                       This email is already added for another alumni
+                    </div>
+                  )}
+
+                  {/* Show email format warning */}
+                  {!checkDuplicateEmail(entry.alumniEmail, index) && entry.alumniEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(entry.alumniEmail) && (
+                    <div className={styles.duplicateWarning}>
+                      <span className="material-symbols-outlined">warning</span>
+                      Please enter a valid email address
                     </div>
                   )}
 

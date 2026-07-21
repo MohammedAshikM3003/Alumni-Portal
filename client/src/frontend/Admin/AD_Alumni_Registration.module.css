@@ -570,7 +570,7 @@
   cursor: pointer;
   text-align: center;
   color: white;
-  background-color: var(--primary);
+  background-color: #228B22;
   padding: 0.75rem;
   border-radius: 0.375rem;
   font-size: 0.875rem;
@@ -582,7 +582,7 @@
 }
 
 .addRowBtn:hover {
-  background-color: var(--primary-hover);
+  background-color: #1a6b1a;
 }
 
 .deleteBtn {

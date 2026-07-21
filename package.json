@@ -8,5 +8,8 @@
     "start": "npx serve client/dist -s -l 10000",
     "start:client": "npm --prefix client run dev",
     "start:server": "npm --prefix server run dev"
+  },
+  "devDependencies": {
+    "opencode-ai": "^1.18.4"
   }
 }
