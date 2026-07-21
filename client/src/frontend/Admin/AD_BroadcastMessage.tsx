@@ -1,6 +1,6 @@
 import styles from './AD_BroadcastMessage.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext/authContext';
 
@@ -151,40 +151,6 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
   const [generatingEmail, setGeneratingEmail] = useState(false);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loadingDepartments, setLoadingDepartments] = useState(false);
-  const [errors, setErrors] = useState<{ message: string; fieldId: string }[]>([]);
-  const [blinkingField, setBlinkingField] = useState<string | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
-  const errorListRef = useRef<HTMLDivElement>(null);
-  const hasScrolledToErrors = useRef(false);
-
-  // Scroll to error list when new errors appear (not when auto-clearing)
-  useEffect(() => {
-    if (errors.length > 0 && !hasScrolledToErrors.current) {
-      hasScrolledToErrors.current = true;
-      setTimeout(() => {
-        errorListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
-    if (errors.length === 0) {
-      hasScrolledToErrors.current = false;
-    }
-  }, [errors.length]);
-
-  // Auto-clear specific field error when user types
-  useEffect(() => {
-    if (errors.length === 0) return;
-    const fixedFieldIds = new Set<string>();
-    alumniEntries.forEach((entry, i) => {
-      if (entry.alumniName.trim()) fixedFieldIds.add(`alumniName-${i}`);
-      if (entry.department.trim()) fixedFieldIds.add(`department-${i}`);
-      if (entry.batchStart.trim()) fixedFieldIds.add(`batchStart-${i}`);
-      if (entry.alumniEmail.trim()) fixedFieldIds.add(`alumniEmail-${i}`);
-    });
-    if (sharedData.title.trim()) fixedFieldIds.add('title');
-    if (sharedData.message.trim()) fixedFieldIds.add('message');
-
-    setErrors(prev => prev.filter(err => !fixedFieldIds.has(err.fieldId)));
-  }, [alumniEntries, sharedData]);
 
   // Helper function to get cookie value
   const getCookie = (name: string) => {
@@ -376,6 +342,15 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
   // Handle alumni-specific input changes
   const handleAlumniInputChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    // Check for duplicate email when email changes
+    if (name === 'alumniEmail' && value.trim()) {
+      const isDuplicate = checkDuplicateEmail(value, index);
+      if (isDuplicate) {
+        showAlert(`This email is already added for another alumni. Please use a different email.`, 'error');
+        return;
+      }
+    }
 
     setAlumniEntries(prev => prev.map((entry, i) =>
       i === index ? { ...entry, [name]: value } : entry
@@ -620,7 +595,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
       if (response.ok) {
         showAlert('Draft deleted successfully', 'success');
         setTimeout(() => {
-          navigate('/admin/mail');
+          navigate('/admin/broadcast-message');
         }, 1000);
       } else {
         const error = await response.json();
@@ -657,20 +632,6 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
     setTimeout(() => {
       setAlert({ show: false, message: '', type: '' });
     }, 5000);
-  };
-
-  const scrollToFieldAndBlink = (fieldId: string) => {
-    const field = document.getElementById(fieldId);
-    if (field) {
-      field.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => {
-        field.focus();
-      }, 300);
-      setBlinkingField(fieldId);
-      setTimeout(() => {
-        setBlinkingField(null);
-      }, 3000);
-    }
   };
 
   const handleFormToggleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -869,6 +830,13 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
     const selectedAlumni = entry.matchedAlumni.find(a => a.email === selectedEmail);
 
     if (selectedAlumni) {
+      // Check for duplicate email
+      const isDuplicate = checkDuplicateEmail(selectedEmail, index);
+      if (isDuplicate) {
+        showAlert(`This email is already added for another alumni. Please select a different alumni.`, 'error');
+        return;
+      }
+
       const photoUrl = selectedAlumni.profilePicture
         ? (selectedAlumni.profilePicture.startsWith('http') ? selectedAlumni.profilePicture : `${API_BASE_URL}${selectedAlumni.profilePicture}`)
         : null;
@@ -996,48 +964,49 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
 
     // Validate all alumni entries
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const validationErrors: { message: string; fieldId: string }[] = [];
 
     for (let i = 0; i < alumniEntries.length; i++) {
       const entry = alumniEntries[i];
       const entryNum = alumniEntries.length > 1 ? ` (Entry ${i + 1})` : '';
 
       if (!entry.alumniName.trim()) {
-        validationErrors.push({ message: `Please enter Alumni Name${entryNum}`, fieldId: `alumniName-${i}` });
+        showAlert(`Please enter Alumni Name${entryNum}`, 'error');
+        return;
       }
       if (!entry.department.trim()) {
-        validationErrors.push({ message: `Please enter Department${entryNum}`, fieldId: `department-${i}` });
+        showAlert(`Please enter Department${entryNum}`, 'error');
+        return;
       }
       if (!entry.batchStart.trim()) {
-        validationErrors.push({ message: `Please enter Batch year${entryNum}`, fieldId: `batchStart-${i}` });
+        showAlert(`Please enter Batch year${entryNum}`, 'error');
+        return;
       }
       if (!entry.alumniEmail.trim()) {
-        validationErrors.push({ message: `Please enter Alumni Email${entryNum}`, fieldId: `alumniEmail-${i}` });
-      } else if (!emailRegex.test(entry.alumniEmail.trim())) {
-        validationErrors.push({ message: `Please enter a valid email address${entryNum}`, fieldId: `alumniEmail-${i}` });
+        showAlert(`Please enter Alumni Email${entryNum}`, 'error');
+        return;
+      }
+      if (!emailRegex.test(entry.alumniEmail.trim())) {
+        showAlert(`Please enter a valid email address${entryNum}`, 'error');
+        return;
       }
     }
 
     if (!sharedData.title.trim()) {
-      validationErrors.push({ message: 'Please enter a Subject/Title', fieldId: 'title' });
+      showAlert('Please enter a Subject/Title', 'error');
+      return;
     }
     if (!sharedData.message.trim()) {
-      validationErrors.push({ message: 'Please enter a Message', fieldId: 'message' });
+      showAlert('Please enter a Message', 'error');
+      return;
     }
 
     // Check for duplicate emails
     const duplicateEmails = getDuplicateEmailsInfo();
     if (duplicateEmails.size > 0) {
       const duplicateList = Array.from(duplicateEmails.keys()).join(', ');
-      validationErrors.push({ message: `Duplicate emails found: ${duplicateList}. Please remove duplicates before sending.`, fieldId: '' });
-    }
-
-    if (validationErrors.length > 0) {
-      setErrors(validationErrors);
+      showAlert(`Duplicate emails found: ${duplicateList}. Please remove duplicates before sending.`, 'error');
       return;
     }
-
-    setErrors([]);
 
     setLoading(true);
 
@@ -1134,7 +1103,6 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
     setIsEventFormEnabled(false);
     setFormSent(false);
     setFormCleared(false);
-    setErrors([]);
   };
 
   return (
@@ -1178,10 +1146,10 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
           )}
         </div>
 
-        {alert.show && alert.type !== 'error' && (
+        {alert.show && (
           <div className={`${styles.alert} ${styles[alert.type]}`}>
             <span className="material-symbols-outlined">
-              {alert.type === 'success' ? 'check_circle' : 'info'}
+              {alert.type === 'success' ? 'check_circle' : alert.type === 'error' ? 'error' : 'info'}
             </span>
             <span>{alert.message}</span>
           </div>
@@ -1332,7 +1300,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
                           type="text"
                           id={`alumniName-${index}`}
                           placeholder="Search alumni by name..."
-                          className={`${styles.inputField} ${blinkingField === `alumniName-${index}` ? styles.blinkField : ''}`}
+                          className={styles.inputField}
                           value={entry.alumniName}
                           onChange={(e) => handleSearchAlumniName(index, e.target.value)}
                           onFocus={() => setAlumniEntries(prev => prev.map((e, i) =>
@@ -1391,7 +1359,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
                       <select
                         id={`department-${index}`}
                         name="department"
-                        className={`${styles.inputField} ${blinkingField === `department-${index}` ? styles.blinkField : ''}`}
+                        className={styles.inputField}
                         value={entry.department}
                         onChange={(e) => handleAlumniInputChange(index, e)}
                         disabled={loading || loadingDepartments}
@@ -1440,7 +1408,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
                       id={`batchStart-${index}`}
                       name="batchStart"
                       placeholder="e.g., 2020"
-                      className={`${styles.inputField} ${blinkingField === `batchStart-${index}` ? styles.blinkField : ''}`}
+                      className={styles.inputField}
                       value={entry.batchStart}
                       onChange={(e) => handleAlumniInputChange(index, e)}
                       disabled={loading}
@@ -1471,7 +1439,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
                     <select
                       id={`alumniEmail-${index}`}
                       name="alumniEmail"
-                      className={`${styles.inputField} ${checkDuplicateEmail(entry.alumniEmail, index) ? styles.duplicateField : ''} ${blinkingField === `alumniEmail-${index}` ? styles.blinkField : ''}`}
+                      className={`${styles.inputField} ${checkDuplicateEmail(entry.alumniEmail, index) ? styles.duplicateField : ''}`}
                       value={entry.alumniEmail}
                       onChange={(e) => handleEmailSelect(index, e)}
                       disabled={loading}
@@ -1489,7 +1457,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
                       id={`alumniEmail-${index}`}
                       name="alumniEmail"
                       placeholder="alumni@example.com"
-                      className={`${styles.inputField} ${checkDuplicateEmail(entry.alumniEmail, index) ? styles.duplicateField : ''} ${blinkingField === `alumniEmail-${index}` ? styles.blinkField : ''}`}
+                      className={`${styles.inputField} ${checkDuplicateEmail(entry.alumniEmail, index) ? styles.duplicateField : ''}`}
                       value={entry.alumniEmail}
                       onChange={(e) => handleAlumniInputChange(index, e)}
                       disabled={loading}
@@ -1501,14 +1469,6 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
                     <div className={styles.duplicateWarning}>
                       <span className="material-symbols-outlined">warning</span>
                       This email is already added for another alumni
-                    </div>
-                  )}
-
-                  {/* Show email format warning */}
-                  {!checkDuplicateEmail(entry.alumniEmail, index) && entry.alumniEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(entry.alumniEmail) && (
-                    <div className={styles.duplicateWarning}>
-                      <span className="material-symbols-outlined">warning</span>
-                      Please enter a valid email address
                     </div>
                   )}
 
@@ -1562,7 +1522,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
                 id="title"
                 name="title"
                 placeholder="Enter mail subject"
-                className={`${styles.inputField} ${blinkingField === 'title' ? styles.blinkField : ''}`}
+                className={styles.inputField}
                 value={sharedData.title}
                 onChange={handleSharedInputChange}
                 disabled={loading}
@@ -1578,7 +1538,7 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
                 id="message"
                 name="message"
                 placeholder="Write your message here..."
-                className={`${styles.inputField} ${styles.textarea} ${blinkingField === 'message' ? styles.blinkField : ''}`}
+                className={`${styles.inputField} ${styles.textarea}`}
                 rows={10}
                 value={sharedData.message}
                 onChange={handleSharedInputChange}
@@ -1702,28 +1662,6 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
             </div>
           </div>
         </form>
-        )}
-
-        {errors.length > 0 && (
-          <div ref={errorListRef} className={styles.errorListContainer}>
-            <div className={styles.errorListHeader}>
-              <span className="material-symbols-outlined">error</span>
-              <span>Please fix the following {errors.length} error{errors.length > 1 ? 's' : ''}:</span>
-            </div>
-            <div className={styles.errorList}>
-              {errors.map((err, idx) => (
-                <div
-                  key={idx}
-                  className={styles.errorItem}
-                  onClick={() => err.fieldId && scrollToFieldAndBlink(err.fieldId)}
-                  style={{ cursor: err.fieldId ? 'pointer' : 'default' }}
-                >
-                  <span className="material-symbols-outlined">arrow_forward</span>
-                  <span>{err.message}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         )}
       </main>
     </div>

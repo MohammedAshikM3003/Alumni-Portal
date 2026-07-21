@@ -455,7 +455,7 @@
   transition: background 0.2s;
 }
 .cardActionPrimary:hover {
-  background: var(--dark-green-darker);
+  background: var(--dark-green-deeper);
 }
 .cardUpcoming {
   background: #ede9fe;

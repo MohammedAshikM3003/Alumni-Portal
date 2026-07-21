@@ -1,7 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 :root {
-  --primary: #228B22;
-  --primary-hover: #1a6b1a;
   --text-muted: #64748B;
   --text-light: #94A3B8;
   --border-color: #E2E8F0;
@@ -576,24 +574,24 @@
 }
 
 .addRowBtn {
-  width: 120px;
-  margin: 0.75rem 0.5rem;
+  width: 100px;
+  margin: 0.5rem;
   cursor: pointer;
   text-align: center;
-  color: #ffffff !important;
-  background-color: #228B22 !important;
-  padding: 0.6rem 1rem;
+  color: white;
+  background-color: var(--primary);
+  padding: 0.75rem;
   border-radius: 0.375rem;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   transition: all 0.2s ease;
-  border: 1px solid #1a6b1a;
+  border: 1px solid transparent;
   box-sizing: border-box;
-  display: inline-block;
+  display: block;
 }
 
 .addRowBtn:hover {
-  background-color: #1a6b1a !important;
+  background-color: var(--primary-hover);
 }
 
 
@@ -701,21 +699,6 @@
   background-color: #f5f5f5;
   cursor: not-allowed;
   opacity: 0.6;
-}
-
-/* Field inline warning */
-.fieldWarning {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  color: #dc3545;
-  font-size: 0.8rem;
-  margin-top: 0.4rem;
-  font-weight: 500;
-}
-
-.fieldWarning span {
-  font-size: 1rem;
 }
 
 /* ================== SUBMIT MESSAGE ================== */
@@ -903,103 +886,4 @@
 
 .uploadBtn:hover {
   background: var(--primary-hover);
-}
-
-/* Error list at bottom */
-.errorListContainer {
-  margin-top: 1.5rem;
-  padding: 1.25rem;
-  background: #fff5f5;
-  border: 1px solid #f5c6cb;
-  border-radius: 0.75rem;
-  animation: slideIn 0.3s ease;
-}
-
-.errorListHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  color: #721c24;
-  font-size: 0.95rem;
-  margin-bottom: 0.75rem;
-}
-
-.errorListHeader span:first-child {
-  font-size: 1.25rem;
-}
-
-.errorList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.errorItem {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  color: #721c24;
-  font-size: 0.9rem;
-  border-radius: 0.4rem;
-  transition: background-color 0.2s ease;
-}
-
-.errorItem:hover {
-  background-color: #f8d7da;
-}
-
-.errorItem span:first-child {
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-/* Blinking field animation */
-.blinkField {
-  animation: blinkHighlight 3s ease;
-}
-
-@keyframes blinkHighlight {
-  0% {
-    border-color: #dc3545;
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.4);
-    background-color: #fff5f5;
-  }
-  20% {
-    border-color: #228b22;
-    box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.3);
-    background-color: #f0fff0;
-  }
-  40% {
-    border-color: #dc3545;
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.4);
-    background-color: #fff5f5;
-  }
-  60% {
-    border-color: #228b22;
-    box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.3);
-    background-color: #f0fff0;
-  }
-  80% {
-    border-color: #dc3545;
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.4);
-    background-color: #fff5f5;
-  }
-  100% {
-    border-color: #ddd;
-    box-shadow: none;
-    background-color: transparent;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }

@@ -108,47 +108,7 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
   ]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ message: string; fieldId: string }[]>([]);
-  const [blinkingField, setBlinkingField] = useState<string | null>(null);
-  const errorListRef = useRef<HTMLDivElement>(null);
-  const hasScrolledToErrors = useRef(false);
-
-  // Scroll to error list when new errors appear (not when auto-clearing)
-  useEffect(() => {
-    if (errors.length > 0 && !hasScrolledToErrors.current) {
-      hasScrolledToErrors.current = true;
-      setTimeout(() => {
-        errorListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
-    if (errors.length === 0) {
-      hasScrolledToErrors.current = false;
-    }
-  }, [errors.length]);
-
-  // Auto-clear specific field error when user types
-  useEffect(() => {
-    if (errors.length === 0) return;
-    const fixedFieldIds = new Set<string>();
-    if (formData.name.trim()) fixedFieldIds.add('name');
-    if (formData.registerNumber.trim()) fixedFieldIds.add('registerNumber');
-    if (formData.email.trim()) fixedFieldIds.add('email');
-    if (formData.dob.trim()) fixedFieldIds.add('dob');
-    if (formData.yearFrom.trim()) fixedFieldIds.add('yearFrom');
-    if (formData.degree.trim()) fixedFieldIds.add('degree');
-    if (formData.branch.trim()) fixedFieldIds.add('branch');
-    setErrors(prev => prev.filter(err => !fixedFieldIds.has(err.fieldId)));
-  }, [formData]);
-
-  const scrollToFieldAndBlink = (fieldId: string) => {
-    const field = document.getElementById(fieldId);
-    if (field) {
-      field.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => { field.focus(); }, 300);
-      setBlinkingField(fieldId);
-      setTimeout(() => { setBlinkingField(null); }, 3000);
-    }
-  };
+  const [submitMessage, setSubmitMessage] = useState<{ type: string; text: string }>({ type: '', text: '' });
 
   // Departments state for dynamic dropdowns
   const [departments, setDepartments] = useState<any[]>([]);
@@ -383,6 +343,7 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
   const handleSubmit = async () => {
     const clientTraceId = createClientTraceId();
     setIsSubmitting(true);
+    setSubmitMessage({ type: '', text: '' });
     logClientStep(clientTraceId, 'send-prefilled-link', 1, {
       email: formData.email,
       registerNumber: formData.registerNumber,
@@ -391,21 +352,31 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
     });
 
     // Validate required fields
-    const validationErrors: { message: string; fieldId: string }[] = [];
-    if (!formData.registerNumber.trim()) validationErrors.push({ message: 'Please enter Register Number', fieldId: 'registerNumber' });
-    if (!formData.name.trim()) validationErrors.push({ message: 'Please enter Full Name', fieldId: 'name' });
-    if (!formData.email.trim()) validationErrors.push({ message: 'Please enter Email Address', fieldId: 'email' });
-    if (!formData.dob.trim()) validationErrors.push({ message: 'Please select Date of Birth', fieldId: 'dob' });
-    if (!formData.yearFrom.trim()) validationErrors.push({ message: 'Please select Years of Study', fieldId: 'yearFrom' });
-    if (!formData.degree.trim()) validationErrors.push({ message: 'Please select Degree', fieldId: 'degree' });
-    if (!formData.branch.trim()) validationErrors.push({ message: 'Please select Course / Branch', fieldId: 'branch' });
-
-    if (validationErrors.length > 0) {
-      setErrors(validationErrors);
+    if (
+      !formData.registerNumber ||
+      !formData.name ||
+      !formData.email ||
+      !formData.dob ||
+      !formData.yearFrom ||
+      !formData.degree ||
+      !formData.branch
+    ) {
+      logClientBreak(clientTraceId, 'send-prefilled-link', 2, 'Required fields missing', {
+        registerNumber: Boolean(formData.registerNumber),
+        name: Boolean(formData.name),
+        email: Boolean(formData.email),
+        dob: Boolean(formData.dob),
+        yearFrom: Boolean(formData.yearFrom),
+        degree: Boolean(formData.degree),
+        branch: Boolean(formData.branch),
+      });
+      setSubmitMessage({
+        type: 'error',
+        text: 'Please fill all required fields (Name, Register Number, Email, DOB, Year, Degree, Branch)',
+      });
       setIsSubmitting(false);
       return;
     }
-    setErrors([]);
 
     const competitiveExams: Array<{ examName: string; marks: string }> = [];
     if (formData.hasCompetitiveExams) {
@@ -481,7 +452,10 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
       // Check if token exists
       if (!token) {
         logClientBreak(clientTraceId, 'send-prefilled-link', 4, 'Auth token missing');
-        alert('You are not logged in. Please login as admin first.');
+        setSubmitMessage({
+          type: 'error',
+          text: 'You are not logged in. Please login as admin first.',
+        });
         setIsSubmitting(false);
         return;
       }
@@ -537,7 +511,10 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
           serverFlow: data?.flow,
           serverStep: data?.step,
         });
-        alert('Session expired. Please login again.');
+        setSubmitMessage({
+          type: 'error',
+          text: 'Session expired. Please login again.',
+        });
         setIsSubmitting(false);
         return;
       }
@@ -548,7 +525,10 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
           serverTraceId: data?.traceId,
           serverStep: data?.step,
         });
-        alert(`Registration link with pre-filled data sent successfully to ${formData.email}!`);
+        setSubmitMessage({
+          type: 'success',
+          text: `Registration link with pre-filled data sent successfully to ${formData.email}!`,
+        });
         // Reset form
         setFormData({
           name: '',
@@ -588,7 +568,10 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
           serverFlow: data?.flow,
           serverStep: data?.step,
         });
-        alert(data?.message || 'Failed to create alumni. Please try again.');
+        setSubmitMessage({
+          type: 'error',
+          text: data?.message || 'Failed to create alumni. Please try again.',
+        });
       }
     } catch (error: any) {
       logClientBreak(clientTraceId, 'send-prefilled-link', 11, 'Fetch failed', {
@@ -597,7 +580,10 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
         stack: error?.stack,
         apiBaseUrl: API_BASE_URL,
       });
-      alert('Network error. Please check your connection and try again.');
+      setSubmitMessage({
+        type: 'error',
+        text: 'Network error. Please check your connection and try again.',
+      });
     } finally {
       logClientStep(clientTraceId, 'send-prefilled-link', 12, { message: 'handleSubmit finished' });
       setIsSubmitting(false);
@@ -618,6 +604,14 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
         </div>
 
         <div className={styles.formContainer}>
+          {/* Submit Message */}
+          {submitMessage.text && (
+            <div
+              className={`${styles.submitMessage} ${submitMessage.type === 'success' ? styles.successMessage : styles.errorMessage}`}
+            >
+              {submitMessage.text}
+            </div>
+          )}
 
           {/* Section 1: Personal Details */}
           <section className={styles.formCard}>
@@ -628,8 +622,7 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                   <label className={styles.inputLabel}>Full Name *</label>
                   <input
                     type="text"
-                    id="name"
-                    className={`${styles.textInput} ${blinkingField === 'name' ? styles.blinkField : ''}`}
+                    className={styles.textInput}
                     placeholder="e.g. Alexander Pierce"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
@@ -653,8 +646,8 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                   </label>
                   <input
                     type="text"
-                    id="registerNumber"
-                    className={`${styles.textInput} ${blinkingField === 'registerNumber' ? styles.blinkField : ''}`}
+                    id="reg"
+                    className={styles.textInput}
                     placeholder="11-digit Register Number"
                     value={formData.registerNumber}
                     onChange={(e) => handleInputChange('registerNumber', e.target.value)}
@@ -667,17 +660,11 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                   <input
                     type="email"
                     id="email"
-                    className={`${styles.textInput} ${blinkingField === 'email' ? styles.blinkField : ''}`}
+                    className={styles.textInput}
                     placeholder="Email Address"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                   />
-                  {formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
-                    <div className={styles.fieldWarning}>
-                      <span className="material-symbols-outlined">warning</span>
-                      Please enter a valid email address
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -685,9 +672,8 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Date of Birth *</label>
                   <DateInput
-                    id="dob"
                     theme="admin"
-                    className={`${styles.textInput} ${blinkingField === 'dob' ? styles.blinkField : ''}`}
+                    className={styles.textInput}
                     value={formData.dob}
                     onChange={(e) => handleInputChange('dob', e.target.value)}
                     yearRange="dob"
@@ -696,8 +682,7 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Years of Study (From) *</label>
                   <select
-                    id="yearFrom"
-                    className={`${styles.selectInput} ${blinkingField === 'yearFrom' ? styles.blinkField : ''}`}
+                    className={styles.selectInput}
                     value={formData.yearFrom}
                     onChange={(e) => handleInputChange('yearFrom', e.target.value)}
                   >
@@ -726,8 +711,7 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Degree *</label>
                   <select
-                    id="degree"
-                    className={`${styles.selectInput} ${blinkingField === 'degree' ? styles.blinkField : ''}`}
+                    className={styles.selectInput}
                     value={formData.degree}
                     onChange={(e) => handleInputChange('degree', e.target.value)}
                   >
@@ -740,8 +724,7 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Course / Branch *</label>
                   <select
-                    id="branch"
-                    className={`${styles.selectInput} ${blinkingField === 'branch' ? styles.blinkField : ''}`}
+                    className={styles.selectInput}
                     value={formData.branch}
                     onChange={(e) => handleInputChange('branch', e.target.value)}
                   >
@@ -1377,28 +1360,6 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
               <span className="material-symbols-outlined">{isSubmitting ? 'hourglass_empty' : 'send'}</span>
             </button>
           </div>
-
-          {errors.length > 0 && (
-            <div ref={errorListRef} className={styles.errorListContainer}>
-              <div className={styles.errorListHeader}>
-                <span className="material-symbols-outlined">error</span>
-                <span>Please fix the following {errors.length} error{errors.length > 1 ? 's' : ''}:</span>
-              </div>
-              <div className={styles.errorList}>
-                {errors.map((err, idx) => (
-                  <div
-                    key={idx}
-                    className={styles.errorItem}
-                    onClick={() => err.fieldId && scrollToFieldAndBlink(err.fieldId)}
-                    style={{ cursor: err.fieldId ? 'pointer' : 'default' }}
-                  >
-                    <span className="material-symbols-outlined">arrow_forward</span>
-                    <span>{err.message}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </main>
     </div>

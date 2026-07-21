@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './AD_Department.module.css';
 import { Search, Plus, Eye, X } from 'lucide-react';
 import Sidebar from './Components/Sidebar/Sidebar';
@@ -25,7 +25,6 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -33,17 +32,6 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
     branch: '',
     deptCode: ''
   });
-
-  // Filtered departments based on search query
-  const filteredDepartments = useMemo(() => {
-    if (!searchQuery.trim()) return departments;
-    const q = searchQuery.toLowerCase();
-    return departments.filter(dept =>
-      dept.stream.toLowerCase().includes(q) ||
-      dept.branch.toLowerCase().includes(q) ||
-      dept.deptCode.toLowerCase().includes(q)
-    );
-  }, [departments, searchQuery]);
 
   // Calculate total coordinator count from departments
   const totalCoordinatorCount = departments.reduce((sum, dept) => sum + (dept.coordinatorCount || 0), 0);
@@ -147,10 +135,6 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
     }
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
   const handleView = (deptCode: string) => {
     navigate(`/admin/department/view_department/${deptCode}`);
   };
@@ -176,8 +160,6 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
                 type="text"
                 className={styles.searchInput}
                 placeholder="Search departments..."
-                value={searchQuery}
-                onChange={handleSearchChange}
               />
             </div>
           </div>
@@ -187,9 +169,7 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
 
             <div className={styles.statsContainer}>
               <div className={styles.statCard}>
-                <div className={styles.statNumber}>
-                  {searchQuery ? `${filteredDepartments.length}/${departments.length}` : departments.length}
-                </div>
+                <div className={styles.statNumber}>{departments.length}</div>
                 <div className={styles.statLabel}>Total Departments</div>
               </div>
               <div className={styles.statCard}>
@@ -230,7 +210,7 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDepartments.map((dept, index) => (
+                  {departments.map((dept, index) => (
                     <tr key={dept._id}>
                       <td className={styles.textMuted}>{String(index + 1).padStart(2, '0')}</td>
                       <td className={styles.fontSemibold}>{dept.stream}</td>
@@ -253,11 +233,9 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
                       </td>
                     </tr>
                   ))}
-                  {filteredDepartments.length === 0 && !loading && (
+                  {departments.length === 0 && !loading && (
                     <tr>
-                      <td colSpan={6} className={styles.emptyState}>
-                        {searchQuery ? 'No departments match your search.' : 'No departments found. Add a new one to get started.'}
-                      </td>
+                      <td colSpan={6} className={styles.emptyState}>No departments found. Add a new one to get started.</td>
                     </tr>
                   )}
                 </tbody>
