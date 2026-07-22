@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, X, User, Book, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Save, X, User, Book, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import styles from './AD_Add_Faculty.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
@@ -70,6 +70,8 @@ const Admin_Add_Faculty = ({ onLogout }: AdminAddFacultyProps) => {
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [departmentName, setDepartmentName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Fetch department details to get the department name
   useEffect(() => {
@@ -474,27 +476,45 @@ const Admin_Add_Faculty = ({ onLogout }: AdminAddFacultyProps) => {
 
                   <div className={styles.formGroup}>
                     <label>Password *</label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className={`${styles.formInput} ${errors.password ? styles.inputError : ''}`}
-                      placeholder="Min. 8 characters"
-                    />
+                    <div className={styles.passwordWrapper}>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className={`${styles.formInput} ${errors.password ? styles.inputError : ''}`}
+                        placeholder="Min. 8 characters"
+                      />
+                      <button
+                        type="button"
+                        className={styles.passwordToggle}
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                     {errors.password && <span className={styles.errorText}>{errors.password}</span>}
                   </div>
 
                   <div className={styles.formGroup}>
                     <label>Confirm Password *</label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className={`${styles.formInput} ${errors.confirmPassword ? styles.inputError : ''}`}
-                      placeholder="Re-enter password"
-                    />
+                    <div className={styles.passwordWrapper}>
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        className={`${styles.formInput} ${errors.confirmPassword ? styles.inputError : ''}`}
+                        placeholder="Re-enter password"
+                      />
+                      <button
+                        type="button"
+                        className={styles.passwordToggle}
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                     {errors.confirmPassword && <span className={styles.errorText}>{errors.confirmPassword}</span>}
                   </div>
                 </div>

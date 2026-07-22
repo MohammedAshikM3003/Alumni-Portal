@@ -160,6 +160,35 @@
   background-color: var(--bg-white);
 }
 
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordWrapper .formInput {
+  padding-right: 2.75rem;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+}
+
+.passwordToggle:hover {
+  color: var(--text-primary);
+}
+
 .formInput:focus {
   border-color: var(--primary-green);
   box-shadow: 0 0 0 3px rgba(46, 111, 64, 0.1);

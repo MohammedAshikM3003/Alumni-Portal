@@ -449,25 +449,30 @@
 }
 
 .pageBtn {
-  padding: 6px 12px;
-  font-size: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background-color: #fff;
-  color: var(--text-muted);
-  font-weight: 500;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  border: 1px solid var(--dark-green-button);
+  border-radius: 8px;
+  background-color: var(--dark-green-button);
+  color: white;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .pageBtn:hover:not(:disabled) {
-  background-color: #f1f5f9;
-  color: var(--text-dark);
+  background-color: var(--dark-green-hover);
+  border-color: var(--dark-green-hover);
 }
 
 .pageBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background-color: var(--text-muted);
+  border-color: var(--text-muted);
 }
 
 /* Page Numbers */

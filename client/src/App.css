@@ -171,3 +171,11 @@ body.mail-active {
 	transition: background-color 200ms ease-in-out;
 }
 
+/* Hide Edge browser's default password reveal button globally */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+	display: none !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+
