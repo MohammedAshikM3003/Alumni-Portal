@@ -94,6 +94,7 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
   const [geminiGuestName, setGeminiGuestName] = useState('');
   const [geminiGuestImage, setGeminiGuestImage] = useState('');
   const [geminiDate, setGeminiDate] = useState(new Date().toISOString().split('T')[0]);
+  const [geminiTime, setGeminiTime] = useState(initialEventTime || new Date().toTimeString().slice(0, 5));
   const [geminiVenue, setGeminiVenue] = useState('');
   const [geminiHostedBy, setGeminiHostedBy] = useState('K.S.R. College of Engineering');
   const [geminiLoading, setGeminiLoading] = useState(false);
@@ -145,6 +146,7 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
         const singleGuest = recipients[0];
         setGeminiEventName(initialEventName);
         setGeminiDate(formatDateForInput(initialEventDate));
+        setGeminiTime(initialEventTime || new Date().toTimeString().slice(0, 5));
         setGeminiVenue(initialEventLocation);
         setGeminiGuestName(singleGuest?.name || '');
         // Format guest image URL properly - always prepend API_BASE for relative paths
@@ -160,6 +162,7 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
       setGuests([{ name: alumniName, email: recipientEmails[0] || '' }]);
       setGeminiEventName(initialEventName);
       setGeminiDate(formatDateForInput(initialEventDate));
+      setGeminiTime(initialEventTime || new Date().toTimeString().slice(0, 5));
       setGeminiVenue(initialEventLocation);
       setGeminiGuestName(alumniName);
     }
@@ -208,11 +211,11 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
       const eventDate = new Date(selectedEvent.eventDate);
       const dateStr = eventDate.toISOString().split('T')[0];
       setGeminiDate(dateStr);
-      setGeminiVenue(selectedEvent.venue);
-      // Time might need formatting
       if (selectedEvent.eventTime) {
-        setGeminiHostedBy(selectedEvent.organizer?.name || 'K.S.R. College of Engineering');
+        setGeminiTime(selectedEvent.eventTime);
       }
+      setGeminiVenue(selectedEvent.venue);
+      setGeminiHostedBy(selectedEvent.organizer?.name || 'K.S.R. College of Engineering');
       setShowEventSuggestions(false);
     }
   };
@@ -277,26 +280,39 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
     }
   };
 
-  // Send invitation — store flyer image in MongoDB via GridFS
+  // Send invitation — store flyer image in MongoDB via GridFS (flyer is optional)
   const handleSendInvitation = async () => {
-    if (!flyerBlob) {
-      alert('Please generate a flyer first');
+    const finalSubject = geminiEventName.trim() || eventName.trim();
+    const finalVenue = geminiVenue.trim() || eventLocation.trim();
+    const finalDate = geminiDate || eventDate;
+    const finalTime = eventTime;
+    const finalSender = geminiHostedBy.trim() || alumniName || 'K.S.R. College of Engineering';
+
+    if (!finalSubject) {
+      alert('Please enter an event name');
       return;
     }
-    if (!eventLocation.trim()) {
-      alert('Please enter an event location');
+    if (!finalVenue) {
+      alert('Please enter a venue/location');
       return;
     }
+    if (!finalDate) {
+      alert('Please enter an event date');
+      return;
+    }
+
     setSending(true);
     try {
       const formData = new FormData();
-      formData.append('flyer', flyerBlob, 'invitation_flyer.png');
-      formData.append('sender', alumniName || 'K.S.R. College of Engineering');
-      formData.append('subject', eventName || 'Alumni Event');
-      formData.append('eventDate', eventDate);
-      formData.append('eventTime', eventTime);
-      formData.append('venue', eventLocation);
-      formData.append('description', eventDesc || `You are cordially invited to ${eventName || 'our event'}. Join us for this special occasion.`);
+      if (flyerBlob) {
+        formData.append('flyer', flyerBlob, 'invitation_flyer.png');
+      }
+      formData.append('sender', finalSender);
+      formData.append('subject', finalSubject);
+      formData.append('eventDate', finalDate);
+      formData.append('eventTime', finalTime);
+      formData.append('venue', finalVenue);
+      formData.append('description', eventDesc.trim() || `You are cordially invited to ${finalSubject}. Join us for this special occasion.`);
 
       const res = await fetch(`${API_BASE}/api/invitations`, {
         method: 'POST',
@@ -382,7 +398,23 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
           ? firstGuest.profilePhoto
           : `${API_BASE}${firstGuest.profilePhoto}`;
         setGeminiGuestImage(photoUrl);
+      } else {
+        setGeminiGuestImage('');
       }
+      setGeminiTime(initialEventTime || new Date().toTimeString().slice(0, 5));
+    } else if (mode === 'multiple' && guests.length > 0) {
+      const allNames = guests.map(g => g.name).join(', ');
+      setGeminiGuestName(allNames);
+      const allPhotos = guests
+        .map(g => {
+          if (!g.profilePhoto) return '';
+          return g.profilePhoto.startsWith('http')
+            ? g.profilePhoto
+            : `${API_BASE}${g.profilePhoto}`;
+        })
+        .filter(Boolean)
+        .join(',');
+      setGeminiGuestImage(allPhotos);
     }
   };
 
@@ -519,23 +551,37 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
           }}>
             <h2 style={{ marginTop: 0, color: '#111827', fontSize: '1.25rem' }}>Multiple Recipients Detected</h2>
             <p style={{ color: '#6B7280' }}>
-                You have {guests.length} guests/recipients. Create flyers one at a time.
+                You have {guests.length} guests/recipients. How would you like to generate flyers?
             </p>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-                <button
-                  onClick={() => handleGuestModeSelection('single')}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: '#2E6F40',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '0.75rem',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                >
-                  Generate One at a Time
-                </button>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
+              <button
+                onClick={() => handleGuestModeSelection('single')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#E2E8F0',
+                  color: '#374151',
+                  border: 'none',
+                  borderRadius: '0.75rem',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Separate Flyer for Each
+              </button>
+              <button
+                onClick={() => handleGuestModeSelection('multiple')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#2E6F40',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.75rem',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                One Flyer with All
+              </button>
             </div>
           </div>
         </div>
@@ -861,24 +907,29 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
                       {geminiGuestImage ? (
                         <div style={{
                           display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '0.75rem',
                           justifyContent: 'center',
                           padding: '1rem',
                           backgroundColor: '#F9FAFB',
                           borderRadius: '0.75rem',
                           border: '1px solid #E5E7EB'
                         }}>
-                          <img
-                            src={geminiGuestImage}
-                            alt="Guest"
-                            style={{
-                              width: '120px',
-                              height: '120px',
-                              borderRadius: '12px',
-                              objectFit: 'cover',
-                              border: '3px solid var(--primary)',
-                              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-                            }}
-                          />
+                          {geminiGuestImage.split(',').map((imgUrl, idx) => (
+                            <img
+                              key={idx}
+                              src={imgUrl}
+                              alt={`Guest ${idx + 1}`}
+                              style={{
+                                width: geminiGuestImage.includes(',') ? '70px' : '120px',
+                                height: geminiGuestImage.includes(',') ? '70px' : '120px',
+                                borderRadius: geminiGuestImage.includes(',') ? '50%' : '12px',
+                                objectFit: 'cover',
+                                border: '3px solid var(--primary)',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                              }}
+                            />
+                          ))}
                         </div>
                       ) : (
                         <div style={{
@@ -905,6 +956,16 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
                         value={geminiDate}
                         onChange={(e) => setGeminiDate(e.target.value)}
                         defaultToToday
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="gemini-time" className={styles.inputLabel}>Time</label>
+                      <TimeInput
+                        theme="admin"
+                        id="gemini-time"
+                        className={styles.inputCustom}
+                        value={geminiTime}
+                        onChange={(e) => setGeminiTime(e.target.value)}
                       />
                     </div>
                     <div>
@@ -997,8 +1058,8 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
                 <button 
                   className={styles.sendBtn} 
                   onClick={handleSendInvitation} 
-                  disabled={!flyerGenerated || sending}
-                  style={{ opacity: (!flyerGenerated || sending) ? 0.6 : 1 }}
+                  disabled={sending}
+                  style={{ opacity: sending ? 0.6 : 1 }}
                 >
                   <span>{sending ? 'Sending...' : 'Send Invitation'}</span>
                   <span className="material-symbols-outlined">send</span>

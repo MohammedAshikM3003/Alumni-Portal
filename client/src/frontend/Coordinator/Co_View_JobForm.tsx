@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import styles from './Co_View_JobForm.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from './Components/BackButton/Back';
@@ -53,6 +53,36 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
     const [jobReference, setJobReference] = useState<JobReference | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [updating, setUpdating] = useState<boolean>(false);
+
+    const handleStatusUpdate = async (newStatus: 'approved' | 'rejected') => {
+        if (!user?.token || !id) return;
+        if (!window.confirm(`Are you sure you want to ${newStatus} this job reference?`)) return;
+
+        setUpdating(true);
+        try {
+            const response = await fetch(`${API_BASE}/api/jobs/${id}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${user.token}`,
+                },
+                body: JSON.stringify({ status: newStatus }),
+            });
+
+            const data = await response.json();
+            if (data.success && data.jobReference) {
+                alert(`Job reference ${newStatus} successfully!`);
+                setJobReference(data.jobReference);
+            } else {
+                alert(data.message || 'Failed to update status');
+            }
+        } catch (err: any) {
+            alert(err.message || 'Failed to update status');
+        } finally {
+            setUpdating(false);
+        }
+    };
 
     const getBorderClassByStatus = (status: string): string => {
         switch (status) {
@@ -193,12 +223,12 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
                                             <h3 className="text-lg font-bold text-slate-900">{jobReference.submittedBy?.name || 'Unknown'}</h3>
                                             <p className="text-sm text-slate-600">{jobReference.submittedBy?.jobRole || 'Not specified'}</p>
                                         </div>
-                                        <a
-                                            href={`/coordinator/alumni/${jobReference.submittedBy?._id}`}
+                                        <Link
+                                            to={`/coordinator/alumni/${jobReference.submittedBy?._id}`}
                                             className="text-orange-500 font-semibold hover:text-orange-600 hover:underline cursor-pointer transition-all"
                                         >
                                             View Alumni
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
 
@@ -237,6 +267,26 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
                                 </div>
                             </div>
                         </div>
+
+                        {/* Approval Actions Section */}
+                        {jobReference.status === 'pending' && (
+                            <div className="mt-8 p-6 bg-white rounded-2xl border border-slate-200 flex justify-end gap-4 shadow-sm">
+                                <button
+                                    onClick={() => handleStatusUpdate('rejected')}
+                                    disabled={updating}
+                                    className="px-5 py-2.5 rounded-xl border border-red-200 text-red-600 font-bold text-sm bg-white hover:bg-red-50 transition-colors disabled:opacity-50"
+                                >
+                                    Reject Referral
+                                </button>
+                                <button
+                                    onClick={() => handleStatusUpdate('approved')}
+                                    disabled={updating}
+                                    className="px-5 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm transition-colors shadow-md shadow-green-600/10 disabled:opacity-50"
+                                >
+                                    {updating ? 'Updating...' : 'Approve Referral'}
+                                </button>
+                            </div>
+                        )}
 
                     </div>
                 </div>

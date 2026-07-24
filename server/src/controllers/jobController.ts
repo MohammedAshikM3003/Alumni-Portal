@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import type { Request, Response } from 'express';
 import JobReference from '../models/jobReference.js';
+import Department from '../models/department.js';
 import { findCoordinatorForUser } from '../utils/coordinatorResolver.js';
 
 export const submitJobReference = async (req: Request, res: Response): Promise<void> => {
@@ -160,7 +161,9 @@ export const updateJobReferenceStatus = async (req: Request, res: Response): Pro
 			return;
 		}
 
-		if (jobReference.submittedBy.toString() !== req.user._id.toString()) {
+		const isSubmitter = jobReference.submittedBy.toString() === req.user._id.toString();
+		const isAdminOrCoordinator = ['admin', 'coordinator'].includes(req.user.role || '');
+		if (!isSubmitter && !isAdminOrCoordinator) {
 			res.status(403).json({ success: false, message: 'Not authorized to update this job reference' });
 			return;
 		}
@@ -187,9 +190,9 @@ export const getDepartmentJobReferences = async (req: Request, res: Response): P
 		}
 
 		const coordinator = await findCoordinatorForUser(req.user);
-		const department = coordinator?.department || '';
+		const departmentName = coordinator?.department || '';
 
-		if (!department) {
+		if (!departmentName) {
 			res.status(400).json({
 				success: false,
 				message: 'Coordinator department not found',
@@ -197,24 +200,53 @@ export const getDepartmentJobReferences = async (req: Request, res: Response): P
 			return;
 		}
 
-		// Normalize department name for case-insensitive comparison
-		const normalizedDepartment = department.trim().toLowerCase();
+		// Look up Department document in the database to get official branch/deptCode
+		let dept = null;
+		try {
+			dept = await Department.findOne({
+				$or: [
+					{ branch: { $regex: new RegExp('^' + departmentName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '$', 'i') } },
+					{ deptCode: { $regex: new RegExp('^' + departmentName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '$', 'i') } }
+				]
+			});
+		} catch (dbErr) {
+			console.error('Failed to look up Department in DB:', dbErr);
+		}
 
 		const jobReferences = await JobReference.find()
 			.populate('submittedBy', 'name email userId')
 			.sort({ createdAt: -1 });
 
-		// Filter by department (case-insensitive)
+		// Filter by department (checks targetBranch against branch name and deptCode)
 		const departmentJobs = jobReferences.filter(job => {
-			const normalizedBranch = (job.targetBranch || '').trim().toLowerCase();
-			return normalizedBranch === normalizedDepartment;
+			const target = (job.targetBranch || '').trim().toLowerCase();
+			if (!target) return false;
+
+			const normalizedDept = departmentName.trim().toLowerCase();
+			
+			// Direct string match
+			if (target === normalizedDept) return true;
+
+			if (dept) {
+				const branch = dept.branch.trim().toLowerCase();
+				const code = dept.deptCode.trim().toLowerCase();
+
+				// Match official branch name or code
+				if (target === branch || target === code) return true;
+
+				// Substring or token checks (e.g. target is "CSE" or coordinator code is "CSE" in "CSE / EEE")
+				if (target.includes(code) || code.includes(target)) return true;
+				if (target.includes(branch) || branch.includes(target)) return true;
+			}
+			
+			return false;
 		});
 
 		res.status(200).json({
 			success: true,
 			jobReferences: departmentJobs,
 			total: departmentJobs.length,
-			department,
+			department: departmentName,
 		});
 	} catch (error) {
 		console.error('Error fetching department job references:', error);

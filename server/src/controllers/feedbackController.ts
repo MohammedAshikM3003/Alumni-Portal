@@ -101,10 +101,34 @@ export const getMyFeedbacks = async (req: Request, res: Response): Promise<void>
 export const getAllFeedbacks = async (req: Request, res: Response): Promise<void> => {
   try {
     const feedbacks = await Feedback.find()
-      .populate('submittedBy', 'name email userId')
+      .populate<{ submittedBy: { email: string; name: string; userId: string } }>('submittedBy', 'name email userId')
       .sort({ createdAt: -1 });
-    res.status(200).json({ success: true, feedbacks });
-  } catch {
+
+    const { default: Alumni } = await import('../models/alumni.js');
+
+    // Bulk fetch alumni branches by email
+    const emails = Array.from(
+      new Set(feedbacks.map(f => f.submittedBy?.email?.toLowerCase()).filter(Boolean))
+    );
+
+    const alumniList = await Alumni.find({ email: { $in: emails } }).select('email branch');
+    const alumniBranchMap = new Map<string, string>();
+    for (const alumni of alumniList) {
+      if (alumni.email && alumni.branch) {
+        alumniBranchMap.set(alumni.email.toLowerCase(), alumni.branch);
+      }
+    }
+
+    const feedbacksWithBranch = feedbacks.map(fb => {
+      const fbObj = fb.toObject() as any;
+      const userEmail = fb.submittedBy?.email?.toLowerCase();
+      fbObj.department = userEmail ? (alumniBranchMap.get(userEmail) || '') : '';
+      return fbObj;
+    });
+
+    res.status(200).json({ success: true, feedbacks: feedbacksWithBranch });
+  } catch (error) {
+    console.error('Error fetching all feedbacks:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };

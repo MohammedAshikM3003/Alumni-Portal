@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import styles from './AD_View_Job_and_Reference.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from '../Coordinator/Components/BackButton/Back';
@@ -179,12 +179,12 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
                 <div className={styles.alumniInfo}>
                   <h3 className={styles.alumniName}>{jobReference.submittedBy?.name || 'Unknown'}</h3>
                   <p className={styles.alumniRole}>{jobReference.submittedBy?.jobRole || 'Not specified'}</p>
-                  <a
-                    href={`/admin/alumni/${jobReference.submittedBy?._id}`}
+                  <Link
+                    to={`/admin/alumini/${jobReference.submittedBy?._id}`}
                     className={styles.viewAlumniLink}
                   >
                     View Alumni
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
