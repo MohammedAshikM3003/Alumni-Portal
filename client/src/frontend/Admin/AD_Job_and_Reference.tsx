@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './AD_Job_and_Reference.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
+import { Trash2 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -19,6 +20,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -64,7 +66,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
   );
 
   const handleRefresh = async () => {
-    setLoading(true);
+    setRefreshing(true);
     try {
       const response = await fetch(`${API_BASE}/api/jobs/all`, {
         headers: {
@@ -83,7 +85,35 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleDelete = async (jobId: string) => {
+    if (!window.confirm('Are you sure you want to delete this job reference? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete job reference');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setJobsData(jobsData.filter(job => job._id !== jobId));
+      } else {
+        setError(data.message || 'Failed to delete job reference');
+      }
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
@@ -151,8 +181,8 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
                   onBlur={(e: React.FocusEvent<HTMLInputElement>) => (e.target as HTMLInputElement).style.borderColor = '#e2e8f0'}
                 />
               </div>
-              <button onClick={handleRefresh} style={{ padding: '0.5rem', borderRadius: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}>
-                <span className="material-symbols-outlined">refresh</span>
+              <button className={styles.refreshBtn} onClick={handleRefresh} disabled={refreshing}>
+                <span className={`material-symbols-outlined ${refreshing ? styles.refreshIconSpin : ''}`}>refresh</span>
               </button>
             </div>
           </div>
@@ -195,6 +225,39 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
                     onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget as HTMLButtonElement).style.background = '#228B22'}
                   >
                     View Details
+                  </button>
+
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => handleDelete(job._id)}
+                    style={{
+                      width: '100%',
+                      marginTop: '0.5rem',
+                      padding: '0.5rem',
+                      background: 'white',
+                      color: '#ef4444',
+                      border: '1px solid #ef4444',
+                      borderRadius: '0.5rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '0.8rem',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px'
+                    }}
+                    onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                      (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
+                      (e.currentTarget as HTMLButtonElement).style.color = 'white';
+                    }}
+                    onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                      (e.currentTarget as HTMLButtonElement).style.background = 'white';
+                      (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
+                    }}
+                  >
+                    <Trash2 size={14} />
+                    Delete
                   </button>
                 </div>
               </div>

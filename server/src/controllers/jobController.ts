@@ -116,8 +116,8 @@ export const deleteJobReference = async (req: Request, res: Response): Promise<v
 			return;
 		}
 
-		// Ensure the user can only delete their own job references
-		if (jobReference.submittedBy.toString() !== req.user._id.toString()) {
+		// Admins can delete any job reference, other users can only delete their own
+		if (req.user.role !== 'admin' && jobReference.submittedBy.toString() !== req.user._id.toString()) {
 			res.status(403).json({ success: false, message: 'Not authorized to delete this job reference' });
 			return;
 		}
