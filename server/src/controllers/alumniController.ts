@@ -205,16 +205,22 @@ export const getMyProfile = async (req: Request, res: Response): Promise<void> =
 	}
 };
 
-// Get alumni by ID
+// Get alumni by ID (supports searching by either Alumni ID or User ID reference)
 export const getAlumniById = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { id } = req.params as { id: string };
 		if (!mongoose.Types.ObjectId.isValid(id)) {
-			res.status(400).json({ success: false, message: 'Invalid alumni ID' });
+			res.status(400).json({ success: false, message: 'Invalid ID' });
 			return;
 		}
 
-		const alumni = await Alumni.findOne({ _id: id }).populate(
+		const objectId = new mongoose.Types.ObjectId(id);
+		const alumni = await Alumni.findOne({
+			$or: [
+				{ _id: objectId },
+				{ userId: objectId }
+			]
+		}).populate(
 			'userId',
 			'userId name email role'
 		);
@@ -225,7 +231,8 @@ export const getAlumniById = async (req: Request, res: Response): Promise<void> 
 		}
 
 		res.status(200).json({ success: true, alumni });
-	} catch {
+	} catch (error) {
+		console.error('Error fetching alumni by ID:', error);
 		res.status(500).json({ success: false, message: 'Server error' });
 	}
 };

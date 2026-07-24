@@ -1,17 +1,39 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 :root {
   --border-light: #f1f5f9;
   --bg-surface: #f8fafc;
 }
 
+/* ================== KEYFRAMES ================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34,139,34,0.15); }
+  50%      { box-shadow: 0 0 0 6px rgba(34,139,34,0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ================== PAGE CONTAINER ================== */
 .pageContainer {
   display: flex;
   min-height: 100vh;
-  background-color: var(--bg-light);
-  font-family: 'Inter', sans-serif;
-  color: var(--text-primary);
+  background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 40%, #f1f5f9 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1e293b;
 }
-
 
 /* ================== MAIN CONTENT ================== */
 .mainContent {
@@ -25,22 +47,23 @@
 }
 
 .mainContent::-webkit-scrollbar {
-  width: 12px;
+  width: 8px;
 }
 
 .mainContent::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-left: 1px solid #e2e8f0;
+  background: transparent;
 }
 
 .mainContent::-webkit-scrollbar-thumb {
-  background-color: #228B22;
+  background: linear-gradient(180deg, #228B22, #16a34a);
   border-radius: 10px;
-  border: 3px solid #f1f5f9;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 .mainContent::-webkit-scrollbar-thumb:hover {
-  background-color: #1a6b1a;
+  background: linear-gradient(180deg, #1a6b1a, #15803d);
+  background-clip: content-box;
 }
 
 /* Sticky Header Notification */
@@ -51,8 +74,8 @@
 }
 
 .notificationBanner {
-  background-color: #fef2f2; /* red-50 */
-  border-bottom: 1px solid #fee2e2; /* red-100 */
+  background-color: #fef2f2;
+  border-bottom: 1px solid #fee2e2;
   padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
@@ -65,18 +88,20 @@
   gap: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #dc2626; /* red-600 */
+  color: #dc2626;
 }
 
 .notificationContent span:first-child {
   font-size: 1rem;
 }
 
-/* Page Wrapper */
+/* ================== PAGE WRAPPER ================== */
 .contentWrapper {
-  padding: 2rem;
+  padding: 2rem 2.5rem;
+  animation: fadeInUp 0.4s ease-out;
 }
 
+/* ================== PAGE HEADER ================== */
 .pageHeader {
   display: flex;
   justify-content: space-between;
@@ -85,42 +110,52 @@
 }
 
 .pageTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-dark);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
   margin: 0;
+  letter-spacing: -0.025em;
 }
 
+/* ================== EXPORT BUTTON ================== */
 .exportBtn {
-  background-color: var(--dark-green-button);
+  background: linear-gradient(135deg, #228B22, #16a34a);
   color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  font-size: 0.875rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.625rem;
+  font-weight: 600;
+  font-size: 0.85rem;
   border: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  transition: background-color 0.2s;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(34,139,34,0.2);
+  font-family: inherit;
 }
 
 .exportBtn:hover {
-  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(34,139,34,0.3);
+  background: linear-gradient(135deg, #1a6b1a, #15803d);
+}
+
+.exportBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(34,139,34,0.15);
 }
 
 .exportBtn span {
   font-size: 1.125rem;
 }
 
-/* Filters & Search */
+/* ================== FILTERS & SEARCH ================== */
 .filterBar {
-  background-color: var(--bg-white);
+  background-color: #fff;
   padding: 1rem;
   border-radius: 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid #e2e8f0;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   display: flex;
   flex-wrap: wrap;
@@ -139,7 +174,7 @@
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-light);
+  color: #94a3b8;
 }
 
 .searchInput {
@@ -149,14 +184,16 @@
   border: 1px solid transparent;
   border-radius: 0.5rem;
   font-size: 0.875rem;
-  color: var(--text-primary);
+  color: #1e293b;
   outline: none;
-  transition: box-shadow 0.2s;
+  transition: all 0.25s ease;
   font-family: inherit;
 }
 
 .searchInput:focus {
-  box-shadow: 0 0 0 2px rgba(34, 139, 34, 0.2);
+  box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.15);
+  border-color: #228B22;
+  background: #fff;
 }
 
 .dateFilterWrapper {
@@ -170,23 +207,25 @@
   border-radius: 0.5rem;
   font-size: 0.875rem;
   padding: 0.5rem 1rem;
-  color: var(--text-primary);
+  color: #1e293b;
   outline: none;
-  transition: box-shadow 0.2s;
+  transition: all 0.25s ease;
   font-family: inherit;
 }
 
 .dateInput:focus {
-  box-shadow: 0 0 0 2px rgba(34, 139, 34, 0.2);
+  box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.15);
+  border-color: #228B22;
 }
 
-/* Table Card */
+/* ================== TABLE CARD ================== */
 .tableCard {
-  background-color: var(--bg-white);
+  background: #fff;
   border-radius: 1rem;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02);
   overflow: hidden;
+  animation: scaleIn 0.35s ease-out;
 }
 
 .tableResponsive {
@@ -200,35 +239,48 @@
 }
 
 .table th {
-  padding: 1rem 1.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  padding: 0.875rem 1.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background-color: var(--bg-surface);
-  border-bottom: 1px solid var(--border-color);
+  letter-spacing: 0.08em;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
 }
 
 .table td {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border-light);
+  padding: 0.875rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
 }
 
-.table tr:hover td {
-  background-color: rgba(248, 250, 252, 0.5); /* slate-50/50 */
+.table tr {
+  transition: all 0.15s ease;
+}
+
+.table tbody tr:hover td {
+  background-color: #f0fdf4;
+}
+
+.table tbody tr:hover .tdAmount {
+  color: #15803d;
+  transform: scale(1.02);
 }
 
 .table tr:last-child td {
   border-bottom: none;
 }
 
-/* Table Specific Columns */
+/* ================== TABLE SPECIFIC COLUMNS ================== */
 .tdSno {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
 }
 
 .donorInfo {
@@ -238,31 +290,45 @@
 }
 
 .donorAvatar {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
-  background-color: var(--border-light);
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
-  font-weight: 600;
+  color: #15803d;
+  font-weight: 700;
   font-size: 0.75rem;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(34,139,34,0.1);
+}
+
+.table tbody tr:hover .donorAvatar {
+  background: linear-gradient(135deg, #228B22, #16a34a);
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(34,139,34,0.25);
 }
 
 .donorName {
-  font-weight: 500;
-  color: var(--text-dark);
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.875rem;
 }
 
 .tdBatch, .tdDate {
-  font-size: 0.875rem;
-  color: var(--text-muted);
+  font-size: 0.85rem;
+  color: #64748b;
 }
 
 .tdAmount {
   font-weight: 700;
-  color: var(--primary);
+  color: #228B22;
+  font-variant-numeric: tabular-nums;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .textCenter {
@@ -273,106 +339,131 @@
   text-align: right;
 }
 
-/* Action Button */
+/* ================== ACTION BUTTON ================== */
 .actionBtn {
   background: none;
-  border: none;
-  color: var(--text-light);
+  border: 1px solid #e2e8f0;
+  color: #64748b;
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-  transition: color 0.2s;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .actionBtn:hover {
-  color: var(--primary);
+  color: #228B22;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  transform: scale(1.05);
+  box-shadow: 0 2px 6px rgba(34,139,34,0.12);
 }
 
-/* Custom Pills for Transaction Types */
+.actionBtn span {
+  font-size: 1.15rem;
+}
+
+/* ================== TYPE PILLS ================== */
 .typePill {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   display: inline-block;
+  letter-spacing: 0.02em;
 }
 
 .typeUpi {
-  background-color: #eff6ff; /* blue-50 */
-  color: #2563eb; /* blue-600 */
+  background-color: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #dbeafe;
 }
 
 .typeNetBanking {
-  background-color: #faf5ff; /* purple-50 */
-  color: #9333ea; /* purple-600 */
+  background-color: #faf5ff;
+  color: #9333ea;
+  border: 1px solid #f3e8ff;
 }
 
 .typeCreditCard {
-  background-color: #fffbeb; /* amber-50 */
-  color: #d97706; /* amber-600 */
+  background-color: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fef3c7;
 }
 
 .typeDebitCard {
-  background-color: #ecfdf5; /* emerald-50 */
-  color: #059669; /* emerald-600 */
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #d1fae5;
 }
 
-/* Pagination */
+/* ================== PAGINATION ================== */
 .paginationFooter {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border-light);
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: linear-gradient(180deg, #fff 0%, #fafbfc 100%);
 }
 
 .paginationText {
-  font-size: 0.875rem;
-  color: var(--text-muted);
+  font-size: 0.8rem;
+  color: #94a3b8;
   margin: 0;
+  font-weight: 500;
 }
 
 .paginationControls {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.375rem;
 }
 
 .pageBtn {
-  padding: 0.25rem 0.75rem;
-  border: 1px solid var(--border-color);
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
-  font-size: 0.875rem;
-  background-color: transparent;
-  color: var(--text-primary);
+  font-size: 0.8rem;
+  background-color: #fff;
+  color: #475569;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   font-family: inherit;
+  font-weight: 500;
 }
 
 .pageBtn:hover:not(:disabled):not(.activePageBtn) {
-  background-color: var(--bg-surface);
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #228B22;
 }
 
 .pageBtn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .activePageBtn {
-  background-color: var(--dark-green-button);
+  background: linear-gradient(135deg, #228B22, #16a34a);
   color: white;
-  border-color: var(--primary);
+  border-color: transparent;
+  box-shadow: 0 2px 6px rgba(34,139,34,0.2);
+  font-weight: 600;
 }
 
 /* ================== STATES ================== */
 .loadingState,
 .errorState {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 300px;
+  height: 400px;
   font-size: 1rem;
-  color: var(--text-muted);
+  color: #94a3b8;
+  gap: 1rem;
 }
 
 .errorState {
@@ -382,6 +473,6 @@
 .emptyCell {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--text-light);
-  font-size: 0.875rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
 }

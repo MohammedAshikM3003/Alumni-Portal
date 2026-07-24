@@ -139,7 +139,7 @@ const Admin_View_Alumni = ({ onLogout }: { onLogout?: () => void }) => {
   }, [id, user]);
 
   const handleBack = () => {
-    navigate('/admin/alumini');
+    navigate(-1);
   };
 
   const handleDelete = async () => {
@@ -197,7 +197,7 @@ const Admin_View_Alumni = ({ onLogout }: { onLogout?: () => void }) => {
           <div className={styles.dashboardContent}>
             <p className={styles.error}>{error}</p>
             <button className={styles.backBtn} onClick={handleBack}>
-              <ArrowLeft size={16} /> Back to Alumni Directory
+              <ArrowLeft size={16} /> Back
             </button>
           </div>
         </main>
@@ -213,7 +213,7 @@ const Admin_View_Alumni = ({ onLogout }: { onLogout?: () => void }) => {
           <div className={styles.dashboardContent}>
             <p>Alumni not found</p>
             <button className={styles.backBtn} onClick={handleBack}>
-              <ArrowLeft size={16} /> Back to Alumni Directory
+              <ArrowLeft size={16} /> Back
             </button>
           </div>
         </main>
@@ -234,7 +234,7 @@ const Admin_View_Alumni = ({ onLogout }: { onLogout?: () => void }) => {
           <div className={styles.pageHeader}>
             <div>
               <button className={styles.backBtn} onClick={handleBack}>
-                <ArrowLeft size={16} /> Back to Alumni Directory
+                <ArrowLeft size={16} /> Back
               </button>
               <h1 className={styles.pageTitle}>Alumni Profile</h1>
             </div>

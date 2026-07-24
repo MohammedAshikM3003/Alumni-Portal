@@ -161,7 +161,7 @@ const Coordinator_View_Alumni: FC<CoordinatorViewAlumniProps> = ({ onLogout }) =
   }, [id, user]);
 
   const handleBack = () => {
-    navigate('/coordinator/alumni');
+    navigate(-1);
   };
 
   if (loading) {
@@ -188,7 +188,7 @@ const Coordinator_View_Alumni: FC<CoordinatorViewAlumniProps> = ({ onLogout }) =
           <div className={styles.dashboardContent}>
             <p className={styles.error}>{error}</p>
             <button className={styles.backBtn} onClick={handleBack}>
-              <ArrowLeft size={16} /> Back to Alumni
+              <ArrowLeft size={16} /> Back
             </button>
           </div>
         </main>
@@ -204,7 +204,7 @@ const Coordinator_View_Alumni: FC<CoordinatorViewAlumniProps> = ({ onLogout }) =
           <div className={styles.dashboardContent}>
             <p>Alumni not found</p>
             <button className={styles.backBtn} onClick={handleBack}>
-              <ArrowLeft size={16} /> Back to Alumni
+              <ArrowLeft size={16} /> Back
             </button>
           </div>
         </main>
@@ -225,7 +225,7 @@ const Coordinator_View_Alumni: FC<CoordinatorViewAlumniProps> = ({ onLogout }) =
           <div className={styles.pageHeader}>
             <div>
               <button className={styles.backBtn} onClick={handleBack}>
-                <ArrowLeft size={16} /> Back to Alumni
+                <ArrowLeft size={16} /> Back
               </button>
               <h1 className={styles.pageTitle}>Alumni Profile</h1>
             </div>

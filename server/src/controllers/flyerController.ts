@@ -78,8 +78,8 @@ export const generateFlyer = async (req: Request, res: Response): Promise<void> 
       hostedBy: flyerData.theme,
       tagline: flyerData.subtitle,
       eventDescription: flyerData.subtitle,
-      templateImageId: '',
-      generatedImageId: '',
+      templateImageId: 'placeholder_template_id',
+      generatedImageId: 'placeholder_generated_id',
       geminiPrompt: `placeholder:${flyerData.templateName}`,
       createdBy: req.user._id,
     });

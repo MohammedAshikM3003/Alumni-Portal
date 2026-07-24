@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import styles from './AD_View_Job_and_Reference.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from '../Coordinator/Components/BackButton/Back';
@@ -223,7 +223,7 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
                     className={styles.viewAlumniLink}
                   >
                     View Alumni
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

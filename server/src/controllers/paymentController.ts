@@ -166,11 +166,34 @@ export const getAllPayments = async (req: Request, res: Response): Promise<void>
 		}
 
 		const payments = await Payment.find()
-			.populate('user', 'name email userId')
+			.populate<{ user: { email: string; name: string; userId: string } }>('user', 'name email userId')
 			.sort({ createdAt: -1 });
 
-		res.status(200).json({ success: true, payments });
-	} catch {
+		const { default: Alumni } = await import('../models/alumni.js');
+
+		// Bulk fetch alumni branches by email
+		const emails = Array.from(
+			new Set(payments.map(p => p.user?.email?.toLowerCase()).filter(Boolean))
+		);
+
+		const alumniList = await Alumni.find({ email: { $in: emails } }).select('email branch');
+		const alumniBranchMap = new Map<string, string>();
+		for (const alumni of alumniList) {
+			if (alumni.email && alumni.branch) {
+				alumniBranchMap.set(alumni.email.toLowerCase(), alumni.branch);
+			}
+		}
+
+		const paymentsWithBranch = payments.map(payment => {
+			const pObj = payment.toObject() as any;
+			const userEmail = payment.user?.email?.toLowerCase();
+			pObj.department = userEmail ? (alumniBranchMap.get(userEmail) || '') : '';
+			return pObj;
+		});
+
+		res.status(200).json({ success: true, payments: paymentsWithBranch });
+	} catch (error) {
+		console.error('Error fetching all payments:', error);
 		res.status(500).json({ success: false, message: 'Failed to fetch payments' });
 	}
 };

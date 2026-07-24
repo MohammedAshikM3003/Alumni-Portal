@@ -42,6 +42,7 @@ const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogou
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [photoGroups, setPhotoGroups] = useState<PhotoGroup[]>([]);
+  const [invitation, setInvitation] = useState<any>(null);
 
   // Fetch event details
   useEffect(() => {
@@ -62,11 +63,30 @@ const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogou
 
         if (data.success && data.event) {
           setEvent(data.event);
+          
+          // Fetch matching invitation
+          try {
+            const invRes = await fetch(`${API_BASE}/api/invitations/all`, {
+              signal: controller.signal,
+              headers: { Authorization: `Bearer ${user.token}` },
+            });
+            const invData = await invRes.json();
+            if (invData.success && Array.isArray(invData.invitations)) {
+              const matching = invData.invitations.find(
+                (inv: any) => inv.subject?.toLowerCase() === data.event.eventName?.toLowerCase()
+              );
+              if (matching) {
+                setInvitation(matching);
+              }
+            }
+          } catch (invErr) {
+            console.error('Failed to load matching invitation details:', invErr);
+          }
         } else {
           setError('Event not found');
         }
       } catch (err: any) {
-          if (err.name === 'AbortError') return;
+        if (err.name === 'AbortError') return;
         setError(err.message);
       } finally {
         setLoading(false);
@@ -234,6 +254,40 @@ const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogou
               </div>
             </div>
           </div>
+
+          {/* Invitation Details Section */}
+          {invitation && (
+            <div className={styles.photosSection} style={{ marginTop: '2rem' }}>
+              <div className={styles.photosSectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                  <span className="material-symbols-outlined">mail</span>
+                  Sent Invitation Details
+                </h2>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', padding: '1.5rem', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E5E7EB' }}>
+                <div>
+                  {invitation.flyer ? (
+                    <img
+                      src={`${API_BASE}/api/invitations/image/${invitation.flyer}`}
+                      alt="Sent Flyer"
+                      style={{ width: '100%', borderRadius: '8px', objectFit: 'contain', border: '1px solid #E5E7EB' }}
+                    />
+                  ) : (
+                    <div style={{ height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F9FAFB', borderRadius: '8px', border: '2px dashed #E5E7EB', color: '#9CA3AF' }}>
+                      No flyer image sent
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Subject</p>
+                  <p style={{ fontSize: '1.05rem', color: '#111827', marginBottom: '1.5rem', fontWeight: 500 }}>{invitation.subject}</p>
+                  
+                  <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Description / Message</p>
+                  <p style={{ fontSize: '0.95rem', color: '#4B5563', whiteSpace: 'pre-line', lineHeight: '1.5' }}>{invitation.description}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Event Photos Section */}
           {event.status === 'completed' && (
