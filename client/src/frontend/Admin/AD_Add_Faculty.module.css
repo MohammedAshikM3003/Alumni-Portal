@@ -313,6 +313,18 @@
   }
 }
 
+.errorMessage {
+  background-color: #fef2f2;
+  border: 1px solid #f87171;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 16px;
+}
+
 @media (max-width: 480px) {
   .mainContent {
     margin-left: 0;
