@@ -4,6 +4,7 @@ import styles from './AD_View_Job_and_Reference.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from '../Coordinator/Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
+import { Trash2 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -103,6 +104,35 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
     return () => controller.abort();
   }, [user, id]);
 
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this job reference? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/jobs/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete job reference');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        alert('Job reference deleted successfully');
+        navigate('/admin/job_and_reference');
+      } else {
+        setError(data.message || 'Failed to delete job reference');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.pageContainer}>
@@ -153,9 +183,18 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
                   <h2 className={styles.formTitle}>Job Reference Details</h2>
                   <p className={styles.formSubtitle}>Submitted {formatDate(jobReference.createdAt)}</p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${jobReference.status === 'approved' ? 'bg-green-100 text-green-700' : jobReference.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                  {jobReference.status}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${jobReference.status === 'approved' ? 'bg-green-100 text-green-700' : jobReference.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {jobReference.status}
+                  </span>
+                  <button
+                    onClick={handleDelete}
+                    className="flex items-center gap-2 px-4 py-2 bg-white text-red-500 border border-red-500 rounded-lg font-semibold text-sm hover:bg-red-500 hover:text-white transition-all duration-200"
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -179,8 +218,8 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
                 <div className={styles.alumniInfo}>
                   <h3 className={styles.alumniName}>{jobReference.submittedBy?.name || 'Unknown'}</h3>
                   <p className={styles.alumniRole}>{jobReference.submittedBy?.jobRole || 'Not specified'}</p>
-                  <Link
-                    to={`/admin/alumini/${jobReference.submittedBy?._id}`}
+                  <a
+                    href={`/admin/alumini/${jobReference.submittedBy?._id}`}
                     className={styles.viewAlumniLink}
                   >
                     View Alumni
