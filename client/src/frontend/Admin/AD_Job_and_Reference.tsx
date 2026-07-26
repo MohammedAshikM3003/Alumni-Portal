@@ -34,6 +34,10 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDept, setSelectedDept] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedWorkMode, setSelectedWorkMode] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -222,8 +226,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
     <div className={styles.pageLayout}>
       <Sidebar onLogout={onLogout} currentView={'job_and_reference'} />
       <main className={styles.mainContent}>
-        {/* Header */}
-        <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <div>
               <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Job & Reference Hub</h2>
@@ -334,9 +337,6 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
                   <span style={{ color: '#06b6d4', fontWeight: 600 }}>Onl: {onlinePct}%</span>
                 </div>
               </div>
-              <button className={styles.refreshBtn} onClick={handleRefresh} disabled={refreshing}>
-                <span className={`material-symbols-outlined ${refreshing ? styles.refreshIconSpin : ''}`}>refresh</span>
-              </button>
             </div>
           </div>
 

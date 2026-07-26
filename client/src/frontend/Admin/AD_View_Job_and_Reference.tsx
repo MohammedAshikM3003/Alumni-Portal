@@ -218,8 +218,8 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
                 <div className={styles.alumniInfo}>
                   <h3 className={styles.alumniName}>{jobReference.submittedBy?.name || 'Unknown'}</h3>
                   <p className={styles.alumniRole}>{jobReference.submittedBy?.jobRole || 'Not specified'}</p>
-                  <a
-                    href={`/admin/alumini/${jobReference.submittedBy?._id}`}
+                  <Link
+                    to={`/admin/alumini/${jobReference.submittedBy?._id}`}
                     className={styles.viewAlumniLink}
                   >
                     View Alumni
