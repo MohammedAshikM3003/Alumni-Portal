@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import styles from './AD_Event_and_Reunion_Invitation.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
+import { DateInput, TimeInput } from '../../components/Calendar';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -466,8 +467,8 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
               <div className={styles.rowGroup}>
                 <div className={styles.inputGroup}>
                   <label className={styles.formLabel}>Event Date</label>
-                  <input
-                    type="date"
+                  <DateInput
+                    name="eventDate"
                     className={styles.formInput}
                     value={eventDate}
                     onChange={(e) => setEventDate(e.target.value)}
@@ -488,8 +489,8 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
               {/* Time */}
               <div className={styles.inputGroup}>
                 <label className={styles.formLabel}>Event Time</label>
-                <input
-                  type="time"
+                <TimeInput
+                  name="eventTime"
                   className={styles.formInput}
                   value={eventTime}
                   onChange={(e) => setEventTime(e.target.value)}

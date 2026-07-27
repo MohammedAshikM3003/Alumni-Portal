@@ -233,7 +233,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
               <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>Manage and filter job referral opportunities across all college departments.</p>
             </div>
             <button onClick={handleRefresh} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', color: '#1e293b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>refresh</span> Refresh
+              <span className={`material-symbols-outlined ${refreshing ? styles.refreshIconSpin : ''}`} style={{ fontSize: '1.2rem' }}>refresh</span> Refresh
             </button>
           </div>
 

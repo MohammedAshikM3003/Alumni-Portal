@@ -4,6 +4,7 @@ import styles from './AD_Add_Faculty.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
+import { DateInput } from '../../components/Calendar';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -321,12 +322,12 @@ const Admin_Add_Faculty = ({ onLogout }: AdminAddFacultyProps) => {
 
                   <div className={styles.formGroup}>
                     <label>Date of Birth</label>
-                    <input
-                      type="date"
+                    <DateInput
                       name="dateOfBirth"
                       value={formData.dateOfBirth}
-                      onChange={handleInputChange}
+                      onChange={(e) => handleInputChange({ target: { name: e.target.name, value: e.target.value } } as React.ChangeEvent<HTMLInputElement>)}
                       className={styles.formInput}
+                      yearRange="dob"
                     />
                   </div>
 
@@ -442,11 +443,10 @@ const Admin_Add_Faculty = ({ onLogout }: AdminAddFacultyProps) => {
 
                   <div className={styles.formGroup}>
                     <label>Date of Joining</label>
-                    <input
-                      type="date"
+                    <DateInput
                       name="dateOfJoining"
                       value={formData.dateOfJoining}
-                      onChange={handleInputChange}
+                      onChange={(e) => handleInputChange({ target: { name: e.target.name, value: e.target.value } } as React.ChangeEvent<HTMLInputElement>)}
                       className={styles.formInput}
                     />
                   </div>

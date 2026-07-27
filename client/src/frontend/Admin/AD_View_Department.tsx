@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, Eye, Trash2, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Eye, Trash2, ArrowLeft } from 'lucide-react';
 import styles from './AD_View_Department.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
@@ -30,12 +30,10 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
   // State for functionality
   const [filterName, setFilterName] = useState('');
   const [filterRole, setFilterRole] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [department, setDepartment] = useState<Department | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const ENTRIES_PER_PAGE = 10;
 
   // Complete Staff Data
   const [staffList, setStaffList] = useState<Staff[]>([]);
@@ -122,29 +120,13 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
     });
   }, [staffList, filterName, filterRole]);
 
-  // Pagination logic
-  const paginatedStaff = useMemo(() => {
-    const startIndex = (currentPage - 1) * ENTRIES_PER_PAGE;
-    return filteredStaff.slice(startIndex, startIndex + ENTRIES_PER_PAGE);
-  }, [filteredStaff, currentPage]);
-
-  const totalPages = Math.ceil(filteredStaff.length / ENTRIES_PER_PAGE);
-
   // Event handlers
   const handleNameFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterName(e.target.value);
-    setCurrentPage(1); // Reset to first page when filtering by name
   };
 
   const handleRoleFilterChange = (designation: string) => {
     setFilterRole(designation);
-    setCurrentPage(1); // Reset to first page when filtering by role
-  };
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
   };
 
   // Modal handlers
@@ -266,7 +248,6 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
                 onClick={() => {
                   setFilterName('');
                   setFilterRole('');
-                  setCurrentPage(1);
                 }}
               >
                 Clear All Filters
@@ -306,10 +287,10 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedStaff.map((staff, index) => (
+                  {filteredStaff.map((staff, index) => (
                     <tr key={staff._id}>
                       <td className={styles.textMuted}>
-                        {String((currentPage - 1) * ENTRIES_PER_PAGE + index + 1).padStart(2, '0')}
+                        {String(index + 1).padStart(2, '0')}
                       </td>
                       <td className={styles.fontSemibold}>{staff.name}</td>
                       <td>
@@ -337,56 +318,8 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
                       </td>
                     </tr>
                   )}
-                  {paginatedStaff.length === 0 && filteredStaff.length > 0 && (
-                    <tr>
-                      <td colSpan={6} className={styles.emptyState}>
-                        No results for this page. Try a different page or adjust your filters.
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
-            </div>
-
-            {/* Pagination Footer */}
-            <div className={styles.paginationFooter}>
-              <span className={styles.paginationText}>
-                Showing {filteredStaff.length > 0 ? (currentPage - 1) * ENTRIES_PER_PAGE + 1 : 0} to{' '}
-                {Math.min(currentPage * ENTRIES_PER_PAGE, filteredStaff.length)} of {filteredStaff.length} entries
-                {(filterName || filterRole) && ` (filtered from ${staffList.length} total)`}
-              </span>
-              <div className={styles.paginationControls}>
-                <button
-                  className={styles.pageBtn}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft size={16} />
-                  Previous
-                </button>
-
-                {/* Page Numbers */}
-                <div className={styles.pageNumbers}>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button
-                      key={page}
-                      className={`${styles.pageNumber} ${page === currentPage ? styles.pageNumberActive : ''}`}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  className={styles.pageBtn}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                  <ChevronRight size={16} />
-                </button>
-              </div>
             </div>
           </div>
           )}

@@ -191,13 +191,20 @@
 }
 
 .tableResponsive {
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 60vh;
 }
 
 .dataTable {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+}
+
+.dataTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .dataTable th {
@@ -208,7 +215,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
 }
 
 .dataTable td {

@@ -4,6 +4,7 @@ import styles from './AD_Profile.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
 import { useAdminContext } from '../../context/adminContext/adminContext';
+import { DateInput } from '../../components/Calendar';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -863,12 +864,13 @@ const Admin_Profile = ({ onLogout }: { onLogout?: () => void }) => {
 
                   <div className={styles.inputGroup}>
                     <label className={styles.inputLabel}>Date of Birth</label>
-                    <input
-                      type="date"
+                    <DateInput
+                      name="dateOfBirth"
                       className={styles.inputField}
                       value={profileData.dateOfBirth}
                       onChange={(e) => handleProfileChange('dateOfBirth', e.target.value)}
                       disabled={!isEditing}
+                      yearRange="dob"
                     />
                   </div>
                 </div>
