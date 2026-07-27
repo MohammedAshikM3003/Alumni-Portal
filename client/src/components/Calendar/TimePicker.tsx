@@ -23,14 +23,17 @@ const TimePicker = ({ value, onChange, onClose, theme = 'admin' }: TimePickerPro
   };
 
   const initialTime = parseTime(value);
-  const [hours, setHours] = useState(initialTime.hours);
+  const initialPeriod = initialTime.hours >= 12 ? 'PM' as const : 'AM' as const;
+  const initialDisplayHours = initialTime.hours % 12 || 12;
+  const [hours, setHours] = useState(initialDisplayHours);
   const [minutes, setMinutes] = useState(initialTime.minutes);
-  const [activeColumn, setActiveColumn] = useState('hour'); // 'hour' or 'minute'
-  
+  const [activeColumn, setActiveColumn] = useState('hour');
+  const [is24Hour, setIs24Hour] = useState(false);
+  const [period, setPeriod] = useState<'AM' | 'PM'>(initialPeriod);
+
   const hourRef = useRef<HTMLDivElement | null>(null);
   const minuteRef = useRef<HTMLDivElement | null>(null);
 
-  // Scroll to selected values on mount
   useEffect(() => {
     scrollToSelected(hourRef, hours);
     scrollToSelected(minuteRef, minutes);
@@ -55,8 +58,34 @@ const TimePicker = ({ value, onChange, onClose, theme = 'admin' }: TimePickerPro
     setMinutes(m);
   };
 
+  const handlePeriodToggle = (p: 'AM' | 'PM') => {
+    setPeriod(p);
+  };
+
+  const handleFormatToggle = () => {
+    const newIs24 = !is24Hour;
+    setIs24Hour(newIs24);
+    if (newIs24) {
+      // Switching to 24h: convert AM/PM hour back
+      let h24 = hours;
+      if (!is24Hour) {
+        h24 = period === 'PM' ? (hours % 12) + 12 : hours % 12;
+      }
+      setHours(h24);
+    } else {
+      // Switching to 12h: convert 24h to 12h display
+      const h12 = hours % 12 || 12;
+      setHours(h12);
+      setPeriod(hours >= 12 ? 'PM' : 'AM');
+    }
+  };
+
   const handleApply = () => {
-    const formattedHours = String(hours).padStart(2, '0');
+    let h24 = hours;
+    if (!is24Hour) {
+      h24 = period === 'PM' ? (hours % 12) + 12 : hours % 12;
+    }
+    const formattedHours = String(h24).padStart(2, '0');
     const formattedMinutes = String(minutes).padStart(2, '0');
     const timeString = `${formattedHours}:${formattedMinutes}`;
     if (onChange) {
@@ -70,17 +99,16 @@ const TimePicker = ({ value, onChange, onClose, theme = 'admin' }: TimePickerPro
   };
 
   const formatHour = (h: number) => {
-    return String(h).padStart(2, '0');
+    if (is24Hour) return String(h).padStart(2, '0');
+    const h12 = h % 12 || 12;
+    return String(h12).padStart(2, '0');
   };
 
   const formatMinute = (m: number) => {
     return String(m).padStart(2, '0');
   };
 
-  // Generate hours array (0-23)
-  const hoursArray = Array.from({ length: 24 }, (_, i) => i);
-  
-  // Generate minutes array (0-59)
+  const displayHours = is24Hour ? Array.from({ length: 24 }, (_, i) => i) : Array.from({ length: 12 }, (_, i) => i + 1);
   const minutesArray = Array.from({ length: 60 }, (_, i) => i);
 
   return (
@@ -101,6 +129,9 @@ const TimePicker = ({ value, onChange, onClose, theme = 'admin' }: TimePickerPro
             Minute
           </button>
         </div>
+        <button className={styles.formatToggle} onClick={handleFormatToggle}>
+          {is24Hour ? '24H' : '12H'}
+        </button>
         <button className={styles.closeButton} onClick={onClose}>
           <span className="material-symbols-outlined">close</span>
         </button>
@@ -115,19 +146,35 @@ const TimePicker = ({ value, onChange, onClose, theme = 'admin' }: TimePickerPro
         <span className={`${styles.timeSegment} ${activeColumn === 'minute' ? styles.activeSegment : ''}`}>
           {formatMinute(minutes)}
         </span>
+        {!is24Hour && (
+          <div className={styles.periodSelector}>
+            <button
+              className={`${styles.periodBtn} ${period === 'AM' ? styles.periodActive : ''}`}
+              onClick={() => handlePeriodToggle('AM')}
+            >
+              AM
+            </button>
+            <button
+              className={`${styles.periodBtn} ${period === 'PM' ? styles.periodActive : ''}`}
+              onClick={() => handlePeriodToggle('PM')}
+            >
+              PM
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Time Selection Columns */}
       <div className={styles.timePickerBody}>
         {/* Hours Column */}
-        <div 
+        <div
           className={`${styles.timeColumn} ${activeColumn === 'hour' ? styles.activeColumn : ''}`}
           ref={hourRef}
           onClick={() => setActiveColumn('hour')}
         >
           <div className={styles.columnLabel}>Hour</div>
           <div className={styles.scrollContainer}>
-            {hoursArray.map((h) => (
+            {displayHours.map((h) => (
               <div
                 key={h}
                 data-value={h}
@@ -141,7 +188,7 @@ const TimePicker = ({ value, onChange, onClose, theme = 'admin' }: TimePickerPro
         </div>
 
         {/* Minutes Column */}
-        <div 
+        <div
           className={`${styles.timeColumn} ${activeColumn === 'minute' ? styles.activeColumn : ''}`}
           ref={minuteRef}
           onClick={() => setActiveColumn('minute')}

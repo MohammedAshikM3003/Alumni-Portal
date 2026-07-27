@@ -11,9 +11,9 @@ interface CalendarProps {
 
 const Calendar = ({ value, onChange, onClose, theme = 'admin', yearRange = 'default' }: CalendarProps) => {
   const today = new Date();
-  const [currentDate, setCurrentDate] = useState(value ? new Date(value.split('-').map(Number).map((n, i) => i === 1 ? n - 1 : n) as any) : today);
+  const [currentDate, setCurrentDate] = useState(today);
   const [selectedDate, setSelectedDate] = useState(value ? new Date(value.split('-').map(Number).map((n, i) => i === 1 ? n - 1 : n) as any) : today);
-  const [viewMode, setViewMode] = useState('day'); // 'day', 'month', 'year'
+  const [viewMode, setViewMode] = useState('day');
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',

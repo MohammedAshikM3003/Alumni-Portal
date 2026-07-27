@@ -95,6 +95,27 @@
   font-size: 20px;
 }
 
+.formatToggle {
+  width: 40px;
+  height: 28px;
+  border: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 8px;
+  font-family: 'Inter', sans-serif;
+}
+
+.formatToggle:hover {
+  background: var(--primary-light);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
 /* Current Time Display */
 .currentTimeDisplay {
   display: flex;
@@ -124,6 +145,41 @@
   font-size: 36px;
   font-weight: 700;
   color: #374151;
+}
+
+.periodSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 12px;
+}
+
+.periodBtn {
+  padding: 6px 12px;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  background: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.periodBtn:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.periodActive {
+  background: var(--primary-color);
+  color: #FFFFFF;
+  border-color: var(--primary-color);
+}
+
+.periodActive:hover {
+  background: var(--primary-hover);
 }
 
 /* Time Picker Body */
