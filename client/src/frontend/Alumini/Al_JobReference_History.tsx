@@ -14,9 +14,8 @@ const formatDate = (dateString: string) => {
 const mapStatus = (status: string) => {
   switch (status) {
     case 'approved': return 'ACTIVE';
-    case 'pending': return 'PENDING';
     case 'rejected': return 'CLOSED';
-    default: return 'PENDING';
+    default: return 'ACTIVE';
   }
 };
 
