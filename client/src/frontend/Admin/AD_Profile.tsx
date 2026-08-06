@@ -1327,7 +1327,10 @@ const Admin_Profile = ({ onLogout }: { onLogout?: () => void }) => {
                         <div className={styles.resetButtonGroup}>
                           <div style={{ width: '100%' }}>
                             <div className={styles.noteBox}>
-                              <p>📱 <strong>Note:</strong> On clicking "Send OTP", a one-time password will be sent to your registered mobile number.</p>
+                              <p>
+                                <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', verticalAlign: 'text-bottom', marginRight: '4px' }}>smartphone</span>
+                                <strong>Note:</strong> On clicking "Send OTP", a one-time password will be sent to your registered mobile number.
+                              </p>
                             </div>
                             <button
                               className={styles.primary}

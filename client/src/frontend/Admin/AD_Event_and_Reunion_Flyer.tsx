@@ -831,7 +831,8 @@ const Admin_Event_and_Reunion_Form2 = ({ onLogout }: { onLogout?: () => void }) 
                         ))}
                       </div>
                       <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.5rem', marginBottom: 0 }}>
-                        💡 Click to switch between guests and generate individual flyers
+                        <span className="material-symbols-outlined" style={{ fontSize: '0.875rem', verticalAlign: 'text-bottom', marginRight: '4px', color: '#eab308' }}>lightbulb</span>
+                        Click to switch between guests and generate individual flyers
                       </p>
                     </div>
                   )}

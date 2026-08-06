@@ -226,292 +226,241 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
     <div className={styles.pageLayout}>
       <Sidebar onLogout={onLogout} currentView={'job_and_reference'} />
       <main className={styles.mainContent}>
-                <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div>
-              <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Job & Reference Hub</h2>
-              <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>Manage and filter job referral opportunities across all college departments.</p>
+        
+        {/* Header container */}
+        <div className={styles.headerContainer}>
+          <div>
+            <h2 className={styles.headerTitle}>Job & Reference Hub</h2>
+            <p className={styles.headerSubtitle}>Manage and filter job referral opportunities across all college departments.</p>
+          </div>
+          <button className={styles.refreshBtn} onClick={handleRefresh}>
+            <span className={`material-symbols-outlined ${refreshing ? styles.refreshIconSpin : ''}`}>refresh</span>
+            Refresh
+          </button>
+        </div>
+
+        {/* Analytics & Stats Section */}
+        <div className={styles.topDashboardSection}>
+          {/* Card 1: Total Referrals */}
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <p className={styles.statLabel}>Total Referrals</p>
+              <span className={`material-symbols-outlined ${styles.statIcon}`} style={{ color: '#22c55e' }}>trending_up</span>
             </div>
-            <button onClick={handleRefresh} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', color: '#1e293b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>
-              <span className={`material-symbols-outlined ${refreshing ? styles.refreshIconSpin : ''}`} style={{ fontSize: '1.2rem' }}>refresh</span> Refresh
-            </button>
+            <h3 className={styles.statValue}>{totalJobsCount}</h3>
+            {/* Small area wave chart inside Card 1 */}
+            <div className={styles.cardChartContainer}>
+              <svg viewBox="0 0 100 30" className={styles.cardChartSvg} preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="waveGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#22c55e" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#22c55e" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
+                <path d="M 0 25 C 20 23, 40 25, 60 21 C 80 18, 90 12, 100 8 L 100 30 L 0 30 Z" fill="url(#waveGrad)" />
+                <path d="M 0 25 C 20 23, 40 25, 60 21 C 80 18, 90 12, 100 8" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
           </div>
 
-          {/* Visual Metric Cards Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-            {/* Card 1: Total Referrals + Sparkline Graph */}
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Total Referrals</p>
-                  <span className="material-symbols-outlined" style={{ color: '#228B22', fontSize: '1.25rem' }}>trending_up</span>
-                </div>
-                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: '0.25rem 0 0 0' }}>{totalJobsCount}</h3>
+          {/* Card 2: Approval Status Ratio */}
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <p className={styles.statLabel}>Approval Status Ratio</p>
+              <span className={`material-symbols-outlined ${styles.statIcon}`} style={{ color: '#22c55e' }}>sync</span>
+            </div>
+            <h3 className={styles.statValue}>
+              <span style={{ color: '#22c55e' }}>{approvedCount}</span>{' '}
+              <span style={{ fontSize: '0.875rem', color: '#94a3b8', fontWeight: 500 }}>/ {pendingCount} Pending</span>
+            </h3>
+            <div className={styles.ratioProgressBarWrapper}>
+              <div className={styles.ratioProgressBar}>
+                <div className={styles.ratioSegment} style={{ width: `${approvedPct}%`, background: '#22c55e' }} />
+                <div className={styles.ratioSegment} style={{ width: `${pendingPct}%`, background: '#eab308' }} />
+                <div className={styles.ratioSegment} style={{ width: `${rejectedPct}%`, background: '#ef4444' }} />
               </div>
-              <div style={{ height: '32px', width: '100%', marginTop: '0.5rem' }}>
-                <svg width="100%" height="100%" viewBox="0 0 120 32" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
-                  <defs>
-                    <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#228B22" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#228B22" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M 0 26 Q 30 12 60 18 T 120 4 L 120 32 L 0 32 Z" fill="url(#totalGrad)" />
-                  <path d="M 0 26 Q 30 12 60 18 T 120 4" fill="none" stroke="#228B22" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
+              <div className={styles.ratioLabels}>
+                <span className={styles.ratioLabelItem} style={{ color: '#22c55e' }}>
+                  <span className={styles.ratioDot} style={{ background: '#22c55e' }} />
+                  {Math.round(approvedPct)}% Appr
+                </span>
+                <span className={styles.ratioLabelItem} style={{ color: '#eab308' }}>
+                  <span className={styles.ratioDot} style={{ background: '#eab308' }} />
+                  {Math.round(pendingPct)}% Pend
+                </span>
               </div>
             </div>
+          </div>
 
-            {/* Card 2: Approval Ratio Bar Chart */}
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Approval Status Ratio</p>
-                  <span className="material-symbols-outlined" style={{ color: '#22c55e', fontSize: '1.25rem' }}>donut_large</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.25rem' }}>
-                  <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#16a34a', margin: 0 }}>{approvedCount}</h3>
-                  <span style={{ fontSize: '0.8rem', color: '#ca8a04', fontWeight: 600 }}>/ {pendingCount} Pending</span>
-                </div>
-              </div>
-              <div style={{ marginTop: '0.75rem' }}>
-                <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', background: '#f1f5f9' }}>
-                  <div style={{ width: `${approvedPct}%`, background: '#22c55e', transition: 'width 0.3s' }} title={`Approved: ${approvedCount}`} />
-                  <div style={{ width: `${pendingPct}%`, background: '#eab308', transition: 'width 0.3s' }} title={`Pending: ${pendingCount}`} />
-                  <div style={{ width: `${rejectedPct}%`, background: '#ef4444', transition: 'width 0.3s' }} title={`Rejected: ${rejectedCount}`} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginTop: '0.35rem' }}>
-                  <span style={{ color: '#16a34a', fontWeight: 600 }}>● {Math.round(approvedPct)}% Appr</span>
-                  <span style={{ color: '#ca8a04', fontWeight: 600 }}>● {Math.round(pendingPct)}% Pend</span>
-                </div>
-              </div>
+          {/* Card 3: Top Target Dept */}
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <p className={styles.statLabel}>Top Target Dept</p>
+              <span className={`material-symbols-outlined ${styles.statIcon}`} style={{ color: '#8b5cf6' }}>bar_chart</span>
             </div>
-
-            {/* Card 3: Top Dept Breakdown Chart */}
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Top Target Dept</p>
-                  <span className="material-symbols-outlined" style={{ color: '#9333ea', fontSize: '1.25rem' }}>bar_chart</span>
-                </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#7e22ce', margin: '0.25rem 0 0 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{topDept}</h3>
-              </div>
-              <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                {sortedDepts.slice(0, 2).map(([d, cnt]) => {
-                  const pct = totalJobsCount > 0 ? Math.round((cnt / totalJobsCount) * 100) : 0;
-                  return (
-                    <div key={d}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#475569', marginBottom: '2px' }}>
-                        <span>{d}</span>
-                        <span style={{ fontWeight: 600 }}>{cnt} ({pct}%)</span>
-                      </div>
-                      <div style={{ height: '4px', background: '#f1f5f9', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, background: '#9333ea', borderRadius: '2px' }} />
-                      </div>
+            <h3 className={styles.statValue} style={{ color: '#8b5cf6' }}>{topDept}</h3>
+            <div className={styles.deptProgressList}>
+              {sortedDepts.slice(0, 2).map(([dept, count]) => {
+                const pct = totalJobsCount > 0 ? Math.round((count / totalJobsCount) * 100) : 0;
+                return (
+                  <div key={dept} className={styles.deptProgressRow}>
+                    <span className={styles.deptName}>{dept}</span>
+                    <div className={styles.deptBarWrapper}>
+                      <div className={styles.deptBar} style={{ width: `${pct}%`, background: '#8b5cf6' }} />
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Card 4: Work Mode Distribution Chart */}
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Work Mode Mix</p>
-                  <span className="material-symbols-outlined" style={{ color: '#3b82f6', fontSize: '1.25rem' }}>pie_chart</span>
-                </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1d4ed8', margin: '0.25rem 0 0 0' }}>
-                  {hybridCount >= offlineCount && hybridCount >= onlineCount ? 'Hybrid Led' : offlineCount >= onlineCount ? 'Offline Led' : 'Online Led'}
-                </h3>
-              </div>
-              <div style={{ marginTop: '0.5rem' }}>
-                <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', background: '#f1f5f9' }}>
-                  <div style={{ width: `${offlinePct}%`, background: '#3b82f6' }} title={`Offline: ${offlineCount}`} />
-                  <div style={{ width: `${hybridPct}%`, background: '#8b5cf6' }} title={`Hybrid: ${hybridCount}`} />
-                  <div style={{ width: `${onlinePct}%`, background: '#06b6d4' }} title={`Online: ${onlineCount}`} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginTop: '0.35rem' }}>
-                  <span style={{ color: '#3b82f6', fontWeight: 600 }}>Off: {offlinePct}%</span>
-                  <span style={{ color: '#8b5cf6', fontWeight: 600 }}>Hyb: {hybridPct}%</span>
-                  <span style={{ color: '#06b6d4', fontWeight: 600 }}>Onl: {onlinePct}%</span>
-                </div>
-              </div>
+                    <span className={styles.deptCount}>{count} ({pct}%)</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Filter Bar Panel */}
-          <div style={{ background: '#fff', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
-            {/* Search Input */}
-            <div style={{ position: 'relative', flex: '1 1 200px' }}>
-              <span className="material-symbols-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>search</span>
-              <input
-                type="text"
-                placeholder="Search by company or role..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', outline: 'none', fontSize: '0.85rem' }}
-              />
+          {/* Card 4: Work Mode Mix */}
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <p className={styles.statLabel}>Work Mode Mix</p>
+              <span className={`material-symbols-outlined ${styles.statIcon}`} style={{ color: '#3b82f6' }}>pie_chart</span>
             </div>
-
-            {/* Department Filter */}
-            <select
-              value={selectedDept}
-              onChange={(e) => setSelectedDept(e.target.value)}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none', minWidth: '160px' }}
-            >
-              <option value="">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept._id} value={dept.branch}>
-                  {dept.deptCode} - {dept.branch}
-                </option>
-              ))}
-            </select>
-
-            {/* Status Filter */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none' }}
-            >
-              <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
-
-            {/* Work Mode Filter */}
-            <select
-              value={selectedWorkMode}
-              onChange={(e) => setSelectedWorkMode(e.target.value)}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none' }}
-            >
-              <option value="">All Work Modes</option>
-              <option value="offline">Offline</option>
-              <option value="online">Online</option>
-              <option value="hybrid">Hybrid</option>
-            </select>
-
-            {/* Sort Filter */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none' }}
-            >
-              <option value="newest">Sort: Newest First</option>
-              <option value="vacancies">Sort: Vacancies (High-to-Low)</option>
-            </select>
-
-            {/* Reset Button */}
-            {(searchTerm || selectedDept || selectedStatus || selectedWorkMode || sortBy !== 'newest') && (
-              <button
-                onClick={clearFilters}
-                style={{ padding: '0.5rem 0.75rem', background: '#f1f5f9', border: 'none', borderRadius: '0.5rem', color: '#64748b', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}
-              >
-                Clear Filters
-              </button>
-            )}
+            <h3 className={styles.statValue} style={{ color: '#3b82f6' }}>
+              {offlineCount >= Math.max(onlineCount, hybridCount) ? 'Offline Led' : onlineCount >= hybridCount ? 'Online Led' : 'Hybrid Led'}
+            </h3>
+            <div className={styles.workModeProgressWrapper}>
+              <div className={styles.workModeProgressBar}>
+                <div className={styles.workModeSegment} style={{ width: `${offlinePct}%`, background: '#3b82f6' }} />
+                <div className={styles.workModeSegment} style={{ width: `${hybridPct}%`, background: '#8b5cf6' }} />
+                <div className={styles.workModeSegment} style={{ width: `${onlinePct}%`, background: '#06b6d4' }} />
+              </div>
+              <div className={styles.workModeLabels}>
+                <span style={{ color: '#3b82f6' }}>Off: {offlinePct}%</span>
+                <span style={{ color: '#8b5cf6' }}>Hyb: {hybridPct}%</span>
+                <span style={{ color: '#06b6d4' }}>Onl: {onlinePct}%</span>
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Filter Bar Panel */}
+        <div className={styles.filterBar}>
+          {/* Search Input */}
+          <div className={styles.searchWrapper}>
+            <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
+            <input
+              type="text"
+              placeholder="Search by company or role..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
+
+          {/* Department Filter */}
+          <select
+            value={selectedDept}
+            onChange={(e) => setSelectedDept(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">All Departments</option>
+            {departments.map((dept) => (
+              <option key={dept._id} value={dept.branch}>
+                {dept.branch}
+              </option>
+            ))}
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+
+          {/* Work Mode Filter */}
+          <select
+            value={selectedWorkMode}
+            onChange={(e) => setSelectedWorkMode(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">All Work Modes</option>
+            <option value="offline">Offline</option>
+            <option value="online">Online</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
+
+          {/* Sort Filter */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="newest">Sort: Newest First</option>
+            <option value="vacancies">Sort: Vacancies</option>
+          </select>
+
+          {/* Reset Button */}
+          {(searchTerm || selectedDept || selectedStatus || selectedWorkMode || sortBy !== 'newest') && (
+            <button onClick={clearFilters} className={styles.clearBtn}>
+              Clear
+            </button>
+          )}
         </div>
 
         {/* Jobs Grid */}
         {filteredJobs.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.25rem', paddingBottom: '2rem' }}>
+          <div className={styles.jobsGrid}>
             {filteredJobs.map((job) => (
               <div key={job._id} className={styles.jobCard}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', width: '100%' }}>
+                <div className={styles.cardContent}>
+                  
                   {/* Circular Avatar */}
-                  <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e40af', fontWeight: 'bold', fontSize: '1.2rem', border: '2px solid #f1f5f9' }}>
-                      {getInitials(job.companyName)}
+                  <div className={styles.avatarWrapper}>
+                    <div className={styles.avatar}>
+                      {job.companyName.charAt(0).toUpperCase()}
                     </div>
                     {job.status && (
-                      <span style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        right: 0,
-                        width: '14px',
-                        height: '14px',
-                        borderRadius: '50%',
-                        border: '2px solid #fff',
-                        backgroundColor: job.status === 'approved' ? '#22c55e' : job.status === 'rejected' ? '#ef4444' : '#eab308'
-                      }} />
+                      <span
+                        className={styles.statusDot}
+                        style={{
+                          backgroundColor: job.status === 'approved' ? '#22c55e' : job.status === 'rejected' ? '#ef4444' : '#eab308'
+                        }}
+                      />
                     )}
                   </div>
 
                   {/* Company & Role Info */}
-                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', margin: '0.25rem 0 0.15rem 0' }}>{job.companyName}</h3>
-                  <p style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500, margin: '0 0 0.5rem 0' }}>{job.role}</p>
+                  <h3 className={styles.companyName}>{job.companyName}</h3>
+                  <p className={styles.roleName}>{job.role}</p>
 
-                  {/* Target Branch Badge */}
-                  {job.targetBranch && (
-                    <span style={{ fontSize: '0.75rem', background: '#f1f5f9', color: '#475569', padding: '0.2rem 0.5rem', borderRadius: '0.375rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-                      {job.targetBranch}
-                    </span>
-                  )}
+                  {/* Badges and tags */}
+                  <div className={styles.badgeWrapper}>
+                    {job.targetBranch && (
+                      <span className={styles.branchBadge}>
+                        {job.targetBranch}
+                      </span>
+                    )}
+                  </div>
 
-                  {/* View Details Button */}
-                  <button
-                    onClick={() => navigate(`/admin/view_job_and_reference/${job._id}`)}
-                    style={{
-                      width: '100%',
-                      marginTop: 'auto',
-                      padding: '0.625rem',
-                      background: '#228B22',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '0.5rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget as HTMLButtonElement).style.background = '#1a6b1a'}
-                    onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget as HTMLButtonElement).style.background = '#228B22'}
-                  >
-                    View Details
-                  </button>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDelete(job._id)}
-                    style={{
-                      width: '100%',
-                      marginTop: '0.5rem',
-                      padding: '0.5rem',
-                      background: 'white',
-                      color: '#ef4444',
-                      border: '1px solid #ef4444',
-                      borderRadius: '0.5rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '0.8rem',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '4px'
-                    }}
-                    onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                      (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
-                      (e.currentTarget as HTMLButtonElement).style.color = 'white';
-                    }}
-                    onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'white';
-                      (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
-                    }}
-                  >
-                    <Trash2 size={14} />
-                    Delete
-                  </button>
+                  {/* Action Buttons */}
+                  <div className={styles.cardActions}>
+                    <button
+                      onClick={() => navigate(`/admin/view_job_and_reference/${job._id}`)}
+                      className={styles.viewDetailsBtn}
+                    >
+                      View Details
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div style={{ background: 'white', padding: '2.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '2.5rem', color: '#cbd5e1', marginBottom: '0.75rem', display: 'block' }}>work_off</span>
-            <p style={{ color: '#64748b', fontWeight: 500 }}>No job references matching the active filters.</p>
+          <div className={styles.emptyState}>
+            <span className={`material-symbols-outlined ${styles.emptyIcon}`}>work_off</span>
+            <p className={styles.emptyText}>No job references matching the active filters.</p>
           </div>
         )}
       </main>

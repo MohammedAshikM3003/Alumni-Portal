@@ -424,9 +424,7 @@ const Admin_Alumni_Registration = () => {
         {/* Header */}
         <div className={styles.pageHeader}>
           <div className={styles.logoContainer}>
-            <div className={styles.logoIcon}>
-              <span style={{ fontSize: '1.75rem' }}>🎓</span>
-            </div>
+            <span className="material-symbols-outlined" style={{ fontSize: '2.5rem', color: 'var(--primary)' }}>school</span>
             <h1 className={styles.pageTitle}>Alumni Registration</h1>
           </div>
           <p className={styles.pageSubtitle}>Complete your registration to join the alumni network</p>
@@ -596,7 +594,7 @@ const Admin_Alumni_Registration = () => {
               {/* Present Address */}
               <div className={styles.addressBox}>
                 <div className={styles.addressHeader}>
-                  <span>📍</span>
+                  <span className="material-symbols-outlined">location_on</span>
                   <span>Present Address</span>
                 </div>
                 <div className={styles.addressFields}>
@@ -661,7 +659,7 @@ const Admin_Alumni_Registration = () => {
               {!formData.sameAsPermanent && (
                 <div className={styles.addressBox}>
                   <div className={styles.addressHeader}>
-                    <span>🏠</span>
+                    <span className="material-symbols-outlined">home</span>
                     <span>Permanent Address</span>
                   </div>
                   <div className={styles.addressFields}>

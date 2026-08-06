@@ -179,3 +179,193 @@ input[type="password"]::-ms-clear {
 	pointer-events: none !important;
 }
 
+/* ==========================================================================
+   GLOBAL RESPONSIVENESS OVERRIDES FOR ADMIN DASHBOARD & PAGES
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Layout shifts */
+  [class*="dashboardWrapper"],
+  [class*="pageContainer"],
+  [class*="wrapper"] {
+    display: block !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* Force main content container full-width and add top spacing for toggle button */
+  [class*="mainContent"],
+  [class*="contentArea"],
+  [class*="pageContent"] {
+    margin-left: 0 !important;
+    padding-top: 75px !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-bottom: 2rem !important;
+    min-height: calc(100vh - 75px) !important;
+    display: block !important;
+  }
+
+  /* Branding / College Name styling on mobile */
+  [class*="collegeName"] {
+    margin-left: 45px !important;
+    font-size: 1.15rem !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Header adjustments */
+  [class*="header"] {
+    flex-direction: row !important;
+    padding: 0.75rem 1rem !important;
+    height: auto !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.5rem !important;
+  }
+
+  [class*="headerLeft"] {
+    flex: 1 !important;
+  }
+
+  [class*="headerRight"],
+  [class*="adminBadge"] {
+    flex-shrink: 0 !important;
+  }
+
+  [class*="adminName"] {
+    display: none !important; /* Hide admin name string to save space, badge icon is enough */
+  }
+  
+  [class*="adminBadge"] {
+    padding: 6px !important;
+  }
+
+  [class*="pageHeader"],
+  [class*="contentHeader"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1rem !important;
+    padding: 1rem 0 !important;
+  }
+
+  [class*="pageActionButtons"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  [class*="pageActionButtons"] button,
+  [class*="pageActionButtons"] a,
+  [class*="pageActionButtons"] [class*="Btn"] {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+    font-size: 0.8rem !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  /* Grid layouts collapse to single-column stacking */
+  [class*="cardsRow"],
+  [class*="kpiGrid"],
+  [class*="statsGrid"],
+  [class*="metricsGrid"],
+  [class*="dashboardGrid"],
+  [class*="cardGrid"],
+  [class*="achievementsGrid"] {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  /* Individual card blocks resizing */
+  [class*="card"],
+  [class*="overlapColumn"],
+  [class*="cardAchievements"] {
+    grid-column: span 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Filter bars and search layouts */
+  [class*="filterBar"],
+  [class*="searchContainer"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    padding: 0.75rem !important;
+    width: 100% !important;
+  }
+
+  [class*="filterControls"] {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+  }
+
+  [class*="filterSelect"] {
+    width: 100% !important;
+  }
+
+  [class*="searchInputWrapper"],
+  [class*="mainSearchInput"] {
+    width: 100% !important;
+  }
+
+  /* Form columns to vertical stacking */
+  [class*="formGrid"],
+  [class*="formRow"],
+  [class*="row"],
+  [class*="gridRow"],
+  [class*="inputGroupRow"] {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+
+  /* Tables container scrolling */
+  [class*="tableSection"] {
+    padding: 0 !important;
+    margin-top: 1rem !important;
+    overflow-x: visible !important;
+  }
+
+  [class*="tableContainer"] {
+    width: 100% !important;
+    border-radius: 8px !important;
+  }
+
+  [class*="tableResponsive"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+  }
+
+  /* Modals/popups responsiveness */
+  [class*="popupContent"],
+  [class*="modalContent"],
+  [class*="dialogContent"] {
+    width: 95% !important;
+    max-width: 100% !important;
+    margin: 10px !important;
+  }
+
+  /* Specific visual components adjustment */
+  [class*="reunionCountdown"] {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  [class*="reunionCountdown"] div {
+    flex: 1 1 calc(50% - 6px) !important;
+    min-width: 60px !important;
+  }
+}
+

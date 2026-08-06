@@ -13,6 +13,7 @@ export default function Sidebar({ onLogout, currentView }: SidebarProps) {
   const navigate = useNavigate();
   const { adminBranding, fetchAdminBranding } = useAdminContext();
   const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     fetchAdminBranding(user?.token);
@@ -20,6 +21,7 @@ export default function Sidebar({ onLogout, currentView }: SidebarProps) {
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
+    setIsOpen(false);
     if (onLogout) {
       onLogout();
     }
@@ -28,11 +30,27 @@ export default function Sidebar({ onLogout, currentView }: SidebarProps) {
 
   const handleNavClick = (e: React.MouseEvent, view: string) => {
     e.preventDefault();
+    setIsOpen(false);
     navigate(`/admin/${view}`);
   };
 
   return (
-    <aside id="sidebar" className={styles.sidebar}>
+    <>
+      {/* Floating Hamburger Toggle Button on Mobile */}
+      <button 
+        className={styles.mobileToggleBtn} 
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle Navigation Drawer"
+      >
+        <span className="material-symbols-outlined">{isOpen ? 'close' : 'menu'}</span>
+      </button>
+
+      {/* Backdrop overlay to close sidebar on mobile */}
+      {isOpen && (
+        <div className={styles.sidebarOverlay} onClick={() => setIsOpen(false)} />
+      )}
+
+      <aside id="sidebar" className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
       <div className={styles.sidebarHeader}>
         <img
           src={adminBranding?.logo || undefined}
@@ -136,5 +154,6 @@ export default function Sidebar({ onLogout, currentView }: SidebarProps) {
         </a>
       </div>
     </aside>
+    </>
   );
 }

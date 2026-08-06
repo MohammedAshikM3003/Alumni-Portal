@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './AD_Dashboard.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
-import { Users, UserCheck, Calendar, Send, RefreshCw } from 'lucide-react';
+import { Users, UserCheck, Calendar, Send, RefreshCw, Trophy, ExternalLink, Mail, Briefcase, Coins, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || window.location.origin;
@@ -39,6 +39,35 @@ interface DashboardCards {
     hoursUntil: number;
   };
 }
+
+interface AchievementNewsItem {
+  date: string;
+  title: string;
+  description: string;
+}
+
+const achievementsAndNewsData: AchievementNewsItem[] = [
+  {
+    date: 'OCT 24, 2023',
+    title: 'Startup center secures ₹5Cr Funding',
+    description: 'Major grant to boost innovation hub, benefiting 50+ student startups across departments.',
+  },
+  {
+    date: 'OCT 22, 2023',
+    title: 'Dr. Arul wins "Researcher"',
+    description: 'Honored for breakthrough contributions in Renewable Energy Systems and sustainable...',
+  },
+  {
+    date: 'OCT 20, 2023',
+    title: 'Industry Partnership',
+    description: 'MoU signed for internship programs and specialized training modules for final year...',
+  },
+  {
+    date: 'OCT 18, 2023',
+    title: 'Alumni Sports Meet',
+    description: 'Join the annual football and cricket tournament at the campus grounds. Register now.',
+  }
+];
 
 const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
   const navigate = useNavigate();
@@ -106,72 +135,7 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
     return () => controller.abort();
   }, []);
 
-  /**
-   * KPI card configuration
-   */
-  const kpiConfig = [
-    {
-      key: 'totalAlumni',
-      label: 'Total Alumni',
-      icon: Users,
-      color: 'green',
-    },
-    {
-      key: 'activeCoordinators',
-      label: 'Active Coordinators',
-      icon: UserCheck,
-      color: 'blue',
-    },
-    {
-      key: 'upcomingEvents',
-      label: 'Upcoming Events',
-      icon: Calendar,
-      color: 'orange',
-    },
-    {
-      key: 'totalBroadcasts',
-      label: 'Broadcasts Sent',
-      icon: Send,
-      color: 'purple',
-    },
-  ];
 
-
-  /**
-   * Render error state with retry button
-   */
-  const renderError = () => (
-    <div className={styles.errorContainer}>
-      <p className={styles.errorMessage}>{error}</p>
-      <button className={styles.retryButton} onClick={() => fetchStats()}>
-        <RefreshCw size={16} />
-        Retry
-      </button>
-    </div>
-  );
-
-  /**
-   * Render KPI cards
-   */
-  const renderKpiCards = () => (
-    <div className={styles.kpiGrid}>
-      {kpiConfig.map((kpi) => {
-        const Icon = kpi.icon;
-        const value = stats ? stats[kpi.key as keyof DashboardStats] : 0;
-        const colorClass = styles[`kpiCard${kpi.color.charAt(0).toUpperCase() + kpi.color.slice(1)}` as keyof typeof styles];
-
-        return (
-          <div key={kpi.key} className={`${styles.kpiCard} ${colorClass}`}>
-            <div className={styles.kpiIconWrapper}>
-              <Icon size={24} className={styles.kpiIcon} />
-            </div>
-            <span className={styles.kpiLabel}>{kpi.label}</span>
-            <span className={styles.kpiValue}>{value?.toLocaleString()}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
 
 
 
@@ -186,6 +150,12 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
               K.S.R College of Engineering
             </h1>
           </div>
+          <div className={styles.headerRight}>
+            <div className={styles.adminBadge}>
+              <span className={styles.adminPulse}></span>
+              <span className={styles.adminName}>Admin: {user?.name || 'Administrator'}</span>
+            </div>
+          </div>
         </header>
         <div className={styles.dashboardContent}>
           {/* Cards Row 1 */}
@@ -193,65 +163,86 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
             <div className={`${styles.card} ${styles.overlapColumn}`}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardHeader1}>
-                  <div className={styles.cardIcon}>📬</div>
+                  <Mail size={20} style={{ color: '#0284c7', marginRight: '12px' }} />
                   <h2 className={styles.cardTitle}>Mail</h2>
                 </div>
                 <span className={styles.cardBadge}>{cards?.mail?.newCount || 0} New</span>
               </div>
               <div className={styles.cardBody}>
-                {(cards?.mail?.recentMails && cards.mail.recentMails.length > 0) ? (
-                  cards.mail.recentMails.map((mail: any, idx: number) => (
-                    <div key={idx} className={styles.mailPreview}>{mail.preview || mail.title}</div>
-                  ))
-                ) : (
-                  <div className={styles.mailPreview}>No recent messages</div>
-                )}
+                <div className={styles.mailList}>
+                  {(cards?.mail?.recentMails && cards.mail.recentMails.length > 0) ? (
+                    cards.mail.recentMails.slice(0, 2).map((mail: any, idx: number) => (
+                      <div key={idx} className={styles.mailItem}>
+                        <div className={styles.mailItemDot}></div>
+                        <div className={styles.mailItemContent}>
+                          <span className={styles.mailItemSender}>{mail.senderName || 'Alumni System'}</span>
+                          <p className={styles.mailItemText}>{mail.preview || mail.title}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.noDataText}>No recent messages</div>
+                  )}
+                </div>
               </div>
-              <button className={styles.cardAction} onClick={() => { navigate('/admin/mail') }} >Go to Inbox →</button>
+              <button className={styles.cardAction} onClick={() => { navigate('/admin/mail') }} >
+                Go to Inbox <ArrowRight size={14} style={{ marginLeft: '4px', display: 'inline-block', verticalAlign: 'middle' }} />
+              </button>
             </div>
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardHeader1}>
-                  <div className={styles.cardIcon}>💼</div>
+                  <Briefcase size={20} style={{ color: '#7c3aed', marginRight: '12px' }} />
                   <h2 className={styles.cardTitle}>Career Hub</h2>
                 </div>
                 <span className={styles.cardStatus}>{cards?.jobs?.activeCount || 0} Active</span>
               </div>
               <div className={styles.cardBody}>
-                {(cards?.jobs?.recentJobs && cards.jobs.recentJobs.length > 0) ? (
-                  cards.jobs.recentJobs.map((job: any, idx: number) => (
-                    <div key={idx} className={styles.jobPreview}>
-                      <b>{job.role}, {job.company}</b> <span>Referral by {job.referredBy}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className={styles.jobPreview}>No active job referrals</div>
-                )}
+                <div className={styles.jobList}>
+                  {(cards?.jobs?.recentJobs && cards.jobs.recentJobs.length > 0) ? (
+                    cards.jobs.recentJobs.slice(0, 2).map((job: any, idx: number) => (
+                      <div key={idx} className={styles.jobItem}>
+                        <div className={styles.jobItemIcon}><Briefcase size={16} /></div>
+                        <div className={styles.jobItemContent}>
+                          <span className={styles.jobRoleText}>{job.role}</span>
+                          <span className={styles.jobCompanyText}>{job.company}</span>
+                          <span className={styles.jobReferredText}>Referral by {job.referredBy}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.noDataText}>No active job referrals</div>
+                  )}
+                </div>
               </div>
               <button className={styles.cardActionOutline} onClick={() => { navigate('/admin/job_and_reference') }} >Explore All Jobs</button>
             </div>
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardHeader1}>
-                  <div className={styles.cardIcon}>💸</div>
+                  <Coins size={20} style={{ color: 'var(--primary-green)', marginRight: '12px' }} />
                   <div className={styles.cardTitle}>Donation History</div>
                 </div>
                 <span className={styles.cardStatusGreen}>Scholarship Goal</span>
               </div>
               <div className={styles.cardBody}>
-                {cards?.donation ? (
-                  <>
-                    <div className={styles.donationTitle}>Latest Donation</div>
-                    <div className={styles.donationAmount}>₹{cards.donation.amount?.toLocaleString()}</div>
-                    <div className={styles.donationDept}>{cards.donation.purpose}</div>
-                    <div className={styles.donationTime}>{formatTimeAgo(cards.donation.paidAt)}</div>
-                  </>
-                ) : (
-                  <>
-                    <div className={styles.donationTitle}>No Recent Donations</div>
-                    <div className={styles.donationAmount}>-</div>
-                  </>
-                )}
+                <div className={styles.donationCardBody}>
+                  {cards?.donation ? (
+                    <div className={styles.donationStatsWrapper}>
+                      <span className={styles.donationAmountLabel}>Latest Donation</span>
+                      <div className={styles.donationAmountValue}>₹{cards.donation.amount?.toLocaleString()}</div>
+                      <div className={styles.donationDetailRow}>
+                        <span className={styles.donationPurpose}>{cards.donation.purpose}</span>
+                        <span className={styles.donationTimeText}>{formatTimeAgo(cards.donation.paidAt)}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={styles.noDonationsWrapper}>
+                      <span className={styles.donationAmountLabel}>Latest Donation</span>
+                      <div className={styles.donationAmountValue}>-</div>
+                    </div>
+                  )}
+                </div>
               </div>
               <button className={styles.cardActionPrimary} onClick={() => { navigate('/admin/donation_history') }} >View History</button>
             </div>
@@ -261,7 +252,7 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
             <div className={`${styles.card} ${styles.overlapColumn}`}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardHeader1}>
-                  <div className={styles.cardIcon}>📅</div>
+                  <Calendar size={20} style={{ color: '#ea580c', marginRight: '12px' }} />
                   <h2 className={styles.cardTitle}>Events & Reunions</h2>
                 </div>
                 <span className={styles.cardUpcoming}>Upcoming</span>
@@ -277,33 +268,40 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
                       <div><b>{cards.event.daysUntil}</b> Days</div>
                       <div><b>{String(cards.event.hoursUntil).padStart(2, '0')}</b> Hrs</div>
                     </div>
-                    <button className={styles.reunionBtn} onClick={() => { navigate('/admin/event_and_reunion_history') }} >View Events</button>
                   </>
                 ) : (
                   <>
                     <h3 className={styles.reunionTitle}>No Upcoming Events</h3>
                     <p className={styles.reunionDesc}>Schedule an event to engage with alumni</p>
-                    <button className={styles.reunionBtn} onClick={() => { navigate('/admin/event_and_reunion') }} >Create Event</button>
                   </>
                 )}
               </div>
+              {cards?.event ? (
+                <button className={styles.reunionBtn} onClick={() => { navigate('/admin/event_and_reunion_history') }} >View Events</button>
+              ) : (
+                <button className={styles.reunionBtn} onClick={() => { navigate('/admin/event_and_reunion') }} >Create Event</button>
+              )}
             </div>
             <div className={styles.cardAchievements}>
               <div className={styles.achievementsHeader}>
-                <div className={styles.cardIcon}>📊</div>
-                <h2 className={styles.achievementsTitle}>Analytics Overview</h2>
-                {!loading && !error && (
-                  <button
-                    className={styles.refreshButton}
-                    onClick={() => fetchStats()}
-                    title="Refresh analytics data"
-                  >
-                    <RefreshCw size={16} />
-                  </button>
-                )}
+                <Trophy size={22} className={styles.trophyIcon} style={{ color: 'var(--primary-green)', marginRight: '12px' }} />
+                <h2 className={styles.achievementsTitle}>Achievements & News</h2>
+                <a href="#" className={styles.achievementsViewAll} onClick={(e) => e.preventDefault()}>
+                  View All <ExternalLink size={14} className={styles.externalLinkIcon} />
+                </a>
               </div>
-              {error && !loading && renderError()}
-              {!loading && !error && stats && renderKpiCards()}
+              <div className={styles.achievementsGrid}>
+                {achievementsAndNewsData.map((item, index) => (
+                  <div key={index} className={styles.achievementItem}>
+                    <span className={styles.achievementDate}>{item.date}</span>
+                    <h3 className={styles.achievementTitle}>{item.title}</h3>
+                    <p className={styles.achievementDesc}>{item.description}</p>
+                    <a href="#" className={styles.achievementReadMore} onClick={(e) => e.preventDefault()}>
+                      READ MORE <span className={styles.arrowIcon}>&gt;</span>
+                    </a>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
