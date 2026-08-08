@@ -33,6 +33,10 @@ interface JobReferenceDetail {
   vacancies: number;
   location: string;
   workMode: string;
+  approvedBy?: any;
+  approvedByName?: string;
+  rejectedBy?: any;
+  rejectedByName?: string;
   submittedBy?: {
     _id: string;
     name: string;
@@ -41,11 +45,20 @@ interface JobReferenceDetail {
   };
 }
 
+interface CoordinatorItem {
+  _id: string;
+  name: string;
+  department?: string;
+  staffId?: string;
+  userId?: any;
+}
+
 const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [jobReference, setJobReference] = useState<JobReferenceDetail | null>(null);
+  const [coordinatorsList, setCoordinatorsList] = useState<CoordinatorItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,23 +89,38 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
       }
 
       try {
-        const response = await fetch(`${API_BASE}/api/jobs/${id}`, {
+        const [jobRes, coordRes] = await Promise.all([
+          fetch(`${API_BASE}/api/jobs/${id}`, {
             signal: controller.signal,
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }),
+          fetch(`${API_BASE}/api/coordinators/all`, {
+            signal: controller.signal,
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }).catch(() => null)
+        ]);
 
-        if (!response.ok) {
+        if (!jobRes.ok) {
           throw new Error('Failed to fetch job reference');
         }
 
-        const data = await response.json();
+        const data = await jobRes.json();
         if (data.success && data.jobReference) {
           setJobReference(data.jobReference);
         }
+
+        if (coordRes && coordRes.ok) {
+          const coordData = await coordRes.json();
+          if (coordData.success && coordData.coordinators) {
+            setCoordinatorsList(coordData.coordinators);
+          }
+        }
       } catch (err: any) {
-          if (err.name === 'AbortError') return;
+        if (err.name === 'AbortError') return;
         setError(err.message);
       } finally {
         setLoading(false);
@@ -103,6 +131,83 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
 
     return () => controller.abort();
   }, [user, id]);
+
+  const isPlaceholderName = (name?: string) => {
+    if (!name) return true;
+    const n = name.trim().toLowerCase();
+    return n === 'coordinator' || /^coordinator[-_ ]?\d*$/i.test(n);
+  };
+
+  const getCoordinatorName = (job: JobReferenceDetail, type: 'approved' | 'rejected') => {
+    const directName = type === 'approved' ? job.approvedByName : job.rejectedByName;
+    const directUser = type === 'approved' ? job.approvedBy : job.rejectedBy;
+
+    if (directName && !isPlaceholderName(directName)) {
+      return directName;
+    }
+    if (typeof directUser === 'object' && directUser?.name && !isPlaceholderName(directUser.name)) {
+      return directUser.name;
+    }
+    if (directUser && typeof directUser === 'string') {
+      const found = coordinatorsList.find(c => 
+        (c._id === directUser || 
+        (c.userId as any)?._id === directUser || 
+        (c.userId as any) === directUser) &&
+        !isPlaceholderName(c.name)
+      );
+      if (found?.name) return found.name;
+    }
+    if (job.approvedByName && !isPlaceholderName(job.approvedByName)) {
+      return job.approvedByName;
+    }
+
+    // Department coordinator lookup
+    const branch = (job.targetBranch || '').toLowerCase().trim();
+    if (branch && coordinatorsList.length > 0) {
+      const direct = coordinatorsList.find(c => {
+        const d = (c.department || '').toLowerCase().trim();
+        const s = (c.staffId || '').toLowerCase().trim();
+        const isValid = !isPlaceholderName(c.name);
+        return isValid && ((d && (d === branch || d.includes(branch) || branch.includes(d))) || (s && branch && s.includes(branch)));
+      });
+      if (direct?.name) return direct.name;
+
+      const keywords: Record<string, string[]> = {
+        cse: ['cse', 'computer science', 'cs'],
+        it: ['it', 'information technology'],
+        ece: ['ece', 'electronics', 'communication'],
+        eee: ['eee', 'electrical'],
+        mech: ['mech', 'mechanical'],
+        civil: ['civil'],
+        auto: ['auto', 'automobile'],
+        bme: ['bme', 'biomedical'],
+        csd: ['csd', 'design'],
+        iot: ['iot'],
+        cyber: ['cyber', 'security'],
+        sfe: ['safety', 'fire', 'sfe'],
+        mca: ['mca'],
+        mba: ['mba', 'management'],
+        'ai/ds': ['ai', 'ds', 'aiml', 'data science']
+      };
+
+      for (const [key, kwList] of Object.entries(keywords)) {
+        if (key === branch || kwList.some(kw => branch.includes(kw))) {
+          const matched = coordinatorsList.find(coord => {
+            const d = (coord.department || '').toLowerCase().trim();
+            const s = (coord.staffId || '').toLowerCase().trim();
+            const isValid = !isPlaceholderName(coord.name);
+            return isValid && kwList.some(kw => d.includes(kw) || s.includes(kw));
+          });
+          if (matched?.name) return matched.name;
+        }
+      }
+
+      const validCoord = coordinatorsList.find(c => !isPlaceholderName(c.name));
+      if (validCoord?.name) return validCoord.name;
+    }
+
+    return 'Coordinator';
+  };
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this job reference? This action cannot be undone.')) {
@@ -184,8 +289,18 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
                   <p className={styles.formSubtitle}>Submitted {formatDate(jobReference.createdAt)}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${jobReference.status === 'approved' ? 'bg-green-100 text-green-700' : jobReference.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                    {jobReference.status}
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase flex items-center gap-1 ${jobReference.status === 'approved' ? 'bg-green-100 text-green-700' : jobReference.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {jobReference.status === 'approved' && (
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>verified</span>
+                    )}
+                    {jobReference.status === 'rejected' && (
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>cancel</span>
+                    )}
+                    {jobReference.status === 'approved'
+                      ? `Approved by ${getCoordinatorName(jobReference, 'approved')}`
+                      : jobReference.status === 'rejected'
+                      ? `Rejected by ${getCoordinatorName(jobReference, 'rejected')}`
+                      : jobReference.status}
                   </span>
                   <button
                     onClick={handleDelete}

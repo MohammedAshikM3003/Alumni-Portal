@@ -4,9 +4,20 @@
 .pageContainer {
   min-height: 100vh;
   display: flex;
-  background-color: var(--bg-main);
+  background-color: #ffffff;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
+  --primary: #2e6f40;
+  --primary-hover: #1e4b2a;
+  --text-dark: #0f172a;
+  --text-muted: #475569;
+  --text-light: #94a3b8;
+  --border-color: #94a3b8;
+  --border-light: #cbd5e1;
+  --bg-white: #ffffff;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
 }
 
 
@@ -18,6 +29,7 @@
   min-width: 0;
   height: 100vh;
   overflow-y: auto;
+  background-color: #ffffff;
 }
 
 /* Scrollbar(VolumeBar) */
@@ -262,22 +274,24 @@
 }
 
 .sendBtn {
-  background-color: var(--dark-green-button);
+  background: linear-gradient(135deg, var(--primary), #3d8c52);
   color: #ffffff;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: 8px;
   font-weight: 700;
   border: none;
-  box-shadow: 0 10px 15px -3px rgba(187, 247, 208, 0.5); /* shadow-green-200 */
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(46, 111, 64, 0.2);
 }
 
-.sendBtn:hover {
-  background-color: var(--dark-green-hover);
+.sendBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(46, 111, 64, 0.3);
+  filter: brightness(1.05);
 }
 
 .sendBtn:disabled {
@@ -375,19 +389,20 @@
 .inputField {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
+  border: 1.5px solid var(--border-light);
+  border-radius: 8px;
   font-size: 0.875rem;
   color: var(--text-dark);
   background: #ffffff;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
 }
 
 .inputField:focus {
   outline: none;
-  border-color: var(--forest-green);
-  box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(46, 111, 64, 0.12);
+  background-color: white;
 }
 
 .inputField:disabled {
@@ -398,6 +413,11 @@
 .inputField.readOnly {
   background-color: var(--bg-surface);
   color: var(--text-muted);
+}
+
+.inputField::placeholder {
+  color: #64748b;
+  font-size: 0.875rem;
 }
 
 .textarea {
@@ -455,10 +475,18 @@
 .photoDisplay {
   width: 100px;
   height: 100px;
-  border-radius: 0.5rem;
+  border-radius: 50%;
   overflow: hidden;
-  border: 1px solid var(--border-color);
+  border: 3px solid #ffffff;
+  outline: 1.5px solid var(--border-light);
   background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s ease;
+}
+
+.photoDisplay:hover {
+  outline-color: var(--primary);
+  box-shadow: var(--shadow-md);
 }
 
 .photoPlaceholder {
@@ -502,10 +530,17 @@
 /* ==================== ALUMNI ENTRY CARD ==================== */
 .alumniEntryCard {
   background: #ffffff;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2rem;
+  border: 1.5px solid var(--border-light);
+  box-shadow: var(--shadow-md);
   position: relative;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.alumniEntryCard:hover {
+  border-color: #a3bda8;
+  box-shadow: var(--shadow-lg);
 }
 
 .alumniEntryHeader {
@@ -553,21 +588,23 @@
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 1rem;
+  padding: 0.875rem;
   border: 2px dashed var(--border-color);
-  border-radius: 0.75rem;
+  border-radius: 12px;
   background: transparent;
   color: var(--text-muted);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .addAlumniBtn:hover {
-  border-color: var(--forest-green);
-  color: var(--forest-green);
-  background: var(--forest-green-light);
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #f4faf6;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .addAlumniBtn:disabled {
@@ -577,10 +614,11 @@
 
 /* ==================== OPTIONAL FORM CARD ==================== */
 .optionalFormCard {
-  background: #ffffff;
-  border-radius: 0.75rem;
+  background: #f4faf6;
+  border-radius: 12px;
   padding: 1.25rem 1.5rem;
-  border: 1px solid var(--border-color);
+  border: 1.5px solid #d1e7dd;
+  box-shadow: var(--shadow-sm);
 }
 
 .optionalFormHeader {
@@ -674,9 +712,10 @@
 /* ==================== EVENT FIELDS ==================== */
 .eventFieldsTop {
   background: #ffffff;
-  border-radius: 0.75rem;
+  border-radius: 12px;
   padding: 1.5rem;
-  border: 1px solid var(--border-color);
+  border: 1.5px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .eventFieldsRow {
@@ -714,20 +753,22 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #8B5CF6, #6366F1);
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
   color: #ffffff;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
 }
 
-.generateBtn:hover {
-  background: linear-gradient(135deg, #7C3AED, #4F46E5);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+.generateBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.45);
+  filter: brightness(1.05);
 }
 
 .generateBtn:disabled {
@@ -836,18 +877,19 @@
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   background: #ffffff;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
+  color: #475569;
+  border: 1.5px solid var(--border-light);
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
 }
 
-.cancelBtn:hover {
+.cancelBtn:hover:not(:disabled) {
   background: var(--bg-surface);
   border-color: var(--text-light);
+  color: var(--text-dark);
 }
 
 .cancelBtn:disabled {
