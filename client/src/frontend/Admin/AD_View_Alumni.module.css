@@ -473,7 +473,7 @@
 }
 
 .deleteWarningIcon {
-  color: var(--primary-danger);
+  color: #ef4444;
   flex-shrink: 0;
 }
 
@@ -491,7 +491,7 @@
 }
 
 .deleteBtn {
-  background-color: var(--primary-danger);
+  background-color: #ef4444;
   color: white;
   border: none;
   font-weight: 600;
@@ -507,7 +507,7 @@
 }
 
 .deleteBtn:hover {
-  background-color: var(--primary-danger-hover);
+  background-color: #dc2626;
 }
 
 .deleteBtn:disabled {

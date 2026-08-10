@@ -9,6 +9,10 @@ export interface IJobReference {
   location: string;
   workMode: 'offline' | 'online' | 'hybrid';
   status: 'pending' | 'approved' | 'rejected';
+  approvedBy?: Types.ObjectId;
+  approvedByName?: string;
+  rejectedBy?: Types.ObjectId;
+  rejectedByName?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -62,6 +66,22 @@ const jobReferenceSchema = new Schema<IJobReference>(
 			enum: ['pending', 'approved', 'rejected'],
 			default: 'pending',
 			index: true,
+		},
+		approvedBy: {
+			type: Schema.Types.ObjectId,
+			ref: 'User',
+		},
+		approvedByName: {
+			type: String,
+			trim: true,
+		},
+		rejectedBy: {
+			type: Schema.Types.ObjectId,
+			ref: 'User',
+		},
+		rejectedByName: {
+			type: String,
+			trim: true,
 		},
 	},
 	{ timestamps: true }

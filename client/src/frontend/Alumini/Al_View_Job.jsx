@@ -25,13 +25,12 @@ const getStatusLabel = (status) => {
 		case 'rejected':
 			return 'CLOSED';
 		default:
-			return 'PENDING';
+			return 'ACTIVE';
 	}
 };
 
 const statusOptions = [
 	{ value: 'approved', label: 'Active', icon: 'work' },
-	{ value: 'pending', label: 'Pending', icon: 'schedule' },
 	{ value: 'rejected', label: 'Closed', icon: 'do_not_disturb_on' },
 ];
 

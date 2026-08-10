@@ -3,6 +3,7 @@ import styles from './AD_Event_and_Reunion_Form1.module.css';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/authContext/authContext';
+import { DateInput, TimeInput } from '../../components/Calendar';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -187,7 +188,10 @@ const Admin_Event_and_Reunion_Form1 = ({ onLogout }: { onLogout?: () => void }) 
                   className={`${styles.formInput} ${errors.eventName ? styles.inputError : ''}`}
                   placeholder="Enter event name"
                   value={eventName}
-                  onChange={(e) => setEventName(e.target.value)}
+                  onChange={(e) => {
+                    setEventName(e.target.value);
+                    if (errors.eventName) setErrors(prev => ({ ...prev, eventName: '' }));
+                  }}
                 />
                 {errors.eventName && <span className={styles.errorText}>{errors.eventName}</span>}
               </div>
@@ -196,11 +200,14 @@ const Admin_Event_and_Reunion_Form1 = ({ onLogout }: { onLogout?: () => void }) 
               <div className={styles.rowGroup}>
                 <div className={styles.inputGroup}>
                   <label className={styles.formLabel}>Event Date</label>
-                  <input
-                    type="date"
+                  <DateInput
+                    name="eventDate"
                     className={`${styles.formInput} ${errors.eventDate ? styles.inputError : ''}`}
                     value={eventDate}
-                    onChange={(e) => setEventDate(e.target.value)}
+                    onChange={(e) => {
+                      setEventDate(e.target.value);
+                      if (errors.eventDate) setErrors(prev => ({ ...prev, eventDate: '' }));
+                    }}
                   />
                   {errors.eventDate && <span className={styles.errorText}>{errors.eventDate}</span>}
                 </div>
@@ -219,11 +226,14 @@ const Admin_Event_and_Reunion_Form1 = ({ onLogout }: { onLogout?: () => void }) 
               {/* Event Time */}
               <div className={styles.inputGroup}>
                 <label className={styles.formLabel}>Event Time</label>
-                <input
-                  type="time"
+                <TimeInput
+                  name="eventTime"
                   className={`${styles.formInput} ${errors.eventTime ? styles.inputError : ''}`}
                   value={eventTime}
-                  onChange={(e) => setEventTime(e.target.value)}
+                  onChange={(e) => {
+                    setEventTime(e.target.value);
+                    if (errors.eventTime) setErrors(prev => ({ ...prev, eventTime: '' }));
+                  }}
                 />
                 {errors.eventTime && <span className={styles.errorText}>{errors.eventTime}</span>}
               </div>
@@ -236,7 +246,10 @@ const Admin_Event_and_Reunion_Form1 = ({ onLogout }: { onLogout?: () => void }) 
                   className={`${styles.formInput} ${errors.venue ? styles.inputError : ''}`}
                   placeholder="Enter event venue"
                   value={venue}
-                  onChange={(e) => setVenue(e.target.value)}
+                  onChange={(e) => {
+                    setVenue(e.target.value);
+                    if (errors.venue) setErrors(prev => ({ ...prev, venue: '' }));
+                  }}
                 />
                 {errors.venue && <span className={styles.errorText}>{errors.venue}</span>}
               </div>
@@ -250,6 +263,7 @@ const Admin_Event_and_Reunion_Form1 = ({ onLogout }: { onLogout?: () => void }) 
                   onChange={(e) => {
                     setOrganizer(e.target.value);
                     setCoOrganizers([]);
+                    if (errors.organizer) setErrors(prev => ({ ...prev, organizer: '' }));
                   }}
                 >
                   <option value="">Select organizing department</option>

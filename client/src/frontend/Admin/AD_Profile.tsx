@@ -4,6 +4,7 @@ import styles from './AD_Profile.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
 import { useAdminContext } from '../../context/adminContext/adminContext';
+import { DateInput } from '../../components/Calendar';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -863,12 +864,13 @@ const Admin_Profile = ({ onLogout }: { onLogout?: () => void }) => {
 
                   <div className={styles.inputGroup}>
                     <label className={styles.inputLabel}>Date of Birth</label>
-                    <input
-                      type="date"
+                    <DateInput
+                      name="dateOfBirth"
                       className={styles.inputField}
                       value={profileData.dateOfBirth}
                       onChange={(e) => handleProfileChange('dateOfBirth', e.target.value)}
                       disabled={!isEditing}
+                      yearRange="dob"
                     />
                   </div>
                 </div>
@@ -1325,7 +1327,10 @@ const Admin_Profile = ({ onLogout }: { onLogout?: () => void }) => {
                         <div className={styles.resetButtonGroup}>
                           <div style={{ width: '100%' }}>
                             <div className={styles.noteBox}>
-                              <p>📱 <strong>Note:</strong> On clicking "Send OTP", a one-time password will be sent to your registered mobile number.</p>
+                              <p>
+                                <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', verticalAlign: 'text-bottom', marginRight: '4px' }}>smartphone</span>
+                                <strong>Note:</strong> On clicking "Send OTP", a one-time password will be sent to your registered mobile number.
+                              </p>
                             </div>
                             <button
                               className={styles.primary}

@@ -17,6 +17,14 @@ export default function Alumini_Dashboard({ onLogout }: DashboardProps) {
     const [alumniName, setAlumniName] = useState<string | null>(user?.name || null);
     const [batchLabel, setBatchLabel] = useState<string | null>(null);
     const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+    
+    // Data states
+    const [messages, setMessages] = useState<any[]>([]);
+    const [jobReferences, setJobReferences] = useState<any[]>([]);
+    const [donations, setDonations] = useState<any[]>([]);
+    const [events, setEvents] = useState<any[]>([]);
+    const [news, setNews] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const isGridFSId = (value: string | null | undefined): value is string => {
       return !!(value && typeof value === 'string' && /^[a-f\d]{24}$/i.test(value));
@@ -55,10 +63,98 @@ export default function Alumini_Dashboard({ onLogout }: DashboardProps) {
         }
       };
 
+      const fetchDashboardData = async () => {
+        if (!user?.token) return;
+        try {
+          // Fetch messages
+          let messagesUrl;
+          if (user?.email) {
+            messagesUrl = `${API_BASE}/api/mail/alumni/${encodeURIComponent(user.email)}`;
+          } else {
+            messagesUrl = `${API_BASE}/api/mail`;
+          }
+          const messagesRes = await fetch(messagesUrl, {
+            signal: controller.signal,
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
+          const messagesData = await messagesRes.json();
+          if (messagesData.success && messagesData.mails) {
+            setMessages(messagesData.mails.slice(0, 2));
+          }
+
+          // Fetch job references
+          const jobsRes = await fetch(`${API_BASE}/api/jobs/all`, {
+            signal: controller.signal,
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
+          const jobsData = await jobsRes.json();
+          if (jobsData.success && jobsData.jobReferences) {
+            setJobReferences(jobsData.jobReferences.slice(0, 2));
+          }
+
+          // Fetch donations
+          const donationsRes = await fetch(`${API_BASE}/api/donations`, {
+            signal: controller.signal,
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
+          const donationsData = await donationsRes.json();
+          if (donationsData.success && donationsData.donations) {
+            setDonations(donationsData.donations.slice(0, 2));
+          }
+
+          // Fetch events
+          const eventsRes = await fetch(`${API_BASE}/api/events`, {
+            signal: controller.signal,
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
+          const eventsData = await eventsRes.json();
+          if (eventsData.success && eventsData.data) {
+            const now = new Date();
+            const upcomingEvents = eventsData.data
+              .filter((event: any) => new Date(event.eventDate) >= now)
+              .slice(0, 1);
+            setEvents(upcomingEvents);
+          }
+
+          // Fetch news/achievements (if endpoint exists)
+          try {
+            const newsRes = await fetch(`${API_BASE}/api/news`, {
+              signal: controller.signal,
+              headers: { Authorization: `Bearer ${user.token}` },
+            });
+            const newsData = await newsRes.json();
+            if (newsData.success && newsData.news) {
+              setNews(newsData.news.slice(0, 4));
+            }
+          } catch (newsError) {
+            // News endpoint might not exist, set empty array
+            setNews([]);
+          }
+        } catch (e) {
+          console.error('Error fetching dashboard data:', e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
       fetchAlumni();
+      fetchDashboardData();
       return () => controller.abort();
     }, [user?.token]);
   
+  if (loading) {
+    return (
+      <div className={styles.dashboardContainer}>
+        <Sidebar onLogout={onLogout} currentView={'dashboard'} />
+        <main className={styles.mainContent}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+            <p>Loading dashboard...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.dashboardContainer}>
       
@@ -108,20 +204,21 @@ export default function Alumini_Dashboard({ onLogout }: DashboardProps) {
                   <div className={`${styles.iconBox} ${styles.iconBoxBlue}`}>
                     <span className={`material-symbols-outlined ${styles.iconBlue}`}>mail</span>
                   </div>
-                  <span className={`${styles.badge} ${styles.badgeNew}`}>2 New</span>
+                  <span className={`${styles.badge} ${styles.badgeNew}`}>{messages.length} New</span>
                 </div>
                 <h3 className={styles.cardTitle}>Latest Messages</h3>
                 <div className={styles.cardContent}>
-                  <div className={styles.messageItem}>
-                    <p className={`${styles.messageLabel} ${styles.messageLabelAdmin}`}>Admin</p>
-                    <p className={styles.messageText}>Welcome to the network, Mohammed!</p>
-                    <p className={styles.messageTime}>2 hours ago</p>
-                  </div>
-                  <div className={styles.messageItem}>
-                    <p className={`${styles.messageLabel} ${styles.messageLabelCareer}`}>Career Cell</p>
-                    <p className={styles.messageText}>New job referral available for SDE-1...</p>
-                    <p className={styles.messageTime}>Yesterday</p>
-                  </div>
+                  {messages.length > 0 ? (
+                    messages.map((msg) => (
+                      <div key={msg._id} className={styles.messageItem}>
+                        <p className={`${styles.messageLabel} ${styles.messageLabelAdmin}`}>{msg.sender?.name || 'Admin'}</p>
+                        <p className={styles.messageText}>{msg.subject || 'No subject'}</p>
+                        <p className={styles.messageTime}>{new Date(msg.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className={styles.messageText}>No new messages</p>
+                  )}
                 </div>
                 <button 
                   className={`${styles.buttonBase} ${styles.buttonSecondary}`}
@@ -137,24 +234,23 @@ export default function Alumini_Dashboard({ onLogout }: DashboardProps) {
                   <div className={`${styles.iconBox} ${styles.iconBoxEmerald}`}>
                     <span className={`material-symbols-outlined ${styles.iconEmerald}`}>work_outline</span>
                   </div>
-                  <span className={styles.badgeInfo}>12 active postings</span>
+                  <span className={styles.badgeInfo}>{jobReferences.length} active postings</span>
                 </div>
                 <h3 className={styles.cardTitle}>Career Hub</h3>
                 <div className={styles.cardContent}>
-                  <div className={styles.careerItem}>
-                    <div>
-                      <p className={styles.careerTitle}>Senior Dev, Google</p>
-                      <p className={styles.careerSubtitle}>Referral by Rahul S.</p>
-                    </div>
-                    <span className={`material-symbols-outlined ${styles.iconPrimaryXl}`}>arrow_forward</span>
-                  </div>
-                  <div className={styles.careerItem}>
-                    <div>
-                      <p className={styles.careerTitle}>Lead Architect, IBM</p>
-                      <p className={styles.careerSubtitle}>Open Referral</p>
-                    </div>
-                    <span className={`material-symbols-outlined ${styles.iconPrimaryXl}`}>arrow_forward</span>
-                  </div>
+                  {jobReferences.length > 0 ? (
+                    jobReferences.map((job) => (
+                      <div key={job._id} className={styles.careerItem}>
+                        <div>
+                          <p className={styles.careerTitle}>{job.role} at {job.companyName}</p>
+                          <p className={styles.careerSubtitle}>Referral by {job.submittedBy?.name || 'Alumni'}</p>
+                        </div>
+                        <span className={`material-symbols-outlined ${styles.iconPrimaryXl}`}>arrow_forward</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className={styles.messageText}>No active job postings</p>
+                  )}
                 </div>
                 <button 
                   className={`${styles.buttonBase} ${styles.buttonOutline}`}
@@ -187,14 +283,16 @@ export default function Alumini_Dashboard({ onLogout }: DashboardProps) {
                 <div className={styles.contributionsSection}>
                   <p className={styles.contributionsTitle}>Recent Contributions</p>
                   <div className={styles.contributionsList}>
-                    <div className={styles.contributionItem}>
-                      <span className={styles.contributionDate}>Oct 20</span>
-                      <span className={styles.contributionAmount}>₹5,000</span>
-                    </div>
-                    <div className={styles.contributionItem}>
-                      <span className={styles.contributionDate}>Oct 18</span>
-                      <span className={styles.contributionAmount}>₹10,000</span>
-                    </div>
+                    {donations.length > 0 ? (
+                      donations.map((donation) => (
+                        <div key={donation._id} className={styles.contributionItem}>
+                          <span className={styles.contributionDate}>{new Date(donation.date).toLocaleDateString()}</span>
+                          <span className={styles.contributionAmount}>₹{donation.amount?.toLocaleString() || 0}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className={styles.messageText}>No recent contributions</p>
+                    )}
                   </div>
                 </div>
                 <button className={`${styles.buttonBase} ${styles.buttonPrimary}`} onClick={() => navigate('/alumini/donation_History')}>Donate Now</button>
@@ -208,23 +306,29 @@ export default function Alumini_Dashboard({ onLogout }: DashboardProps) {
                   </div>
                   <span className={styles.badgePurple}>Upcoming</span>
                 </div>
-                <h3 className={styles.cardTitleSmall}>Grand Reunion 2024</h3>
-                <p className={styles.eventDescription}>Join us for an evening of nostalgia and networking as we celebrate 40 years of excellence.</p>
-                <div className={styles.eventLocation}>
-                  <span className={`material-symbols-outlined ${styles.eventLocationIcon}`}>location_on</span>
-                  <span className={styles.eventLocationText}>Main Campus Auditorium</span>
-                </div>
-                <div className={styles.eventCountdown}>
-                  <div className={styles.countdownBox}>
-                    <p className={styles.countdownNumber}>14</p>
-                    <p className={styles.countdownLabel}>Days</p>
-                  </div>
-                  <div className={styles.countdownBox}>
-                    <p className={styles.countdownNumber}>08</p>
-                    <p className={styles.countdownLabel}>Hrs</p>
-                  </div>
-                </div>
-                <button className={`${styles.buttonBase} ${styles.buttonDark}`} onClick={() => navigate('/alumini/event_reunion')} >RSVP Today</button>
+                {events.length > 0 ? (
+                  <>
+                    <h3 className={styles.cardTitleSmall}>{events[0].eventName}</h3>
+                    <p className={styles.eventDescription}>Join us for an evening of nostalgia and networking.</p>
+                    <div className={styles.eventLocation}>
+                      <span className={`material-symbols-outlined ${styles.eventLocationIcon}`}>location_on</span>
+                      <span className={styles.eventLocationText}>{events[0].venue || 'TBD'}</span>
+                    </div>
+                    <div className={styles.eventCountdown}>
+                      <div className={styles.countdownBox}>
+                        <p className={styles.countdownNumber}>{Math.ceil(((new Date(events[0].eventDate as string).getTime() - new Date().getTime()) as number) / (1000 * 60 * 60 * 24))}</p>
+                        <p className={styles.countdownLabel}>Days</p>
+                      </div>
+                    </div>
+                    <button className={`${styles.buttonBase} ${styles.buttonDark}`} onClick={() => navigate('/alumini/event_reunion')} >RSVP Today</button>
+                  </>
+                ) : (
+                  <>
+                    <h3 className={styles.cardTitleSmall}>No Upcoming Events</h3>
+                    <p className={styles.eventDescription}>Check back later for upcoming reunions and events.</p>
+                    <button className={`${styles.buttonBase} ${styles.buttonDark}`} onClick={() => navigate('/alumini/event_reunion')} >View All Events</button>
+                  </>
+                )}
               </div>
 
               {/* Achievements & News Card */}
@@ -238,38 +342,22 @@ export default function Alumini_Dashboard({ onLogout }: DashboardProps) {
                   </div>
                 </div>
                 <div className={styles.newsGrid}>
-                  <div className={styles.newsCard}>
-                    <p className={styles.newsDate}>Oct 24, 2023</p>
-                    <h4 className={styles.newsTitle}>Startup center secures ₹5Cr Funding</h4>
-                    <p className={styles.newsDescription}>Major grant to boost innovation hub, benefiting 50+ student startups.</p>
-                    <a className={styles.newsLink} href="#">
-                      Read More <span className={`material-symbols-outlined ${styles.newsLinkIcon}`}>arrow_forward_ios</span>
-                    </a>
-                  </div>
-                  <div className={styles.newsCard}>
-                    <p className={styles.newsDate}>Oct 22, 2023</p>
-                    <h4 className={styles.newsTitle}>Dr. Arul wins "Outstanding Researcher"</h4>
-                    <p className={styles.newsDescription}>Honored for breakthrough contributions in Renewable Energy Systems.</p>
-                    <a className={styles.newsLink} href="#">
-                      Read More <span className={`material-symbols-outlined ${styles.newsLinkIcon}`}>arrow_forward_ios</span>
-                    </a>
-                  </div>
-                  <div className={styles.newsCard}>
-                    <p className={styles.newsDate}>Oct 20, 2023</p>
-                    <h4 className={styles.newsTitle}>New Industry Partnership with Tech Corp</h4>
-                    <p className={styles.newsDescription}>MoU signed for internship programs and specialized training modules.</p>
-                    <a className={styles.newsLink} href="#">
-                      Read More <span className={`material-symbols-outlined ${styles.newsLinkIcon}`}>arrow_forward_ios</span>
-                    </a>
-                  </div>
-                  <div className={styles.newsCard}>
-                    <p className={styles.newsDate}>Oct 18, 2023</p>
-                    <h4 className={styles.newsTitle}>Alumni Sports Meet Registration Open</h4>
-                    <p className={styles.newsDescription}>Join the annual football and cricket tournament at the campus grounds.</p>
-                    <a className={styles.newsLink} href="#">
-                      Read More <span className={`material-symbols-outlined ${styles.newsLinkIcon}`}>arrow_forward_ios</span>
-                    </a>
-                  </div>
+                  {news.length > 0 ? (
+                    news.map((item) => (
+                      <div key={item._id} className={styles.newsCard}>
+                        <p className={styles.newsDate}>{new Date(item.date).toLocaleDateString()}</p>
+                        <h4 className={styles.newsTitle}>{item.title}</h4>
+                        <p className={styles.newsDescription}>{item.description}</p>
+                        <a className={styles.newsLink} href={item.link || '#'} target="_blank" rel="noopener noreferrer">
+                          Read More <span className={`material-symbols-outlined ${styles.newsLinkIcon}`}>arrow_forward_ios</span>
+                        </a>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.newsCard} style={{ gridColumn: '1 / -1' }}>
+                      <p className={styles.newsDescription}>No recent news or achievements to display.</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

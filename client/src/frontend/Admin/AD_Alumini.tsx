@@ -1,17 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FC } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Search, Eye, Plus, Users, Award, X, Send, Mail } from 'lucide-react';
 import styles from './AD_Alumini.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
-import { Search, UserPlus, Eye, Send, X, Plus, Trash2, Mail } from 'lucide-react';
 import { useAuth } from '../../context/authContext/authContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || window.location.origin;
-
-if (!import.meta.env.VITE_API_URL) {
-  console.warn('[Config] VITE_API_URL not set, falling back to window.location.origin. API calls may fail if frontend and backend are on different origins.');
-}
-
-const createClientTraceId = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 interface Address {
   street?: string;
@@ -26,6 +20,7 @@ interface Alumni {
   registerNumber?: string;
   email: string;
   branch?: string;
+  degree?: string;
   designation?: string;
   yearFrom: number;
   yearTo: number;
@@ -34,291 +29,212 @@ interface Alumni {
   presentAddress?: Address;
 }
 
-interface AdminAlumniProps {
-  onLogout?: () => void;
+interface Department {
+  _id: string;
+  stream: string;
+  branch: string;
+  deptCode: string;
 }
 
-const logClientStep = (traceId: string, flow: string, step: number, details: any = {}) => {
-  // Disabled in production
-};
+interface ApiAlumniResponse {
+  success: boolean;
+  alumni?: Alumni[];
+  message?: string;
+}
 
-const logClientBreak = (traceId: string, flow: string, step: number, reason: string, details: any = {}) => {
-  // Disabled in production
-};
-
-// Helper function to format address object to string
-const formatAddress = (address: string | Address | null | undefined) => {
+const formatAddress = (address: string | Address | null | undefined): string => {
   if (!address) return '-';
   if (typeof address === 'string') return address;
   const parts = [address.street, address.city, address.pinCode].filter(Boolean);
   return parts.length > 0 ? parts.join(', ') : '-';
 };
 
-const Admin_Alumini = ({ onLogout }: AdminAlumniProps) => {
+interface AdminAluminiProps {
+  onLogout: () => void;
+}
+
+const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const [alumniData, setAlumniData] = useState<Alumni[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [filteredData, setFilteredData] = useState<Alumni[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
-  // Search/Filter states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('');
-  const [batchFilter, setBatchFilter] = useState('');
+  // Search/filter states
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedBranch, setSelectedBranch] = useState<string>('');
+  const [selectedBatch, setSelectedBatch] = useState<string>('');
 
   // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 10;
 
-  // Registration link popup states
-  const [showEmailPopup, setShowEmailPopup] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
-  const [emailList, setEmailList] = useState<string[]>([]);
-  const [emailError, setEmailError] = useState('');
-  const [sendingEmails, setSendingEmails] = useState(false);
+  // Popup/Modal states
+  const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
+  const [emailInput, setEmailInput] = useState<string>('');
+  const [emailsList, setEmailsList] = useState<string[]>([]);
+  const [popupError, setPopupError] = useState<string>('');
+  const [isSendingLinks, setIsSendingLinks] = useState<boolean>(false);
+  const [popupMessage, setPopupMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Add email to list
   const handleAddEmail = () => {
-    const email = emailInput.trim().toLowerCase();
-
-    if (!email) {
-      setEmailError('Please enter an email address');
+    const trimmed = emailInput.trim();
+    if (!trimmed) return;
+    
+    // Validate email pattern
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed)) {
+      setPopupError('Please enter a valid email address');
       return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError('Invalid email format');
+    if (emailsList.includes(trimmed)) {
+      setPopupError('This email address has already been added');
       return;
     }
 
-    if (emailList.includes(email)) {
-      setEmailError('Email already added');
-      return;
-    }
-
-    setEmailList([...emailList, email]);
+    setEmailsList((prev) => [...prev, trimmed]);
     setEmailInput('');
-    setEmailError('');
+    setPopupError('');
   };
 
-  // Handle Enter key in input
-  const handleEmailKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddEmail();
-    }
+  const handleRemoveEmail = (idxToRemove: number) => {
+    setEmailsList((prev) => prev.filter((_, idx) => idx !== idxToRemove));
   };
 
-  // Remove email from list
-  const handleRemoveEmail = (emailToRemove: string) => {
-    setEmailList(emailList.filter(email => email !== emailToRemove));
-  };
-
-  // Send registration links
-  const handleSendRegistrationLinks = async () => {
-    const clientTraceId = createClientTraceId();
-    if (emailList.length === 0) {
-      logClientBreak(clientTraceId, 'send-links', 1, 'No emails added');
-      setEmailError('Please add at least one email');
-      return;
-    }
-
-    setSendingEmails(true);
-    setEmailError('');
-    logClientStep(clientTraceId, 'send-links', 2, {
-      emailCount: emailList.length,
-      hasAuthToken: Boolean(user?.token),
-      apiBaseUrl: API_BASE_URL,
-    });
+  const handleSendLinks = async () => {
+    if (emailsList.length === 0) return;
+    setIsSendingLinks(true);
+    setPopupMessage(null);
 
     try {
-      const endpoint = `${API_BASE_URL}/api/registration/send-links`;
-      logClientStep(clientTraceId, 'send-links', 3, {
-        endpoint,
-        apiBaseUrl: API_BASE_URL,
-        emailCount: emailList.length,
-        emails: emailList,
-        hasAuthToken: Boolean(user?.token),
-        pageOrigin: window.location.origin,
-      });
-
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${API_BASE_URL}/api/registration/send-links`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${user?.token}`,
         },
-        body: JSON.stringify({ emails: emailList }),
+        body: JSON.stringify({
+          emails: emailsList,
+        }),
       });
 
-      const responseText = await response.text();
-      let data: any = null;
-
-      try {
-        logClientStep(clientTraceId, 'send-links', 4, { message: 'Parsing response body' });
-        data = responseText ? JSON.parse(responseText) : null;
-      } catch (parseError) {
-        logClientBreak(clientTraceId, 'send-links', 4, 'Non-JSON response', {
-          status: response.status,
-          responseText,
-          parseError,
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setPopupMessage({
+          type: 'success',
+          text: `Registration invitation ${emailsList.length > 1 ? 'links' : 'link'} sent successfully!`,
         });
-      }
-
-      logClientStep(clientTraceId, 'send-links', 5, {
-        status: response.status,
-        ok: response.ok,
-        data,
-      });
-
-      if (data?.success) {
-        logClientStep(clientTraceId, 'send-links', 6, {
-          sent: data.sent,
-          failedCount: data.failed?.length || 0,
-          failedDetails: data.failed || [],
-          serverTraceId: data?.traceId,
-          serverStep: data?.step,
-        });
-        let message = `Successfully sent ${data.sent} registration link(s)!`;
-        if (data.failed?.length > 0) {
-          message += `\n\nFailed:\n${data.failed.map((f: any) => `${f.email}: ${f.reason}`).join('\n')}`;
-        }
-        alert(message);
-        setShowEmailPopup(false);
-        setEmailList([]);
+        setEmailsList([]);
         setEmailInput('');
-      } else if (response.status === 409) {
-        // 409 Conflict: All emails already have active registration links
-        const emails = data?.failed?.map((f: any) => f.email).join(', ') || 'these addresses';
-        setEmailError(`Mail already sent to: ${emails}`);
+        
+        // Auto close after 2 seconds
+        setTimeout(() => {
+          setIsPopupOpen(false);
+          setPopupMessage(null);
+        }, 2000);
       } else {
-        logClientBreak(clientTraceId, 'send-links', 6, 'API returned non-OK status', {
-          status: response.status,
-          data,
-          serverTraceId: data?.traceId,
-          serverFlow: data?.flow,
-          serverStep: data?.step,
+        setPopupMessage({
+          type: 'error',
+          text: data.message || 'Failed to send registration links',
         });
-
-        // Check if all failures are due to existing tokens
-        const allAlreadySent = data?.failed?.length > 0 &&
-          data.failed.every((f: any) => f.reason === 'Registration link already sent');
-
-        let errorMsg = data?.message;
-        if (allAlreadySent) {
-          const emails = data.failed.map((f: any) => f.email).join(', ');
-          errorMsg = `Mail already sent to: ${emails}`;
-        }
-
-        setEmailError(errorMsg || 'Failed to send links');
       }
-    } catch (error: any) {
-      setEmailError('Failed to send registration links. Please try again.');
-      logClientBreak(clientTraceId, 'send-links', 7, 'Fetch failed', {
-        error,
-        message: error?.message,
-        stack: error?.stack,
-        apiBaseUrl: API_BASE_URL,
+    } catch {
+      setPopupMessage({
+        type: 'error',
+        text: 'Error connecting to server. Please try again.',
       });
     } finally {
-      logClientStep(clientTraceId, 'send-links', 8, { message: 'handleSendRegistrationLinks finished' });
-      setSendingEmails(false);
+      setIsSendingLinks(false);
     }
   };
 
-  // Close popup and reset
-  const handleClosePopup = () => {
-    setShowEmailPopup(false);
-    setEmailList([]);
-    setEmailInput('');
-    setEmailError('');
-  };
-
-  // Fetch alumni data
+  // Fetch alumni list and departments list
   useEffect(() => {
     const controller = new AbortController();
+    const fetchData = async (): Promise<void> => {
+      if (!user?.token) {
+        setError('Please login to view alumni');
+        setLoading(false);
+        return;
+      }
 
-    const fetchAlumni = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/alumni/all`, {
-          headers: {
-            'Authorization': `Bearer ${user?.token}`,
-          },
+        // Fetch all alumni
+        const alumniRes = await fetch(`${API_BASE_URL}/api/alumni/all`, {
           signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
         });
-        const data = await res.json();
-        if (data.success) {
-          setAlumniData(data.alumni);
-          setFilteredData(data.alumni);
+        const alumniResponse: ApiAlumniResponse = await alumniRes.json();
+
+        if (alumniResponse.success && alumniResponse.alumni) {
+          setAlumniData(alumniResponse.alumni);
+          setFilteredData(alumniResponse.alumni);
         } else {
-          setError(data.message || 'Failed to fetch alumni');
+          setError(alumniResponse.message || 'Failed to fetch alumni');
         }
-      } catch (err: any) {
-        if (err.name === 'AbortError') return;
+
+        // Fetch departments for filter dropdown
+        const deptRes = await fetch(`${API_BASE_URL}/api/departments`, {
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        const deptData = await deptRes.json();
+        if (Array.isArray(deptData)) {
+          setDepartments(deptData);
+        } else if (deptData.success && Array.isArray(deptData.departments)) {
+          setDepartments(deptData.departments);
+        }
+      } catch {
         setError('Unable to connect to server');
       } finally {
         setLoading(false);
       }
     };
 
-    if (user?.token) {
-      fetchAlumni();
-    }
+    fetchData();
 
     return () => controller.abort();
   }, [user?.token]);
 
-  // Filter alumni based on search criteria
+  // Apply search and filters
   useEffect(() => {
     let result = alumniData;
 
-    // General search term filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (a) =>
           a.name?.toLowerCase().includes(term) ||
           a.registerNumber?.toLowerCase().includes(term) ||
-          a.email?.toLowerCase().includes(term)
+          a.email?.toLowerCase().includes(term) ||
+          a.designation?.toLowerCase().includes(term)
       );
     }
 
-    // Sort by selected filter type
-    if (filterType) {
-      switch (filterType) {
-        case 'department':
-          result = [...result].sort((a, b) => (a.branch || '').localeCompare(b.branch || ''));
-          break;
-        case 'designation':
-          result = [...result].sort((a, b) => (a.designation || '').localeCompare(b.designation || ''));
-          break;
-        case 'name':
-          result = [...result].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-          break;
-        case 'type':
-          result = [...result].sort((a, b) => (a.placementType || '').localeCompare(b.placementType || ''));
-          break;
-        default:
-          break;
-      }
+    if (selectedBranch) {
+      result = result.filter((a) => a.branch === selectedBranch);
     }
 
-    // Batch filter
-    if (batchFilter) {
-      const [yearFrom, yearTo] = batchFilter.split('-');
-      result = result.filter(
-        (a) => a.yearFrom === parseInt(yearFrom, 10) && a.yearTo === parseInt(yearTo, 10)
-      );
+    if (selectedBatch) {
+      const [yearFrom, yearTo] = selectedBatch.split('-');
+      result = result.filter((a) => a.yearFrom === parseInt(yearFrom, 10) && a.yearTo === parseInt(yearTo, 10));
     }
 
     setFilteredData(result);
     setCurrentPage(1);
-  }, [searchTerm, filterType, batchFilter, alumniData]);
+  }, [searchTerm, selectedBranch, selectedBatch, alumniData]);
 
-  // Get badge class based on placement type
-  const getBadgeClass = (type: string | null | undefined) => {
+
+
+  const getBadgeClass = (type: string | null | undefined): string => {
     if (!type) return styles.badgeGray;
     const t = type.toLowerCase();
     if (t.includes('product')) return styles.badgeBlue;
@@ -327,107 +243,134 @@ const Admin_Alumini = ({ onLogout }: AdminAlumniProps) => {
     return styles.badgeGray;
   };
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
-  // Get unique batches for dropdown
   const uniqueBatches = [...new Set(alumniData.map((a) => `${a.yearFrom}-${a.yearTo}`))].sort().reverse();
 
   return (
     <div className={styles.pageContainer}>
+      <Sidebar onLogout={onLogout} currentView={'alumini'} />
 
-      {/* Sidebar */}
-        <Sidebar onLogout={onLogout} currentView={'alumini'} />
-
-      {/* Main Content Area */}
       <main className={styles.mainContent}>
-
-        {/* Content Header */}
         <header className={styles.contentHeader}>
-          <div className={styles.pageTitleWrapper}>
-            <div className={styles.pageHeader}>
-              <div>
-                <h1 className={styles.pageTitle}>Alumni Directory</h1>
-                <p className={styles.pageSubtitle}>Manage and track your institution's global alumni network.</p>
-              </div>
-              <div className={styles.pageActionButtons}>
-                <div className={styles.pageactionCard} onClick={() => setShowEmailPopup(true)} >
-                  <Send size={20} className={styles.pageactionIcon} />
-                  <span className={styles.pageactionText}>Send Registration Links</span>
-                </div>
-              </div>
+          <div className={styles.pageHeader}>
+            <div>
+              <h1 className={styles.pageTitle}>Alumni Directory</h1>
+              <p className={styles.pageSubtitle}>
+                Manage and track your institution's global alumni network.
+              </p>
+            </div>
+            <div className={styles.pageActionButtons}>
+              <button
+                className={styles.primaryActionBtn}
+                onClick={() => navigate('/admin/alumini_form')}
+              >
+                <Plus size={18} />
+                Add Alumni
+              </button>
+              <button
+                className={styles.secondaryActionBtn}
+                onClick={() => setIsPopupOpen(true)}
+              >
+                <Send size={18} />
+                Send Registration Link
+              </button>
             </div>
           </div>
 
-          <div className={styles.metricsGrid}>
-
-            {/* Advanced Search Engine */}
-            <div className={styles.searchContainer}>
-              <div className={styles.searchInputWrapper}>
-                <span className={styles.searchIcon}>
-                  <Search size={20} />
-                </span>
-                <input
-                  type="text"
-                  className={styles.mainSearchInput}
-                  placeholder="Search alumni by name, register no, email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+          <div className={styles.kpiGrid}>
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiIconWrapper} style={{ backgroundColor: '#eaf6ed', color: '#2e6f40' }}>
+                <Users size={24} />
               </div>
-              <div className={styles.filterGridRow}>
-                {/* Filter Type Dropdown */}
-                <select
-                  className={styles.filterSelect}
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                >
-                  <option value="">Select Filter</option>
-                  <option value="department">By Department</option>
-                  <option value="designation">By Designation</option>
-                  <option value="name">By Name</option>
-                  <option value="type">By Type</option>
-                </select>
-
-                {/* Batch Filter - Right Side */}
-                <select
-                  className={styles.filterSelect}
-                  value={batchFilter}
-                  onChange={(e) => setBatchFilter(e.target.value)}
-                >
-                  <option value="">All Batches</option>
-                  {uniqueBatches.map((batch) => (
-                    <option key={batch} value={batch}>{batch}</option>
-                  ))}
-                </select>
+              <div className={styles.kpiContent}>
+                <p className={styles.kpiLabel}>Total Alumni</p>
+                <h2 className={styles.kpiValue}>{alumniData.length.toLocaleString()}</h2>
               </div>
             </div>
 
-            {/* Total Alumni Metric */}
-            <div className={styles.metricCard}>
-              <p className={styles.metricLabel}>Total No. of Alumni</p>
-              <h2 className={styles.metricValue}>{alumniData.length.toLocaleString()}</h2>
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiIconWrapper} style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
+                <Award size={24} />
+              </div>
+              <div className={styles.kpiContent}>
+                <p className={styles.kpiLabel}>Active Filters Match</p>
+                <h2 className={styles.kpiValue}>{filteredData.length.toLocaleString()}</h2>
+              </div>
             </div>
-
-            {/* Action Card */}
-            <div className={styles.actionCard} onClick={() => { navigate('/admin/alumini_form') }} >
-              <UserPlus size={20} className={styles.actionIcon} />
-              <span className={styles.actionText}>+ Add Alumni</span>
-            </div>
-
           </div>
         </header>
 
-        {/* Main Table Area */}
+        {/* Filter and Search Bar */}
+        <div style={{ padding: '0 2.5rem 1rem 2.5rem' }}>
+          <div className={styles.filterBar}>
+            <div className={styles.searchInputWrapper}>
+              <span className={styles.searchIcon}>
+                <Search size={18} />
+              </span>
+              <input
+                type="text"
+                className={styles.mainSearchInput}
+                placeholder="Search alumni by name, register no, email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterControls}>
+              <select
+                className={styles.filterSelect}
+                value={selectedBranch}
+                onChange={(e) => setSelectedBranch(e.target.value)}
+              >
+                <option value="">All Branches</option>
+                {departments.map((dept) => (
+                  <option key={dept._id} value={dept.branch}>
+                    {dept.branch}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className={styles.filterSelect}
+                value={selectedBatch}
+                onChange={(e) => setSelectedBatch(e.target.value)}
+              >
+                <option value="">All Batches</option>
+                {uniqueBatches.map((batch) => (
+                  <option key={batch} value={batch}>
+                    {batch}
+                  </option>
+                ))}
+              </select>
+
+              {(searchTerm || selectedBranch || selectedBatch) && (
+                <button
+                  className={styles.clearFilterBtn}
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedBranch('');
+                    setSelectedBatch('');
+                  }}
+                  title="Clear all active search and filter options"
+                >
+                  <X size={16} style={{ marginRight: '6px' }} />
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Table Section */}
         <section className={styles.tableSection}>
           <div className={styles.tableContainer}>
-
             {loading ? (
-              <div className={styles.loadingState}>Loading alumni data...</div>
+              <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>Loading alumni data...</div>
             ) : error ? (
-              <div className={styles.errorState}>{error}</div>
+              <div style={{ padding: '3rem', textAlign: 'center', color: '#ef4444', fontWeight: 600 }}>{error}</div>
             ) : (
               <>
                 <div className={styles.tableResponsive}>
@@ -439,24 +382,30 @@ const Admin_Alumini = ({ onLogout }: AdminAlumniProps) => {
                         <th>Designation</th>
                         <th>Batch</th>
                         <th>Location</th>
-                        <th className={styles.textCenter}>Type</th>
+                        <th>Type</th>
                         <th></th>
                       </tr>
                     </thead>
                     <tbody className={styles.tableBody}>
                       {paginatedData.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className={styles.textCenter}>No alumni found</td>
+                          <td colSpan={7} className={styles.textCenter} style={{ padding: '3rem', color: '#94a3b8' }}>
+                            No alumni found matching active filters.
+                          </td>
                         </tr>
                       ) : (
                         paginatedData.map((row, index) => (
                           <tr key={row._id}>
-                            <td className={styles.textMuted}>{String(startIndex + index + 1).padStart(2, '0')}</td>
+                            <td className={styles.textMuted}>
+                              {String(startIndex + index + 1).padStart(2, '0')}
+                            </td>
                             <td className={styles.fontSemibold}>{row.name}</td>
                             <td>{row.designation || '-'}</td>
-                            <td className={styles.fontMono}>{row.yearFrom}-{row.yearTo}</td>
+                            <td>
+                              {row.yearFrom}-{row.yearTo}
+                            </td>
                             <td>{formatAddress(row.companyAddress || row.presentAddress)}</td>
-                            <td className={styles.textCenter}>
+                            <td>
                               <span className={`${styles.badge} ${getBadgeClass(row.placementType)}`}>
                                 {row.placementType || 'N/A'}
                               </span>
@@ -468,7 +417,7 @@ const Admin_Alumini = ({ onLogout }: AdminAlumniProps) => {
                                   title="View Details"
                                   onClick={() => navigate(`/admin/alumini/${row._id}`)}
                                 >
-                                  <Eye size={20} />
+                                  <Eye size={18} />
                                 </button>
                               </div>
                             </td>
@@ -479,10 +428,10 @@ const Admin_Alumini = ({ onLogout }: AdminAlumniProps) => {
                   </table>
                 </div>
 
-                {/* Table Pagination Footer */}
                 <div className={styles.paginationFooter}>
                   <span className={styles.paginationText}>
-                    Showing {filteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length} entries
+                    Showing {filteredData.length === 0 ? 0 : startIndex + 1} to{' '}
+                    {Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length} entries
                   </span>
                   <div className={styles.paginationControls}>
                     <button
@@ -503,31 +452,40 @@ const Admin_Alumini = ({ onLogout }: AdminAlumniProps) => {
                 </div>
               </>
             )}
-
           </div>
         </section>
-
       </main>
 
-      {/* Send Registration Link Popup */}
-      {showEmailPopup && (
-        <div className={styles.popupOverlay} onClick={handleClosePopup}>
-          <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+      {/* Registration Link Popup */}
+      {isPopupOpen && (
+        <div className={styles.popupOverlay}>
+          <div className={styles.popupContent}>
             <div className={styles.popupHeader}>
               <div className={styles.popupHeaderIcon}>
-                <Mail size={24} />
+                <Mail size={22} />
               </div>
               <div>
                 <h2 className={styles.popupTitle}>Send Registration Links</h2>
-                <p className={styles.popupSubtitle}>Enter email addresses to send registration invitations</p>
+                <p className={styles.popupSubtitle}>
+                  Enter email addresses to send registration invitations
+                </p>
               </div>
-              <button className={styles.popupCloseBtn} onClick={handleClosePopup}>
-                <X size={20} />
+              <button
+                className={styles.popupCloseBtn}
+                onClick={() => {
+                  setIsPopupOpen(false);
+                  setEmailInput('');
+                  setEmailsList([]);
+                  setPopupError('');
+                  setPopupMessage(null);
+                }}
+                disabled={isSendingLinks}
+              >
+                <X size={18} />
               </button>
             </div>
 
             <div className={styles.popupBody}>
-              {/* Email Input */}
               <div className={styles.emailInputContainer}>
                 <input
                   type="email"
@@ -536,49 +494,51 @@ const Admin_Alumini = ({ onLogout }: AdminAlumniProps) => {
                   value={emailInput}
                   onChange={(e) => {
                     setEmailInput(e.target.value);
-                    setEmailError('');
+                    setPopupError('');
                   }}
-                  onKeyPress={handleEmailKeyPress}
-                  disabled={sendingEmails}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddEmail();
+                    }
+                  }}
+                  disabled={isSendingLinks}
                 />
                 <button
                   className={styles.addEmailBtn}
                   onClick={handleAddEmail}
-                  disabled={sendingEmails}
+                  disabled={isSendingLinks || !emailInput.trim()}
                 >
-                  <Plus size={18} />
+                  <Plus size={16} />
                   Add
                 </button>
               </div>
 
-              {emailError && (
-                <p className={styles.emailErrorText}>{emailError}</p>
-              )}
+              {popupError && <p className={styles.emailErrorText}>{popupError}</p>}
 
-              {/* Email List */}
               <div className={styles.emailListContainer}>
-                {emailList.length === 0 ? (
+                {emailsList.length === 0 ? (
                   <div className={styles.emptyEmailList}>
-                    <Mail size={40} className={styles.emptyIcon} />
+                    <Mail className={styles.emptyIcon} size={40} />
                     <p>No emails added yet</p>
                     <span>Add email addresses above to send registration links</span>
                   </div>
                 ) : (
                   <>
                     <div className={styles.emailListHeader}>
-                      <span>{emailList.length} email{emailList.length > 1 ? 's' : ''} added</span>
+                      Added Emails ({emailsList.length})
                     </div>
                     <div className={styles.emailList}>
-                      {emailList.map((email, index) => (
-                        <div key={index} className={styles.emailItem}>
-                          <Mail size={16} className={styles.emailItemIcon} />
+                      {emailsList.map((email, idx) => (
+                        <div key={idx} className={styles.emailItem}>
+                          <Mail className={styles.emailItemIcon} size={14} />
                           <span className={styles.emailItemText}>{email}</span>
                           <button
                             className={styles.removeEmailBtn}
-                            onClick={() => handleRemoveEmail(email)}
-                            disabled={sendingEmails}
+                            onClick={() => handleRemoveEmail(idx)}
+                            disabled={isSendingLinks}
                           >
-                            <Trash2 size={14} />
+                            <X size={14} />
                           </button>
                         </div>
                       ))}
@@ -586,30 +546,53 @@ const Admin_Alumini = ({ onLogout }: AdminAlumniProps) => {
                   </>
                 )}
               </div>
+
+              {popupMessage && (
+                <div
+                  style={{
+                    padding: '0.75rem 1rem',
+                    borderRadius: '10px',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    backgroundColor: popupMessage.type === 'success' ? '#f0fdf4' : '#fef2f2',
+                    color: popupMessage.type === 'success' ? '#15803d' : '#ef4444',
+                    border: `1px solid ${popupMessage.type === 'success' ? '#bbf7d0' : '#fca5a5'}`,
+                  }}
+                >
+                  {popupMessage.text}
+                </div>
+              )}
             </div>
 
             <div className={styles.popupFooter}>
               <button
                 className={styles.popupCancelBtn}
-                onClick={handleClosePopup}
-                disabled={sendingEmails}
+                onClick={() => {
+                  setIsPopupOpen(false);
+                  setEmailInput('');
+                  setEmailsList([]);
+                  setPopupError('');
+                  setPopupMessage(null);
+                }}
+                disabled={isSendingLinks}
               >
                 Cancel
               </button>
               <button
                 className={styles.popupSendBtn}
-                onClick={handleSendRegistrationLinks}
-                disabled={emailList.length === 0 || sendingEmails}
+                onClick={handleSendLinks}
+                disabled={isSendingLinks || emailsList.length === 0}
               >
-                {sendingEmails ? (
+                {isSendingLinks ? (
                   <>
                     <span className={styles.sendingSpinner}></span>
                     Sending...
                   </>
                 ) : (
                   <>
-                    <Send size={16} />
-                    Send {emailList.length > 0 ? `${emailList.length} Link${emailList.length > 1 ? 's' : ''}` : 'Links'}
+                    <Send size={14} />
+                    Send Links
                   </>
                 )}
               </button>

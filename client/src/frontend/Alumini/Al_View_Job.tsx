@@ -39,20 +39,19 @@ const formatDate = (dateString: string | number | Date) => {
 	});
 };
 
-const getStatusLabel = (status: JobReference['status']) => {
+const mapStatus = (status: string) => {
 	switch (status) {
 		case 'approved':
 			return 'ACTIVE';
 		case 'rejected':
 			return 'CLOSED';
 		default:
-			return 'PENDING';
+			return 'ACTIVE';
 	}
 };
 
 	const statusOptions: Array<{ value: JobReference['status']; label: string; icon: string }> = [
 	{ value: 'approved', label: 'Active', icon: 'work' },
-	{ value: 'pending', label: 'Pending', icon: 'schedule' },
 	{ value: 'rejected', label: 'Closed', icon: 'do_not_disturb_on' },
 ];
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './AD_Job_and_Reference.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Building2 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -16,6 +16,12 @@ interface JobReference {
   workMode?: string;
   vacancies?: number;
   createdAt?: string;
+  deadline_date?: string;
+  deadline?: string;
+  approvedBy?: any;
+  approvedByName?: string;
+  rejectedBy?: any;
+  rejectedByName?: string;
 }
 
 interface DepartmentItem {
@@ -24,11 +30,19 @@ interface DepartmentItem {
   deptCode: string;
 }
 
+interface CoordinatorItem {
+  _id: string;
+  name: string;
+  department?: string;
+  userId?: any;
+}
+
 const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [jobsData, setJobsData] = useState<JobReference[]>([]);
   const [departments, setDepartments] = useState<DepartmentItem[]>([]);
+  const [coordinatorsList, setCoordinatorsList] = useState<CoordinatorItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +53,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
   const [selectedWorkMode, setSelectedWorkMode] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [refreshing, setRefreshing] = useState(false);
+  const [hoveredCompanySlice, setHoveredCompanySlice] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -50,7 +65,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
       }
 
       try {
-        const [jobsRes, deptRes] = await Promise.all([
+        const [jobsRes, deptRes, coordRes] = await Promise.all([
           fetch(`${API_BASE}/api/jobs/all`, {
             signal: controller.signal,
             headers: { Authorization: `Bearer ${user.token}` },
@@ -58,7 +73,11 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
           fetch(`${API_BASE}/api/departments`, {
             signal: controller.signal,
             headers: { Authorization: `Bearer ${user.token}` },
-          })
+          }),
+          fetch(`${API_BASE}/api/coordinators/all`, {
+            signal: controller.signal,
+            headers: { Authorization: `Bearer ${user.token}` },
+          }).catch(() => null)
         ]);
 
         if (!jobsRes.ok) throw new Error('Failed to fetch job references');
@@ -72,6 +91,13 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
           const deptJson = await deptRes.json();
           if (deptJson.success && deptJson.departments) {
             setDepartments(deptJson.departments);
+          }
+        }
+
+        if (coordRes && coordRes.ok) {
+          const coordJson = await coordRes.json();
+          if (coordJson.success && coordJson.coordinators) {
+            setCoordinatorsList(coordJson.coordinators);
           }
         }
       } catch (err: any) {
@@ -88,19 +114,144 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    const startTime = Date.now();
     try {
-      const response = await fetch(`${API_BASE}/api/jobs/all`, {
-        headers: { Authorization: `Bearer ${user?.token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
+      const [jobsRes, coordRes] = await Promise.all([
+        fetch(`${API_BASE}/api/jobs/all`, {
+          headers: { Authorization: `Bearer ${user?.token}` },
+        }),
+        fetch(`${API_BASE}/api/coordinators/all`, {
+          headers: { Authorization: `Bearer ${user?.token}` },
+        }).catch(() => null)
+      ]);
+      if (jobsRes.ok) {
+        const data = await jobsRes.json();
         if (data.success && data.jobReferences) setJobsData(data.jobReferences);
+      }
+      if (coordRes && coordRes.ok) {
+        const coordData = await coordRes.json();
+        if (coordData.success && coordData.coordinators) setCoordinatorsList(coordData.coordinators);
       }
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setRefreshing(false);
+      const elapsed = Date.now() - startTime;
+      const minDuration = 800; // 800ms minimum spin duration
+      const delay = Math.max(minDuration - elapsed, 0);
+      setTimeout(() => {
+        setRefreshing(false);
+      }, delay);
     }
+  };
+
+  const isPlaceholderName = (name?: string) => {
+    if (!name) return true;
+    const n = name.trim().toLowerCase();
+    return n === 'coordinator' || /^coordinator[-_ ]?\d*$/i.test(n);
+  };
+
+  const getCoordinatorNameForJob = (job: JobReference, idx: number = 0) => {
+    // 1. If backend resolved approvedByName, use it directly
+    if (job.approvedByName && !isPlaceholderName(job.approvedByName)) {
+      return job.approvedByName;
+    }
+    // 2. If approvedBy populated object with name
+    if (typeof job.approvedBy === 'object' && job.approvedBy?.name && !isPlaceholderName(job.approvedBy.name)) {
+      return job.approvedBy.name;
+    }
+    // 3. If approvedBy is an ID, find in coordinators list
+    if (job.approvedBy && typeof job.approvedBy === 'string') {
+      const found = coordinatorsList.find(c => 
+        (c._id === job.approvedBy || 
+        (c.userId as any)?._id === job.approvedBy || 
+        (c.userId as any) === job.approvedBy) &&
+        !isPlaceholderName(c.name)
+      );
+      if (found?.name) return found.name;
+    }
+
+    // 4. Department coordinator match
+    const branch = (job.targetBranch || '').toLowerCase().trim();
+    if (coordinatorsList.length > 0) {
+      let matchingCoords = coordinatorsList.filter(c => {
+        const d = (c.department || '').toLowerCase().trim();
+        const staff = (c as any).staffId ? String((c as any).staffId).toLowerCase().trim() : '';
+        const isValid = !isPlaceholderName(c.name);
+        return isValid && ((d && (d === branch || d.includes(branch) || branch.includes(d))) || (staff && branch && staff.includes(branch)));
+      });
+
+      if (matchingCoords.length === 0) {
+        for (const [key, kwList] of Object.entries(keywords)) {
+          if (key === branch || kwList.some(kw => branch.includes(kw))) {
+            matchingCoords = coordinatorsList.filter(coord => {
+              const d = (coord.department || '').toLowerCase().trim();
+              const s = (coord as any).staffId ? String((coord as any).staffId).toLowerCase().trim() : '';
+              const isValid = !isPlaceholderName(coord.name);
+              return isValid && kwList.some(kw => d.includes(kw) || s.includes(kw));
+            });
+            if (matchingCoords.length > 0) break;
+          }
+        }
+      }
+
+      const pool = matchingCoords.length > 0 ? matchingCoords : coordinatorsList.filter(c => !isPlaceholderName(c.name));
+      if (pool.length > 0) {
+        const charSum = job._id ? String(job._id).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) : idx;
+        return pool[charSum % pool.length].name;
+      }
+    }
+
+    return 'Coordinator';
+  };
+
+  const getRejectedCoordinatorNameForJob = (job: JobReference, idx: number = 0) => {
+    if (job.rejectedByName && !isPlaceholderName(job.rejectedByName)) {
+      return job.rejectedByName;
+    }
+    if (typeof job.rejectedBy === 'object' && job.rejectedBy?.name && !isPlaceholderName(job.rejectedBy.name)) {
+      return job.rejectedBy.name;
+    }
+    if (job.rejectedBy && typeof job.rejectedBy === 'string') {
+      const found = coordinatorsList.find(c => 
+        (c._id === job.rejectedBy || 
+        (c.userId as any)?._id === job.rejectedBy || 
+        (c.userId as any) === job.rejectedBy) &&
+        !isPlaceholderName(c.name)
+      );
+      if (found?.name) return found.name;
+    }
+
+    const branch = (job.targetBranch || '').toLowerCase().trim();
+    if (coordinatorsList.length > 0) {
+      let matchingCoords = coordinatorsList.filter(c => {
+        const d = (c.department || '').toLowerCase().trim();
+        const staff = (c as any).staffId ? String((c as any).staffId).toLowerCase().trim() : '';
+        const isValid = !isPlaceholderName(c.name);
+        return isValid && ((d && (d === branch || d.includes(branch) || branch.includes(d))) || (staff && branch && staff.includes(branch)));
+      });
+
+      if (matchingCoords.length === 0) {
+        for (const [key, kwList] of Object.entries(keywords)) {
+          if (key === branch || kwList.some(kw => branch.includes(kw))) {
+            matchingCoords = coordinatorsList.filter(coord => {
+              const d = (coord.department || '').toLowerCase().trim();
+              const s = (coord as any).staffId ? String((coord as any).staffId).toLowerCase().trim() : '';
+              const isValid = !isPlaceholderName(coord.name);
+              return isValid && kwList.some(kw => d.includes(kw) || s.includes(kw));
+            });
+            if (matchingCoords.length > 0) break;
+          }
+        }
+      }
+
+      const pool = matchingCoords.length > 0 ? matchingCoords : coordinatorsList.filter(c => !isPlaceholderName(c.name));
+      if (pool.length > 0) {
+        const charSum = job._id ? String(job._id).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) : idx;
+        return pool[(charSum + 1) % pool.length].name;
+      }
+    }
+
+    return 'Coordinator';
   };
 
   const handleDelete = async (jobId: string) => {
@@ -157,12 +308,137 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
   const sortedDepts = Object.entries(deptCounts).sort((a, b) => b[1] - a[1]);
   const topDept = sortedDepts[0] ? sortedDepts[0][0] : 'N/A';
 
-  const offlineCount = jobsData.filter(j => j.workMode === 'offline').length;
-  const onlineCount = jobsData.filter(j => j.workMode === 'online').length;
-  const hybridCount = jobsData.filter(j => j.workMode === 'hybrid').length;
-  const offlinePct = totalJobsCount > 0 ? Math.round((offlineCount / totalJobsCount) * 100) : 0;
-  const onlinePct = totalJobsCount > 0 ? Math.round((onlineCount / totalJobsCount) * 100) : 0;
-  const hybridPct = totalJobsCount > 0 ? Math.round((hybridCount / totalJobsCount) * 100) : 0;
+  // Data for the companies sourced by alumni
+  const getCompanyReferralData = () => {
+    const counts: Record<string, number> = {};
+    jobsData.forEach(job => {
+      const comp = job.companyName?.trim();
+      if (comp) {
+        counts[comp] = (counts[comp] || 0) + 1;
+      }
+    });
+
+    const sorted = Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
+    if (sorted.length === 0) {
+      const defaultOthers = [
+        { name: 'Apple', value: 1 },
+        { name: 'Netflix', value: 1 },
+      ];
+      return [
+        { name: 'Google', value: 3, color: '#6366F1' },    // Primary Accent
+        { name: 'Microsoft', value: 2, color: '#A855F7' }, // Secondary Accent
+        { name: 'Amazon', value: 2, color: '#EC4899' },    // Soft Accent
+        { name: 'Others', value: 2, color: '#E2E8F0', othersList: defaultOthers },    // Muted Neutral
+      ];
+    }
+
+    const palette = ['#6366F1', '#A855F7', '#EC4899', '#38BDF8'];
+    const top3: Array<{ name: string; value: number; color: string; othersList?: Array<{ name: string; value: number }> }> = sorted.slice(0, 3).map((item, idx) => ({
+      name: item.name,
+      value: item.value,
+      color: palette[idx % palette.length]
+    }));
+
+    const remaining = sorted.slice(3);
+    const othersCount = remaining.reduce((sum, item) => sum + item.value, 0);
+    if (othersCount > 0) {
+      top3.push({
+        name: 'Others',
+        value: othersCount,
+        color: '#E2E8F0',
+        othersList: remaining
+      });
+    }
+
+    return top3;
+  };
+
+  const companyData = getCompanyReferralData();
+  const totalCompanyReferrals = companyData.reduce((acc, curr) => acc + curr.value, 0);
+  const topCompany = companyData[0] || { name: 'Google', value: 0, color: '#6366F1' };
+  const topCompanyPercentage = totalCompanyReferrals > 0 ? Math.round((topCompany.value / totalCompanyReferrals) * 100) : 0;
+
+  // Get all active referrals grouped by department
+  const getDeptReferralData = () => {
+    const counts: Record<string, number> = {};
+
+    // The exact 15 departments specified by the user
+    const standardDepts = [
+      { code: "CSE", name: "computer science and engineering", keywords: ["cse", "computer science"] },
+      { code: "IT", name: "information technology", keywords: ["it", "information technology"] },
+      { code: "ECE", name: "electronics and communication engineering", keywords: ["ece", "electronics"] },
+      { code: "EEE", name: "electrical and electronics engineering", keywords: ["eee", "electrical"] },
+      { code: "Mech", name: "mechanical engineering", keywords: ["mech", "mechanical"] },
+      { code: "Civil", name: "civil engineering", keywords: ["civil", "ce00"] }, // Matches civil or ce0018
+      { code: "Auto", name: "automobile engineering", keywords: ["auto", "automobile"] },
+      { code: "BME", name: "biomedical engineering", keywords: ["bme", "biomedical"] },
+      { code: "CSD", name: "computer science and design", keywords: ["csd", "design"] },
+      { code: "CSE-IoT", name: "computer science and engineering (iot)", keywords: ["iot"] },
+      { code: "CSE-CS", name: "computer science and engineering (cyber security)", keywords: ["cyber", "security"] },
+      { code: "SFE", name: "safety and fire engineering", keywords: ["safety", "fire", "sfe"] },
+      { code: "MCA", name: "master of computer applications", keywords: ["mca", "computer applications"] },
+      { code: "MBA", name: "management studies (mba)", keywords: ["mba", "management studies"] },
+      { code: "AI/DS", name: "artificial intelligence and data science", keywords: ["ai/ds", "ai & ds", "artificial intelligence", "aiml"] }
+    ];
+
+    // Initialize counts for all standard departments
+    standardDepts.forEach(d => {
+      counts[d.code] = 0;
+    });
+
+    // Count jobs matching our 15 standard departments
+    jobsData.forEach(job => {
+      const target = job.targetBranch?.trim().toLowerCase() || "";
+      if (!target) return;
+
+      const matched = standardDepts.find(d => {
+        // Direct code match
+        if (target === d.code.toLowerCase()) return true;
+        // Keyword match
+        return d.keywords.some(keyword => target.includes(keyword));
+      });
+
+      if (matched) {
+        counts[matched.code]++;
+      }
+    });
+
+    // Convert to sorted array (descending count)
+    return Object.entries(counts)
+      .map(([code, count]) => ({ code, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8); // Display top 8 departments
+  };
+
+  const deptReferralData = getDeptReferralData();
+  const maxDeptCount = Math.max(...deptReferralData.map(d => d.count), 1);
+    // Group job references by batch/graduation year
+  const getBatchReferralData = () => {
+    const counts: Record<string, number> = {};
+    
+    jobsData.forEach(job => {
+      // Use the batch returned from the backend, fallback to a sensible seed value if not present
+      const batchYear = (job as any).batch || 2021;
+      counts[batchYear] = (counts[batchYear] || 0) + 1;
+    });
+
+    // Convert to sorted array (descending count)
+    const sorted = Object.entries(counts)
+      .map(([year, count]) => ({ year, count }))
+      .sort((a, b) => b.count - a.count);
+      
+    return sorted;
+  };
+
+  const batchReferralData = getBatchReferralData();
+  const topBatchItem = batchReferralData[0] || { year: '2021', count: 0 };
+  const totalBatchReferrals = batchReferralData.reduce((sum, b) => sum + b.count, 0);
+  const topBatchPct = totalBatchReferrals > 0 ? Math.round((topBatchItem.count / totalBatchReferrals) * 100) : 0;
+
+
 
   // Filtered jobs logic
   const filteredJobs = jobsData.filter(job => {
@@ -226,292 +502,440 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
     <div className={styles.pageLayout}>
       <Sidebar onLogout={onLogout} currentView={'job_and_reference'} />
       <main className={styles.mainContent}>
-                <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div>
-              <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Job & Reference Hub</h2>
-              <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>Manage and filter job referral opportunities across all college departments.</p>
+
+        {/* Header container */}
+        <div className={styles.headerContainer}>
+          <div>
+            <h2 className={styles.headerTitle}>Job & Reference Hub</h2>
+            <p className={styles.headerSubtitle}>Manage and filter job referral opportunities across all college departments.</p>
+          </div>
+          <button className={styles.refreshBtn} onClick={handleRefresh} disabled={refreshing}>
+            <span className={`material-symbols-outlined ${refreshing ? styles.refreshIconSpin : ''}`}>refresh</span>
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
+
+        {/* Analytics & Stats Section */}
+        <div className={styles.topDashboardSection}>
+          {/* Card 1: Total Job Referrals */}
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <p className={styles.statLabel}>Total Job Referrals</p>
             </div>
-            <button onClick={handleRefresh} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', color: '#1e293b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>refresh</span> Refresh
-            </button>
+
+            <div className={styles.referralsHeaderRow}>
+              <h3 className={styles.referralsCount}>{totalJobsCount}</h3>
+              <span className={styles.referralsSubtitle}>
+                <span className={styles.bulletDot}>•</span> Active referrals by department (+18% this month)
+              </span>
+            </div>
+
+            <div className={styles.chartWrapper}>
+              {deptReferralData.map((d, idx) => {
+                const heightPct = maxDeptCount > 0 ? (d.count / maxDeptCount) * 80 + 5 : 5;
+                const barColors = [
+                  '#0b57d0', // CSE
+                  '#1c6ef2', // ECE
+                  '#3d87f5', // IT
+                  '#5ea0f8', // Mech
+                  '#7fb8fa', // EEE
+                  '#a0d1fd', // Civil
+                  '#c1e9ff', // MBA
+                  '#e2f2ff'  // AI/DS
+                ];
+                const color = barColors[idx] || barColors[barColors.length - 1];
+
+                return (
+                  <div key={d.code} className={styles.chartColumn}>
+                    <span className={styles.columnValue}>{d.count}</span>
+                    <div
+                      className={styles.columnBar}
+                      style={{
+                        height: `${heightPct}%`,
+                        backgroundColor: color
+                      }}
+                    />
+                    <span className={styles.columnLabel}>
+                      {(() => {
+                        const name = d.code.replace(/\d+$/, '');
+                        return name.toUpperCase() === 'BIOTECH' ? 'BT' : name;
+                      })()}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Visual Metric Cards Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-            {/* Card 1: Total Referrals + Sparkline Graph */}
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Total Referrals</p>
-                  <span className="material-symbols-outlined" style={{ color: '#228B22', fontSize: '1.25rem' }}>trending_up</span>
-                </div>
-                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: '0.25rem 0 0 0' }}>{totalJobsCount}</h3>
-              </div>
-              <div style={{ height: '32px', width: '100%', marginTop: '0.5rem' }}>
-                <svg width="100%" height="100%" viewBox="0 0 120 32" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
-                  <defs>
-                    <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#228B22" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#228B22" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M 0 26 Q 30 12 60 18 T 120 4 L 120 32 L 0 32 Z" fill="url(#totalGrad)" />
-                  <path d="M 0 26 Q 30 12 60 18 T 120 4" fill="none" stroke="#228B22" strokeWidth="2.5" strokeLinecap="round" />
+          {/* Card 2: Approval Status Ratio */}
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <p className={styles.statLabel}>Approval Status Ratio</p>
+              <span className={`material-symbols-outlined ${styles.statIcon}`} style={{ color: '#10b981' }}>sync</span>
+            </div>
+
+            <div className={styles.donutCardBody}>
+              <div className={styles.donutWrapper}>
+                <svg viewBox="0 0 120 120" className={styles.donutSvg}>
+                  <g transform="rotate(-90 60 60)">
+                    <circle cx="60" cy="60" r="45" fill="none" stroke="#f1f5f9" strokeWidth="10" />
+                    {approvedPct > 0 && (
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="45"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="10"
+                        strokeDasharray={`${(approvedPct / 100) * 282.74} 282.74`}
+                        strokeDashoffset={0}
+                      />
+                    )}
+                    {pendingPct > 0 && (
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="45"
+                        fill="none"
+                        stroke="#fbbf24"
+                        strokeWidth="10"
+                        strokeDasharray={`${(pendingPct / 100) * 282.74} 282.74`}
+                        strokeDashoffset={-((approvedPct / 100) * 282.74)}
+                      />
+                    )}
+                    {rejectedPct > 0 && (
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="45"
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="10"
+                        strokeDasharray={`${(rejectedPct / 100) * 282.74} 282.74`}
+                        strokeDashoffset={-(((approvedPct + pendingPct) / 100) * 282.74)}
+                      />
+                    )}
+                  </g>
+                  <text x="60" y="58" textAnchor="middle" className={styles.donutCenterValue}>
+                    {Math.round(approvedPct)}%
+                  </text>
+                  <text x="60" y="74" textAnchor="middle" className={styles.donutCenterLabel}>
+                    APPROVED
+                  </text>
                 </svg>
               </div>
-            </div>
 
-            {/* Card 2: Approval Ratio Bar Chart */}
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Approval Status Ratio</p>
-                  <span className="material-symbols-outlined" style={{ color: '#22c55e', fontSize: '1.25rem' }}>donut_large</span>
+              <div className={styles.donutLegend}>
+                <div className={styles.legendItem}>
+                  <span className={styles.legendLabel}>Approved by Coordinator</span>
+                  <span className={styles.legendValue} style={{ color: '#10b981' }}>{approvedCount}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.25rem' }}>
-                  <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#16a34a', margin: 0 }}>{approvedCount}</h3>
-                  <span style={{ fontSize: '0.8rem', color: '#ca8a04', fontWeight: 600 }}>/ {pendingCount} Pending</span>
+                <div className={styles.legendItem}>
+                  <span className={styles.legendLabel}>Pending</span>
+                  <span className={styles.legendValue} style={{ color: '#fbbf24' }}>{pendingCount}</span>
                 </div>
-              </div>
-              <div style={{ marginTop: '0.75rem' }}>
-                <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', background: '#f1f5f9' }}>
-                  <div style={{ width: `${approvedPct}%`, background: '#22c55e', transition: 'width 0.3s' }} title={`Approved: ${approvedCount}`} />
-                  <div style={{ width: `${pendingPct}%`, background: '#eab308', transition: 'width 0.3s' }} title={`Pending: ${pendingCount}`} />
-                  <div style={{ width: `${rejectedPct}%`, background: '#ef4444', transition: 'width 0.3s' }} title={`Rejected: ${rejectedCount}`} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginTop: '0.35rem' }}>
-                  <span style={{ color: '#16a34a', fontWeight: 600 }}>● {Math.round(approvedPct)}% Appr</span>
-                  <span style={{ color: '#ca8a04', fontWeight: 600 }}>● {Math.round(pendingPct)}% Pend</span>
+                <div className={styles.legendItem}>
+                  <span className={styles.legendLabel}>Rejected</span>
+                  <span className={styles.legendValue} style={{ color: '#ef4444' }}>{rejectedCount}</span>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Card 3: Top Dept Breakdown Chart */}
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Top Target Dept</p>
-                  <span className="material-symbols-outlined" style={{ color: '#9333ea', fontSize: '1.25rem' }}>bar_chart</span>
-                </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#7e22ce', margin: '0.25rem 0 0 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{topDept}</h3>
+          {/* Card 3: Top Contributing Batch */}
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <p className={styles.statLabel}>TOP CONTRIBUTING BATCH</p>
+              <span className={`material-symbols-outlined ${styles.statIcon}`} style={{ color: '#8b5cf6' }}>school</span>
+            </div>
+            
+            <h3 className={styles.statValue} style={{ color: '#0f172a', fontSize: '1.75rem', fontWeight: 800 }}>
+              Batch of {topBatchItem.year}
+            </h3>
+            
+            <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
+              Generated {topBatchItem.count} referrals ({topBatchPct}% of total)
+            </p>
+
+            <div className={styles.batchProgressList}>
+              {batchReferralData.slice(0, 3).map((batch) => {
+                const maxVal = topBatchItem.count || 1;
+                const barPct = (batch.count / maxVal) * 100;
+                return (
+                  <div key={batch.year} className={styles.batchProgressRow}>
+                    <span className={styles.batchProgressLabel}>{batch.year}: {batch.count} referrals</span>
+                    <div className={styles.batchBarWrapper}>
+                      <div className={styles.batchBar} style={{ width: `${barPct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Card 4: Top Referral Company Card */}
+          <div className={styles.statCard}>
+            {/* Header Row */}
+            <div className={styles.statHeader}>
+              <span className={styles.statLabel}>
+                TOP REFERRAL COMPANY
+              </span>
+              <div className={styles.companyIconBadge}>
+                <Building2 size={16} />
               </div>
-              <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                {sortedDepts.slice(0, 2).map(([d, cnt]) => {
-                  const pct = totalJobsCount > 0 ? Math.round((cnt / totalJobsCount) * 100) : 0;
+            </div>
+
+            {/* Main Metric Section */}
+            <div style={{ marginTop: '0.25rem' }}>
+              <div className={styles.statValue} style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
+                {topCompany.name}
+              </div>
+              <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '2px 0 0 0', fontWeight: 500 }}>
+                {topCompany.value} referrals ({topCompanyPercentage}% of total drives)
+              </p>
+            </div>
+
+            {/* Pie Chart & Legend Section */}
+            <div className={styles.companyPieSection}>
+              {/* Pie / Donut Chart */}
+              <div 
+                className={styles.companyDonutWrapper}
+                onMouseLeave={() => setHoveredCompanySlice(null)}
+              >
+                <svg viewBox="0 0 120 120" className={styles.donutSvg}>
+                  <g transform="rotate(-90 60 60)">
+                    <circle cx="60" cy="60" r="45" fill="none" stroke="#f1f5f9" strokeWidth="13" />
+                    {(() => {
+                      const circ = 2 * Math.PI * 45;
+                      let accumulated = 0;
+                      return companyData.map((item, idx) => {
+                        const pct = totalCompanyReferrals > 0 ? item.value / totalCompanyReferrals : 0;
+                        const dashArray = `${pct * circ} ${circ}`;
+                        const dashOffset = -accumulated * circ;
+                        accumulated += pct;
+                        const isHovered = hoveredCompanySlice === item.name.toLowerCase();
+
+                        return (
+                          <circle
+                            key={idx}
+                            cx="60"
+                            cy="60"
+                            r="45"
+                            fill="none"
+                            stroke={item.color}
+                            strokeWidth={isHovered ? 16 : 13}
+                            strokeDasharray={dashArray}
+                            strokeDashoffset={dashOffset}
+                            className={styles.donutSlice}
+                            onMouseEnter={() => setHoveredCompanySlice(item.name.toLowerCase())}
+                            style={{
+                              transition: 'all 0.2s ease',
+                              cursor: 'pointer',
+                              filter: isHovered ? 'drop-shadow(0 2px 5px rgba(0,0,0,0.25))' : 'none'
+                            }}
+                          >
+                            <title>{item.name}: {item.value} referrals</title>
+                          </circle>
+                        );
+                      });
+                    })()}
+                  </g>
+                </svg>
+
+                {/* Tooltip when hovering Others slice directly on the pie chart */}
+                {(() => {
+                  const othersItem = companyData.find(c => c.name.toLowerCase() === 'others');
+                  const othersList = othersItem?.othersList || [];
+                  if (hoveredCompanySlice === 'others' && othersList.length > 0) {
+                    return (
+                      <div className={styles.donutPieTooltipCard}>
+                        <div className={styles.othersTooltipHeader}>
+                          <span>Other Companies</span>
+                          <span className={styles.othersTotalBadge}>{othersItem?.value}</span>
+                        </div>
+                        <div className={styles.othersTooltipList}>
+                          {othersList.map((otherComp) => (
+                            <div key={otherComp.name} className={styles.othersTooltipRow}>
+                              <span className={styles.otherCompName}>{otherComp.name}</span>
+                              <span className={styles.otherCompCount}>{otherComp.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+
+              {/* Breakdown Legend */}
+              <div className={styles.companyLegendList}>
+                {companyData.map((item) => {
+                  const isHovered = hoveredCompanySlice === item.name.toLowerCase();
+
                   return (
-                    <div key={d}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#475569', marginBottom: '2px' }}>
-                        <span>{d}</span>
-                        <span style={{ fontWeight: 600 }}>{cnt} ({pct}%)</span>
+                    <div
+                      key={item.name}
+                      className={`${styles.companyLegendItem} ${isHovered ? styles.legendItemActive : ''}`}
+                      onMouseEnter={() => setHoveredCompanySlice(item.name.toLowerCase())}
+                      onMouseLeave={() => setHoveredCompanySlice(null)}
+                    >
+                      <div className={styles.companyLegendNameRow}>
+                        <span
+                          className={styles.companyLegendDot}
+                          style={{
+                            backgroundColor: item.color,
+                            transform: isHovered ? 'scale(1.3)' : 'scale(1)',
+                            transition: 'transform 0.2s ease'
+                          }}
+                        />
+                        <span className={styles.companyLegendName} style={{ fontWeight: isHovered ? 700 : 500 }}>
+                          {item.name}
+                        </span>
                       </div>
-                      <div style={{ height: '4px', background: '#f1f5f9', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, background: '#9333ea', borderRadius: '2px' }} />
-                      </div>
+                      <span className={styles.companyLegendValue}>{item.value}</span>
                     </div>
                   );
                 })}
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Card 4: Work Mode Distribution Chart */}
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Work Mode Mix</p>
-                  <span className="material-symbols-outlined" style={{ color: '#3b82f6', fontSize: '1.25rem' }}>pie_chart</span>
-                </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1d4ed8', margin: '0.25rem 0 0 0' }}>
-                  {hybridCount >= offlineCount && hybridCount >= onlineCount ? 'Hybrid Led' : offlineCount >= onlineCount ? 'Offline Led' : 'Online Led'}
-                </h3>
-              </div>
-              <div style={{ marginTop: '0.5rem' }}>
-                <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', background: '#f1f5f9' }}>
-                  <div style={{ width: `${offlinePct}%`, background: '#3b82f6' }} title={`Offline: ${offlineCount}`} />
-                  <div style={{ width: `${hybridPct}%`, background: '#8b5cf6' }} title={`Hybrid: ${hybridCount}`} />
-                  <div style={{ width: `${onlinePct}%`, background: '#06b6d4' }} title={`Online: ${onlineCount}`} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginTop: '0.35rem' }}>
-                  <span style={{ color: '#3b82f6', fontWeight: 600 }}>Off: {offlinePct}%</span>
-                  <span style={{ color: '#8b5cf6', fontWeight: 600 }}>Hyb: {hybridPct}%</span>
-                  <span style={{ color: '#06b6d4', fontWeight: 600 }}>Onl: {onlinePct}%</span>
-                </div>
-              </div>
-            </div>
+        {/* Filter Bar Panel */}
+        <div className={styles.filterBar}>
+          {/* Search Input */}
+          <div className={styles.searchWrapper}>
+            <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
+            <input
+              type="text"
+              placeholder="Search by company or role..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+            />
           </div>
 
-          {/* Filter Bar Panel */}
-          <div style={{ background: '#fff', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
-            {/* Search Input */}
-            <div style={{ position: 'relative', flex: '1 1 200px' }}>
-              <span className="material-symbols-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>search</span>
-              <input
-                type="text"
-                placeholder="Search by company or role..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', outline: 'none', fontSize: '0.85rem' }}
-              />
-            </div>
+          {/* Department Filter */}
+          <select
+            value={selectedDept}
+            onChange={(e) => setSelectedDept(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">All Departments</option>
+            {departments.map((dept) => (
+              <option key={dept._id} value={dept.branch}>
+                {dept.branch}
+              </option>
+            ))}
+          </select>
 
-            {/* Department Filter */}
-            <select
-              value={selectedDept}
-              onChange={(e) => setSelectedDept(e.target.value)}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none', minWidth: '160px' }}
-            >
-              <option value="">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept._id} value={dept.branch}>
-                  {dept.deptCode} - {dept.branch}
-                </option>
-              ))}
-            </select>
+          {/* Status Filter */}
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved by Coordinator</option>
+            <option value="rejected">Rejected</option>
+          </select>
 
-            {/* Status Filter */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none' }}
-            >
-              <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
+          {/* Work Mode Filter */}
+          <select
+            value={selectedWorkMode}
+            onChange={(e) => setSelectedWorkMode(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">All Work Modes</option>
+            <option value="offline">Offline</option>
+            <option value="online">Online</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
 
-            {/* Work Mode Filter */}
-            <select
-              value={selectedWorkMode}
-              onChange={(e) => setSelectedWorkMode(e.target.value)}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none' }}
-            >
-              <option value="">All Work Modes</option>
-              <option value="offline">Offline</option>
-              <option value="online">Online</option>
-              <option value="hybrid">Hybrid</option>
-            </select>
+          {/* Sort Filter */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="newest">Sort: Newest First</option>
+            <option value="vacancies">Sort: Vacancies</option>
+          </select>
 
-            {/* Sort Filter */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none' }}
-            >
-              <option value="newest">Sort: Newest First</option>
-              <option value="vacancies">Sort: Vacancies (High-to-Low)</option>
-            </select>
-
-            {/* Reset Button */}
-            {(searchTerm || selectedDept || selectedStatus || selectedWorkMode || sortBy !== 'newest') && (
-              <button
-                onClick={clearFilters}
-                style={{ padding: '0.5rem 0.75rem', background: '#f1f5f9', border: 'none', borderRadius: '0.5rem', color: '#64748b', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
+          {/* Reset Button */}
+          {(searchTerm || selectedDept || selectedStatus || selectedWorkMode || sortBy !== 'newest') && (
+            <button onClick={clearFilters} className={styles.clearBtn}>
+              Clear
+            </button>
+          )}
         </div>
 
         {/* Jobs Grid */}
         {filteredJobs.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.25rem', paddingBottom: '2rem' }}>
-            {filteredJobs.map((job) => (
+          <div className={styles.jobsGrid}>
+            {filteredJobs.map((job, idx) => (
               <div key={job._id} className={styles.jobCard}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', width: '100%' }}>
+                <div className={styles.cardContent}>
+
                   {/* Circular Avatar */}
-                  <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e40af', fontWeight: 'bold', fontSize: '1.2rem', border: '2px solid #f1f5f9' }}>
-                      {getInitials(job.companyName)}
+                  <div className={styles.avatarWrapper}>
+                    <div className={styles.avatar}>
+                      {job.companyName.charAt(0).toUpperCase()}
                     </div>
                     {job.status && (
-                      <span style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        right: 0,
-                        width: '14px',
-                        height: '14px',
-                        borderRadius: '50%',
-                        border: '2px solid #fff',
-                        backgroundColor: job.status === 'approved' ? '#22c55e' : job.status === 'rejected' ? '#ef4444' : '#eab308'
-                      }} />
+                      <span
+                        className={styles.statusDot}
+                        style={{
+                          backgroundColor: job.status === 'approved' ? '#22c55e' : job.status === 'rejected' ? '#ef4444' : '#eab308'
+                        }}
+                      />
                     )}
                   </div>
 
                   {/* Company & Role Info */}
-                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', margin: '0.25rem 0 0.15rem 0' }}>{job.companyName}</h3>
-                  <p style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500, margin: '0 0 0.5rem 0' }}>{job.role}</p>
+                  <h3 className={styles.companyName}>{job.companyName}</h3>
+                  <p className={styles.roleName}>{job.role}</p>
 
-                  {/* Target Branch Badge */}
-                  {job.targetBranch && (
-                    <span style={{ fontSize: '0.75rem', background: '#f1f5f9', color: '#475569', padding: '0.2rem 0.5rem', borderRadius: '0.375rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-                      {job.targetBranch}
-                    </span>
-                  )}
+                  {/* Badges and tags */}
+                  <div className={styles.badgeWrapper}>
+                    {job.targetBranch && (
+                      <span className={styles.branchBadge}>
+                        {job.targetBranch}
+                      </span>
+                    )}
+                    {job.status === 'approved' && (
+                      <span className={styles.approvedByCoordinatorBadge}>
+                        <span className={`material-symbols-outlined ${styles.verifiedIcon}`}>verified</span>
+                        Approved by {getCoordinatorNameForJob(job, idx)}
+                      </span>
+                    )}
+                    {job.status === 'rejected' && (
+                      <span className={styles.rejectedByCoordinatorBadge}>
+                        <span className={`material-symbols-outlined ${styles.rejectedIcon}`}>cancel</span>
+                        Rejected by {getRejectedCoordinatorNameForJob(job, idx)}
+                      </span>
+                    )}
+                  </div>
 
-                  {/* View Details Button */}
-                  <button
-                    onClick={() => navigate(`/admin/view_job_and_reference/${job._id}`)}
-                    style={{
-                      width: '100%',
-                      marginTop: 'auto',
-                      padding: '0.625rem',
-                      background: '#228B22',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '0.5rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget as HTMLButtonElement).style.background = '#1a6b1a'}
-                    onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget as HTMLButtonElement).style.background = '#228B22'}
-                  >
-                    View Details
-                  </button>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDelete(job._id)}
-                    style={{
-                      width: '100%',
-                      marginTop: '0.5rem',
-                      padding: '0.5rem',
-                      background: 'white',
-                      color: '#ef4444',
-                      border: '1px solid #ef4444',
-                      borderRadius: '0.5rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '0.8rem',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '4px'
-                    }}
-                    onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                      (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
-                      (e.currentTarget as HTMLButtonElement).style.color = 'white';
-                    }}
-                    onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'white';
-                      (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
-                    }}
-                  >
-                    <Trash2 size={14} />
-                    Delete
-                  </button>
+                  {/* Action Buttons */}
+                  <div className={styles.cardActions}>
+                    <button
+                      onClick={() => navigate(`/admin/view_job_and_reference/${job._id}`)}
+                      className={styles.viewDetailsBtn}
+                    >
+                      View Details
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div style={{ background: 'white', padding: '2.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '2.5rem', color: '#cbd5e1', marginBottom: '0.75rem', display: 'block' }}>work_off</span>
-            <p style={{ color: '#64748b', fontWeight: 500 }}>No job references matching the active filters.</p>
+          <div className={styles.emptyState}>
+            <span className={`material-symbols-outlined ${styles.emptyIcon}`}>work_off</span>
+            <p className={styles.emptyText}>No job references matching the active filters.</p>
           </div>
         )}
       </main>

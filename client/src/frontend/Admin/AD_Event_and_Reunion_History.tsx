@@ -128,9 +128,14 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
 
   // Metrics
   const now = new Date();
+  now.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
   const totalEvents = eventsData.length;
-  const upcomingCount = eventsData.filter(e => e.rawDate >= now && e.status !== 'cancelled').length;
-  const completedCount = eventsData.filter(e => e.status === 'completed' || e.rawDate < now).length;
+  const upcomingCount = eventsData.filter(e => {
+    const eventDate = new Date(e.rawDate);
+    eventDate.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+    return eventDate >= now && e.status !== 'cancelled' && e.status !== 'completed';
+  }).length;
+  const completedCount = eventsData.filter(e => e.status === 'completed').length;
 
   const eventDeptCounts: Record<string, number> = {};
   eventsData.forEach(e => {

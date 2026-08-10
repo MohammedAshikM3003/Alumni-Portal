@@ -113,18 +113,10 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
   const errorListRef = useRef<HTMLDivElement>(null);
   const hasScrolledToErrors = useRef(false);
 
-  // Scroll to error list when new errors appear (not when auto-clearing)
-  useEffect(() => {
-    if (errors.length > 0 && !hasScrolledToErrors.current) {
-      hasScrolledToErrors.current = true;
-      setTimeout(() => {
-        errorListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
-    if (errors.length === 0) {
-      hasScrolledToErrors.current = false;
-    }
-  }, [errors.length]);
+  const getFieldError = (fieldId: string) => {
+    return errors.find(err => err.fieldId === fieldId)?.message;
+  };
+
 
   // Auto-clear specific field error when user types
   useEffect(() => {
@@ -403,6 +395,10 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
       setIsSubmitting(false);
+      const firstErrorFieldId = validationErrors[0].fieldId;
+      if (firstErrorFieldId) {
+        scrollToFieldAndBlink(firstErrorFieldId);
+      }
       return;
     }
     setErrors([]);
@@ -629,11 +625,17 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                   <input
                     type="text"
                     id="name"
-                    className={`${styles.textInput} ${blinkingField === 'name' ? styles.blinkField : ''}`}
+                    className={`${styles.textInput} ${getFieldError('name') ? styles.inputError : ''} ${blinkingField === 'name' ? styles.blinkField : ''}`}
                     placeholder="e.g. Alexander Pierce"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                   />
+                  {getFieldError('name') && (
+                    <div className={styles.fieldError}>
+                      <span className="material-symbols-outlined">error</span>
+                      {getFieldError('name')}
+                    </div>
+                  )}
                 </div>
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Father/Guardian Name</label>
@@ -647,36 +649,49 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                 </div>
               </div>
               <div className={styles.gridTwoCol}>
-                <div>
-                  <label htmlFor="reg" className={styles.inputLabel}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="registerNumber" className={styles.inputLabel}>
                     Register Number *
                   </label>
                   <input
                     type="text"
                     id="registerNumber"
-                    className={`${styles.textInput} ${blinkingField === 'registerNumber' ? styles.blinkField : ''}`}
+                    className={`${styles.textInput} ${getFieldError('registerNumber') ? styles.inputError : ''} ${blinkingField === 'registerNumber' ? styles.blinkField : ''}`}
                     placeholder="11-digit Register Number"
                     value={formData.registerNumber}
                     onChange={(e) => handleInputChange('registerNumber', e.target.value)}
                   />
+                  {getFieldError('registerNumber') && (
+                    <div className={styles.fieldError}>
+                      <span className="material-symbols-outlined">error</span>
+                      {getFieldError('registerNumber')}
+                    </div>
+                  )}
                 </div>
-                <div>
+                <div className={styles.inputGroup}>
                   <label htmlFor="email" className={styles.inputLabel}>
                     Email Address *
                   </label>
                   <input
                     type="email"
                     id="email"
-                    className={`${styles.textInput} ${blinkingField === 'email' ? styles.blinkField : ''}`}
+                    className={`${styles.textInput} ${getFieldError('email') ? styles.inputError : ''} ${blinkingField === 'email' ? styles.blinkField : ''}`}
                     placeholder="Email Address"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                   />
-                  {formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
-                    <div className={styles.fieldWarning}>
-                      <span className="material-symbols-outlined">warning</span>
-                      Please enter a valid email address
+                  {getFieldError('email') ? (
+                    <div className={styles.fieldError}>
+                      <span className="material-symbols-outlined">error</span>
+                      {getFieldError('email')}
                     </div>
+                  ) : (
+                    formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
+                      <div className={styles.fieldWarning}>
+                        <span className="material-symbols-outlined">warning</span>
+                        Please enter a valid email address
+                      </div>
+                    )
                   )}
                 </div>
               </div>
@@ -687,17 +702,23 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                   <DateInput
                     id="dob"
                     theme="admin"
-                    className={`${styles.textInput} ${blinkingField === 'dob' ? styles.blinkField : ''}`}
+                    className={`${styles.textInput} ${getFieldError('dob') ? styles.inputError : ''} ${blinkingField === 'dob' ? styles.blinkField : ''}`}
                     value={formData.dob}
                     onChange={(e) => handleInputChange('dob', e.target.value)}
                     yearRange="dob"
                   />
+                  {getFieldError('dob') && (
+                    <div className={styles.fieldError}>
+                      <span className="material-symbols-outlined">error</span>
+                      {getFieldError('dob')}
+                    </div>
+                  )}
                 </div>
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Years of Study (From) *</label>
                   <select
                     id="yearFrom"
-                    className={`${styles.selectInput} ${blinkingField === 'yearFrom' ? styles.blinkField : ''}`}
+                    className={`${styles.selectInput} ${getFieldError('yearFrom') ? styles.inputError : ''} ${blinkingField === 'yearFrom' ? styles.blinkField : ''}`}
                     value={formData.yearFrom}
                     onChange={(e) => handleInputChange('yearFrom', e.target.value)}
                   >
@@ -708,6 +729,12 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                       </option>
                     ))}
                   </select>
+                  {getFieldError('yearFrom') && (
+                    <div className={styles.fieldError}>
+                      <span className="material-symbols-outlined">error</span>
+                      {getFieldError('yearFrom')}
+                    </div>
+                  )}
                 </div>
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>(To)</label>
@@ -727,7 +754,7 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                   <label className={styles.inputLabel}>Degree *</label>
                   <select
                     id="degree"
-                    className={`${styles.selectInput} ${blinkingField === 'degree' ? styles.blinkField : ''}`}
+                    className={`${styles.selectInput} ${getFieldError('degree') ? styles.inputError : ''} ${blinkingField === 'degree' ? styles.blinkField : ''}`}
                     value={formData.degree}
                     onChange={(e) => handleInputChange('degree', e.target.value)}
                   >
@@ -736,12 +763,18 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                       <option key={stream} value={stream}>{stream}</option>
                     ))}
                   </select>
+                  {getFieldError('degree') && (
+                    <div className={styles.fieldError}>
+                      <span className="material-symbols-outlined">error</span>
+                      {getFieldError('degree')}
+                    </div>
+                  )}
                 </div>
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Course / Branch *</label>
                   <select
                     id="branch"
-                    className={`${styles.selectInput} ${blinkingField === 'branch' ? styles.blinkField : ''}`}
+                    className={`${styles.selectInput} ${getFieldError('branch') ? styles.inputError : ''} ${blinkingField === 'branch' ? styles.blinkField : ''}`}
                     value={formData.branch}
                     onChange={(e) => handleInputChange('branch', e.target.value)}
                   >
@@ -754,6 +787,12 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                         </option>
                       ))}
                   </select>
+                  {getFieldError('branch') && (
+                    <div className={styles.fieldError}>
+                      <span className="material-symbols-outlined">error</span>
+                      {getFieldError('branch')}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1377,28 +1416,6 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
               <span className="material-symbols-outlined">{isSubmitting ? 'hourglass_empty' : 'send'}</span>
             </button>
           </div>
-
-          {errors.length > 0 && (
-            <div ref={errorListRef} className={styles.errorListContainer}>
-              <div className={styles.errorListHeader}>
-                <span className="material-symbols-outlined">error</span>
-                <span>Please fix the following {errors.length} error{errors.length > 1 ? 's' : ''}:</span>
-              </div>
-              <div className={styles.errorList}>
-                {errors.map((err, idx) => (
-                  <div
-                    key={idx}
-                    className={styles.errorItem}
-                    onClick={() => err.fieldId && scrollToFieldAndBlink(err.fieldId)}
-                    style={{ cursor: err.fieldId ? 'pointer' : 'default' }}
-                  >
-                    <span className="material-symbols-outlined">arrow_forward</span>
-                    <span>{err.message}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </main>
     </div>

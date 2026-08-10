@@ -58,16 +58,6 @@
   margin-bottom: 1rem;
 }
 
-.logoIcon {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--primary) 0%, #1a5c2e 100%);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
 
 .pageTitle {
   font-size: 1.75rem;
