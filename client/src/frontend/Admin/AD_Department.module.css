@@ -444,4 +444,116 @@
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
-}   
+}
+
+/* --- Alert Modal (Image-Matched) --- */
+.alertModalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.alertModalCard {
+  background-color: #ffffff;
+  width: 90%;
+  max-width: 380px;
+  border-radius: 20px;
+  padding: 2.25rem 2rem 2rem 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.alertIconCircle {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background-color: #276738;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+}
+
+.alertIconCircleWarning {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background-color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+}
+
+.alertTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.25;
+}
+
+.alertMessage {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+.alertOkBtn {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  background-color: #276738;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.alertOkBtn:hover {
+  background-color: #1e4f2b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(39, 103, 56, 0.3);
+}
+
+.alertOkBtn:active {
+  transform: translateY(0);
+}
+
+.alertOkBtnWarning {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  background-color: #d97706;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.alertOkBtnWarning:hover {
+  background-color: #b45309;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+}
+
+.alertOkBtnWarning:active {
+  transform: translateY(0);
+}

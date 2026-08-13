@@ -3,9 +3,10 @@
 .pageContainer {
   display: flex;
   min-height: 100vh;
-  background-color: #F8FAFC; /* Light gray background matching image */
+  background-color: #F8FAFC;
+  /* Light gray background matching image */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #111827; 
+  color: #111827;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -25,41 +26,7 @@
   max-height: 100vh;
 }
 
-/* Volume Bar Style Scrollbar - Webkit (Chrome, Safari, Edge) */
-.mainContent::-webkit-scrollbar {
-  width: 10px;
-}
-
-.mainContent::-webkit-scrollbar-track {
-  background-color: #E5E7EB;
-  border-radius: 10px;
-  margin: 8px 0;
-}
-
-.mainContent::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #007BFF, #0069D9);
-  border-radius: 10px;
-  transition: all 0.3s ease;
-  border: 2px solid #E5E7EB;
-  box-shadow: inset 0 0 6px rgba(0, 123, 255, 0.3);
-}
-
-.mainContent::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #0069D9, #0051CC);
-  border-color: #007BFF;
-  box-shadow: inset 0 0 8px rgba(0, 123, 255, 0.5), 0 0 4px rgba(0, 123, 255, 0.4);
-}
-
-.mainContent::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(to bottom, #0051CC, #003d99);
-  box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.7);
-}
-
-/* Firefox Scrollbar */
-.mainContent {
-  scrollbar-color: linear-gradient(to bottom, #007BFF, #0069D9) #E5E7EB;
-  scrollbar-width: auto;
-}
+/* Custom scrollbar imported globally from scrollbar.js */
 
 .contentWrapper {
   flex: 1;
@@ -74,22 +41,24 @@
 
 /* Back Button */
 .backButton {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #475569;
-    cursor: pointer;
-    transition: color 0.2s;
-    width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  cursor: pointer;
+  transition: color 0.2s;
+  width: fit-content;
+  align-self: flex-start;
+  margin-bottom: 18px;
 }
 
 .backButton:hover {
-    color: #2563eb;
+  color: #2563eb;
 }
 
 .backButton span {
-    font-size: 14px;
-    font-weight: 500;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 /* HEADER */
@@ -101,7 +70,8 @@
 .pageTitle {
   font-size: 32px;
   font-weight: 800;
-  color: #0084D6; /* Blue title color from image */
+  color: #0084D6;
+  /* Blue title color from image */
   margin: 0 0 12px 0;
   letter-spacing: -0.5px;
 }
@@ -150,7 +120,9 @@
   padding: 0 20px;
   height: 64px;
   transition: border-color 0.2s;
+  position: relative;
 }
+
 .inputWrapper:focus-within {
   border-color: #0084D6;
 }
@@ -159,10 +131,12 @@
   font-size: 20px;
   color: #6B7280;
   font-weight: 600;
+  position: absolute;
+  left: 20px;
 }
 
 .amountInput {
-  flex: 1;
+  width: 100%;
   background: transparent;
   border: none;
   outline: none;
@@ -174,9 +148,9 @@
 }
 
 .amountInput:focus {
-  box-shadow: none ;
-  outline: none ;
-  border: none ;
+  box-shadow: none;
+  outline: none;
+  border: none;
 }
 
 .amountInput:focus-within {
@@ -227,6 +201,7 @@
   transition: background-color 0.2s;
   margin-bottom: 32px;
 }
+
 .donateSubmitBtn:hover {
   background-color: #006BB5;
 }
@@ -243,26 +218,31 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: #9CA3AF;
+  color: #6B7280;
 }
 
 .badgeItem {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
+
 .badgeItem span:first-child {
-  font-size: 14px;
+  font-size: 18px;
+  color: #22C55E;
 }
 
 .badgeDot {
-  font-size: 16px;
+  font-size: 18px;
+  color: #9CA3AF;
 }
 
-.overlay { display: none; }
+.overlay {
+  display: none;
+}
 
 
 /* ================== RESPONSIVE BREAKPOINTS ================== */
@@ -277,44 +257,130 @@
 /* 2. Mobile / Hamburger Menu (768px) */
 @media (max-width: 768px) {
   .sidebar {
-    width: 260px; transform: translateX(-100%); align-items: flex-start;
+    width: 260px;
+    transform: translateX(-100%);
+    align-items: flex-start;
   }
-  .sidebarOpen { transform: translateX(0); }
-  
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
   /* Expand Sidebar items for the drawer view */
-  .sidebarHeader { padding: 24px 20px; justify-content: flex-start; }
-  .navMenu { padding: 16px 12px; align-items: stretch; }
-  .navItem { width: auto; justify-content: flex-start; padding: 12px 16px; height: auto;}
-  .navText { display: block; }
-  .activeNavItem { background-color: #F0F9FF; color: #0084D6; border-left: 4px solid #0084D6; border-radius: 0 8px 8px 0; margin-left: -12px; padding-left: 24px;}
-  .activeNavItem span:first-child { color: #0084D6; }
-  .sidebarFooter { align-items: stretch; padding: 16px 12px; }
-  .logoutBtn { width: auto; justify-content: flex-start; padding: 12px 16px; height: auto; }
+  .sidebarHeader {
+    padding: 24px 20px;
+    justify-content: flex-start;
+  }
 
-  .mainContent { margin-left: 0; }
-  .mobileHeader { display: flex; }
+  .navMenu {
+    padding: 16px 12px;
+    align-items: stretch;
+  }
 
-  .contentWrapper { padding: 24px 16px; }
+  .navItem {
+    width: auto;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    height: auto;
+  }
+
+  .navText {
+    display: block;
+  }
+
+  .activeNavItem {
+    background-color: #F0F9FF;
+    color: #0084D6;
+    border-left: 4px solid #0084D6;
+    border-radius: 0 8px 8px 0;
+    margin-left: -12px;
+    padding-left: 24px;
+  }
+
+  .activeNavItem span:first-child {
+    color: #0084D6;
+  }
+
+  .sidebarFooter {
+    align-items: stretch;
+    padding: 16px 12px;
+  }
+
+  .logoutBtn {
+    width: auto;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    height: auto;
+  }
+
+  .mainContent {
+    margin-left: 0;
+    padding-top: 4.25rem;
+  }
+
+  .mobileHeader {
+    display: flex;
+  }
+
+  .contentWrapper {
+    padding: 0 1rem 2rem 1rem;
+  }
 
   .overlay {
-    display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(17, 24, 39, 0.4); z-index: 40;
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(17, 24, 39, 0.4);
+    z-index: 40;
   }
 
 }
 
 /* 3. Small Mobile Phones (425px) */
 @media (max-width: 425px) {
-  .pageTitle { font-size: 24px; }
-  .pageSubtitle { font-size: 14px; line-height: 1.4; }
-  
-  .formCard { padding: 32px 20px; border-radius: 12px; }
-  
-  .inputWrapper { height: 56px; }
-  .amountInput { font-size: 20px; }
-  
-  .donateSubmitBtn { max-width: 100%; }
-  
-  .securityBadges { flex-direction: column; gap: 8px; }
-  .badgeDot { display: none; }
+  .mainContent {
+    padding-top: 4.25rem;
+  }
+
+  .contentWrapper {
+    padding: 0 1rem 2rem 1rem;
+  }
+
+  .pageTitle {
+    font-size: 24px;
+  }
+
+  .pageSubtitle {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .formCard {
+    padding: 32px 20px;
+    border-radius: 12px;
+  }
+
+  .inputWrapper {
+    height: 56px;
+  }
+
+  .amountInput {
+    font-size: 20px;
+  }
+
+  .donateSubmitBtn {
+    max-width: 100%;
+  }
+
+  .securityBadges {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .badgeDot {
+    display: none;
+  }
 }

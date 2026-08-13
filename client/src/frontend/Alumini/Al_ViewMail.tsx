@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './Al_ViewMail.module.css';
+import './scrollbar.js';
 import Sidebar from './Components/Sidebar/Sidebar';
-import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -13,21 +13,8 @@ interface AluminiViewMailProps {
 const Alumini_ViewMail = ({ onLogout }: AluminiViewMailProps) => {
   const [mailData, setMailData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [showDeclineForm, setShowDeclineForm] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [acceptFormData, setAcceptFormData] = useState({
-    fullName: '',
-    designation: '',
-    companyName: '',
-    mobileNo: '',
-    personalEmail: '',
-    officialEmail: '',
-    location: ''
-  });
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
 
   const mailId = location.state?.mailId;
   const passedMailData = location.state?.mailData;
@@ -97,60 +84,6 @@ const Alumini_ViewMail = ({ onLogout }: AluminiViewMailProps) => {
       case 'pending':
       default:
         return '#6b7280'; // Grey
-    }
-  };
-
-  const handleAccept = async () => {
-    if (!user?.token || !mailData?._id) return;
-    setSubmitting(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/mail/${mailData._id}/respond`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({
-          status: 'accept',
-          responseData: acceptFormData,
-        }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setMailData({ ...mailData, responseStatus: 'accept', responseData: acceptFormData, submittedAt: new Date() });
-      }
-    } catch (err) {
-      console.error('Error accepting invitation:', err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDecline = async () => {
-    if (!user?.token || !mailData?._id) return;
-    setSubmitting(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/mail/${mailData._id}/respond`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({
-          status: 'reject',
-          responseData: { rejectionReason },
-        }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setMailData({ ...mailData, responseStatus: 'reject', responseData: { rejectionReason }, submittedAt: new Date() });
-        setShowDeclineForm(false);
-        setRejectionReason('');
-      }
-    } catch (err) {
-      console.error('Error declining invitation:', err);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -258,112 +191,6 @@ const Alumini_ViewMail = ({ onLogout }: AluminiViewMailProps) => {
                     </p>
                   </div>
                 </div>
-
-                {/* Action Buttons - Only show if pending */}
-                {(!mailData.responseStatus || mailData.responseStatus === 'pending') && (
-                  <div style={{ marginTop: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    {!showDeclineForm ? (
-                      <>
-                        <button
-                          onClick={() => setShowDeclineForm(true)}
-                          disabled={submitting}
-                          style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#ef4444',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: submitting ? 'not-allowed' : 'pointer',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            transition: 'background-color 0.2s'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
-                        >
-                          Decline Invitation
-                        </button>
-                        <button
-                          onClick={handleAccept}
-                          disabled={submitting}
-                          style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#22c55e',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: submitting ? 'not-allowed' : 'pointer',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            transition: 'background-color 0.2s'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#22c55e'}
-                        >
-                          {submitting ? 'Submitting...' : 'Accept Invitation'}
-                        </button>
-                      </>
-                    ) : (
-                      <div style={{ width: '100%', backgroundColor: '#fef2f2', padding: '15px', borderRadius: '8px', border: '1px solid #ef4444' }}>
-                        <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: '600', color: '#ef4444' }}>
-                          Decline Invitation
-                        </h4>
-                        <textarea
-                          value={rejectionReason}
-                          onChange={(e) => setRejectionReason(e.target.value)}
-                          placeholder="Please provide a reason for declining..."
-                          style={{
-                            width: '100%',
-                            minHeight: '80px',
-                            padding: '10px',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '4px',
-                            fontSize: '13px',
-                            fontFamily: 'inherit',
-                            resize: 'vertical',
-                            marginBottom: '10px'
-                          }}
-                        />
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <button
-                            onClick={() => {
-                              setShowDeclineForm(false);
-                              setRejectionReason('');
-                            }}
-                            disabled={submitting}
-                            style={{
-                              padding: '8px 16px',
-                              backgroundColor: '#6b7280',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '4px',
-                              cursor: submitting ? 'not-allowed' : 'pointer',
-                              fontSize: '13px'
-                            }}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={handleDecline}
-                            disabled={submitting || !rejectionReason.trim()}
-                            style={{
-                              padding: '8px 16px',
-                              backgroundColor: '#ef4444',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '4px',
-                              cursor: (submitting || !rejectionReason.trim()) ? 'not-allowed' : 'pointer',
-                              fontSize: '13px',
-                              opacity: !rejectionReason.trim() ? 0.5 : 1
-                            }}
-                          >
-                            {submitting ? 'Submitting...' : 'Submit Decline'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Response Details Section */}
                 {mailData.responseStatus === 'accept' && mailData.responseData && (

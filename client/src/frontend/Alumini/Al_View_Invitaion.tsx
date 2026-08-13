@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import styles from './Al_View_Invitation.module.css';
+import './scrollbar.js';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/authContext/authContext';
@@ -178,7 +179,6 @@ const Alumini_View_Invitation = ({ onLogout }: AluminiViewInvitationProps) => {
           <span className="material-symbols-outlined">arrow_back</span>
           <span>Back</span>
         </div>
-        <br />
 
         {/* Event Details Wrapper */}
         <div className={styles.eventContainer}>
@@ -187,7 +187,7 @@ const Alumini_View_Invitation = ({ onLogout }: AluminiViewInvitationProps) => {
           <div className={styles.eventPoster}>
             {invitation.flyer ? (
               <img
-                src={`${API_BASE}/api/invitations/image/${invitation.flyer}`}
+                src={`${API_BASE}/api/images/${invitation.flyer}`}
                 alt="Event Flyer"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }}
               />

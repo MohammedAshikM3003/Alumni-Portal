@@ -1,0 +1,160 @@
+import './scrollbar.css';
+
+const scrollbarStyles = `
+/* ================================================================= */
+/* UNIFIED MOBILE & DESKTOP HIGHLIGHTED BLUE SCROLLBAR EXPERIENCE    */
+/* ================================================================= */
+
+/* Remove overlapping root window scrollbars on HTML/Body to prevent double scrollbars */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+}
+
+html,
+body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* Unified Custom 6px Blue Overlay Scrollbar for Desktop and Mobile containers */
+::-webkit-scrollbar,
+.mainContent::-webkit-scrollbar,
+.contentArea::-webkit-scrollbar,
+.mailContainer::-webkit-scrollbar,
+.customScrollbar::-webkit-scrollbar,
+.tableWrapper::-webkit-scrollbar,
+.mainScrollable::-webkit-scrollbar,
+.customSidebarScrollbar::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+  display: block !important;
+}
+
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:single-button,
+::-webkit-scrollbar-button:vertical:decrement,
+::-webkit-scrollbar-button:vertical:increment,
+::-webkit-scrollbar-button:horizontal:decrement,
+::-webkit-scrollbar-button:horizontal:increment,
+::-webkit-scrollbar-button:start,
+::-webkit-scrollbar-button:end,
+::-webkit-scrollbar-button:vertical:start:decrement,
+::-webkit-scrollbar-button:vertical:end:increment,
+::-webkit-scrollbar-button:horizontal:start:decrement,
+::-webkit-scrollbar-button:horizontal:end:increment,
+*::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button:single-button,
+*::-webkit-scrollbar-button:vertical:decrement,
+*::-webkit-scrollbar-button:vertical:increment,
+*::-webkit-scrollbar-button:horizontal:decrement,
+*::-webkit-scrollbar-button:horizontal:increment,
+*::-webkit-scrollbar-button:start,
+*::-webkit-scrollbar-button:end,
+*::-webkit-scrollbar-button:vertical:start:decrement,
+*::-webkit-scrollbar-button:vertical:end:increment,
+*::-webkit-scrollbar-button:horizontal:start:decrement,
+*::-webkit-scrollbar-button:horizontal:end:increment,
+.mainContent::-webkit-scrollbar-button,
+.contentArea::-webkit-scrollbar-button,
+.mailContainer::-webkit-scrollbar-button,
+.customScrollbar::-webkit-scrollbar-button,
+.tableWrapper::-webkit-scrollbar-button,
+.mainScrollable::-webkit-scrollbar-button,
+.customSidebarScrollbar::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner,
+.mainContent::-webkit-scrollbar-corner,
+.contentArea::-webkit-scrollbar-corner,
+.mailContainer::-webkit-scrollbar-corner,
+.customScrollbar::-webkit-scrollbar-corner,
+.tableWrapper::-webkit-scrollbar-corner,
+.mainScrollable::-webkit-scrollbar-corner,
+.customSidebarScrollbar::-webkit-scrollbar-corner {
+  background: transparent !important;
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+}
+
+::-webkit-scrollbar-track,
+.mainContent::-webkit-scrollbar-track,
+.contentArea::-webkit-scrollbar-track,
+.mailContainer::-webkit-scrollbar-track,
+.customScrollbar::-webkit-scrollbar-track,
+.tableWrapper::-webkit-scrollbar-track,
+.mainScrollable::-webkit-scrollbar-track,
+.customSidebarScrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+  background-color: transparent !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+
+::-webkit-scrollbar-thumb,
+.mainContent::-webkit-scrollbar-thumb,
+.contentArea::-webkit-scrollbar-thumb,
+.mailContainer::-webkit-scrollbar-thumb,
+.customScrollbar::-webkit-scrollbar-thumb,
+.tableWrapper::-webkit-scrollbar-thumb,
+.mainScrollable::-webkit-scrollbar-thumb,
+.customSidebarScrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #0084D6 0%, #0051CC 100%) !important;
+  border-radius: 10px !important;
+  border: none !important;
+  box-shadow: 0 0 8px rgba(0, 132, 214, 0.9), inset 0 0 4px rgba(255, 255, 255, 0.5) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+::-webkit-scrollbar-thumb:hover,
+.mainContent::-webkit-scrollbar-thumb:hover,
+.contentArea::-webkit-scrollbar-thumb:hover,
+.mailContainer::-webkit-scrollbar-thumb:hover,
+.customScrollbar::-webkit-scrollbar-thumb:hover,
+.tableWrapper::-webkit-scrollbar-thumb:hover,
+.mainScrollable::-webkit-scrollbar-thumb:hover,
+.customSidebarScrollbar::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #0069D9 0%, #003D99 100%) !important;
+  box-shadow: 0 0 10px rgba(0, 132, 214, 1.0), inset 0 0 6px rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Firefox & Generic Touch Styling */
+*,
+.mainContent,
+.contentArea,
+.mailContainer,
+.customScrollbar,
+.tableWrapper,
+.mainScrollable,
+.customSidebarScrollbar {
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-color: #0084D6 transparent !important;
+  scrollbar-width: thin !important;
+}
+`;
+
+if (typeof document !== 'undefined') {
+  let styleEl = document.getElementById('alumni-scrollbar-styles');
+  if (styleEl) {
+    styleEl.textContent = scrollbarStyles;
+  } else {
+    styleEl = document.createElement('style');
+    styleEl.id = 'alumni-scrollbar-styles';
+    styleEl.textContent = scrollbarStyles;
+    document.head.appendChild(styleEl);
+  }
+}
+
+export default scrollbarStyles;

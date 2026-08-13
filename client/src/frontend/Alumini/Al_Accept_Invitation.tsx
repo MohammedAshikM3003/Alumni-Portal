@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/authContext/authContext';
 import { useTokenAuth } from '../../context/tokenAuthContext/tokenAuthContext';
 import styles from './Al_Accept_Invitation.module.css';
+import './scrollbar.js';
 
 interface Address {
   street: string;

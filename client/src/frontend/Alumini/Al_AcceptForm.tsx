@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Al_AcceptForm.module.css';
+import './scrollbar.js';
 
 interface BatchYear {
   startYear: number;

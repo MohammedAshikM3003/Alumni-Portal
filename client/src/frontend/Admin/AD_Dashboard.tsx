@@ -7,7 +7,6 @@ import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || window.location.origin;
 
-
 interface DashboardStats {
   totalAlumni: number;
   activeCoordinators: number;
@@ -69,7 +68,7 @@ const achievementsAndNewsData: AchievementNewsItem[] = [
   }
 ];
 
-const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
+const Admin_Dashboard = ({ onLogout }: { onLogout?: () => void }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -135,10 +134,6 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
     return () => controller.abort();
   }, []);
 
-
-
-
-
   return (
     <div className={styles.dashboardWrapper}>
       <Sidebar onLogout={onLogout} currentView={'dashboard'} />
@@ -157,13 +152,14 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
             </div>
           </div>
         </header>
+
         <div className={styles.dashboardContent}>
-          {/* Cards Row 1 */}
-          <div className={styles.cardsRow}>
-            <div className={`${styles.card} ${styles.overlapColumn}`}>
+          <div className={styles.dashboardGrid}>
+            {/* Card 1: Mail */}
+            <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardHeader1}>
-                  <Mail size={20} style={{ color: '#0284c7', marginRight: '12px' }} />
+                  <Mail size={18} style={{ color: '#0284c7', flexShrink: 0 }} />
                   <h2 className={styles.cardTitle}>Mail</h2>
                 </div>
                 <span className={styles.cardBadge}>{cards?.mail?.newCount || 0} New</span>
@@ -189,10 +185,12 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
                 Go to Inbox <ArrowRight size={14} style={{ marginLeft: '4px', display: 'inline-block', verticalAlign: 'middle' }} />
               </button>
             </div>
+
+            {/* Card 2: Career Hub */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardHeader1}>
-                  <Briefcase size={20} style={{ color: '#7c3aed', marginRight: '12px' }} />
+                  <Briefcase size={18} style={{ color: '#7c3aed', flexShrink: 0 }} />
                   <h2 className={styles.cardTitle}>Career Hub</h2>
                 </div>
                 <span className={styles.cardStatus}>{cards?.jobs?.activeCount || 0} Active</span>
@@ -217,11 +215,13 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
               </div>
               <button className={styles.cardActionOutline} onClick={() => { navigate('/admin/job_and_reference') }} >Explore All Jobs</button>
             </div>
+
+            {/* Card 3: Donation History */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardHeader1}>
-                  <Coins size={20} style={{ color: 'var(--primary-green)', marginRight: '12px' }} />
-                  <div className={styles.cardTitle}>Donation History</div>
+                  <Coins size={18} style={{ color: 'var(--primary-green)', flexShrink: 0 }} />
+                  <h2 className={styles.cardTitle}>Donation History</h2>
                 </div>
                 <span className={styles.cardStatusGreen}>Scholarship Goal</span>
               </div>
@@ -246,14 +246,13 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
               </div>
               <button className={styles.cardActionPrimary} onClick={() => { navigate('/admin/donation_history') }} >View History</button>
             </div>
-          </div>
-          {/* Cards Row 2 */}
-          <div className={styles.cardsRow}>
-            <div className={`${styles.card} ${styles.overlapColumn}`}>
+
+            {/* Card 4: Events & Reunions */}
+            <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardHeader1}>
-                  <Calendar size={20} style={{ color: '#ea580c', marginRight: '12px' }} />
-                  <h2 className={styles.cardTitle}>Events & Reunions</h2>
+                  <Calendar size={18} style={{ color: '#ea580c', flexShrink: 0 }} />
+                  <h2 className={styles.cardTitle}>Events &amp; Reunions</h2>
                 </div>
                 <span className={styles.cardUpcoming}>Upcoming</span>
               </div>
@@ -282,10 +281,14 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
                 <button className={styles.reunionBtn} onClick={() => { navigate('/admin/event_and_reunion') }} >Create Event</button>
               )}
             </div>
+
+            {/* Card 5: Achievements & News */}
             <div className={styles.cardAchievements}>
               <div className={styles.achievementsHeader}>
-                <Trophy size={22} className={styles.trophyIcon} style={{ color: 'var(--primary-green)', marginRight: '12px' }} />
-                <h2 className={styles.achievementsTitle}>Achievements & News</h2>
+                <div className={styles.achievementsHeaderLeft}>
+                  <Trophy size={20} className={styles.trophyIcon} style={{ color: 'var(--primary-green)', flexShrink: 0 }} />
+                  <h2 className={styles.achievementsTitle}>Achievements &amp; News</h2>
+                </div>
                 <a href="#" className={styles.achievementsViewAll} onClick={(e) => e.preventDefault()}>
                   View All <ExternalLink size={14} className={styles.externalLinkIcon} />
                 </a>
@@ -306,7 +309,6 @@ const Admin_Dashboard = ( { onLogout }: { onLogout?: () => void } ) => {
           </div>
         </div>
       </main>
-
     </div>
   );
 };

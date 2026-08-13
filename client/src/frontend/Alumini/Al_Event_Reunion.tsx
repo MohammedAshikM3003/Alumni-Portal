@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import styles from './Al_Event_Reunion.module.css';
+import './scrollbar.js';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/authContext/authContext';
+import { getPageCache, setPageCache } from '../../utils/pageCache';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -25,17 +27,19 @@ interface AluminiEventsReunionProps {
 const Alumini_EventsReunion = ({ onLogout }: AluminiEventsReunionProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [invitations, setInvitations] = useState<InvitationRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const cachedInvitations = getPageCache<InvitationRecord[]>('alumni_invitations');
+  const [invitations, setInvitations] = useState<InvitationRecord[]>(cachedInvitations || []);
+  const [loading, setLoading] = useState(!cachedInvitations);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    
+
     const fetchInvitations = async () => {
       if (!user?.token) return;
       try {
-        setLoading(true);
+        if (!cachedInvitations) setLoading(true);
         setError(null);
         const res = await fetch(`${API_BASE}/api/invitations/all`, {
           signal: controller.signal,
@@ -46,12 +50,13 @@ const Alumini_EventsReunion = ({ onLogout }: AluminiEventsReunionProps) => {
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.invitations)) {
           setInvitations(data.invitations);
+          setPageCache('alumni_invitations', data.invitations);
         } else {
-          setError(data.message || 'Failed to fetch invitations');
+          if (!cachedInvitations) setError(data.message || 'Failed to fetch invitations');
         }
       } catch (err: any) {
         if (err.name === 'AbortError') return;
-        setError(err.message || 'Failed to fetch invitations');
+        if (!cachedInvitations) setError(err.message || 'Failed to fetch invitations');
       } finally {
         setLoading(false);
       }
@@ -72,10 +77,10 @@ const Alumini_EventsReunion = ({ onLogout }: AluminiEventsReunionProps) => {
     try {
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return dateStr;
-      return date.toLocaleDateString(undefined, { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
+      return date.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
       });
     } catch {
       return dateStr;
@@ -94,9 +99,9 @@ const Alumini_EventsReunion = ({ onLogout }: AluminiEventsReunionProps) => {
           <div className={styles.sectionHeader}>
             <div className={styles.sectionTitle}>
               <span className={`material-symbols-outlined ${styles.titleIcon}`}>
-                mark_email_unread
+
               </span>
-              <h3>Received Emails</h3>
+
             </div>
           </div>
 
@@ -123,7 +128,7 @@ const Alumini_EventsReunion = ({ onLogout }: AluminiEventsReunionProps) => {
                     <div className={`${styles.avatarText} ${avatarClasses[idx % avatarClasses.length]}`}>
                       {(inv.sender || 'OR').substring(0, 2).toUpperCase()}
                     </div>
-                    
+
                     {/* Email Text Content */}
                     <div className={styles.emailDetails}>
                       <h4 className={styles.senderName}>{inv.sender}</h4>
@@ -132,9 +137,9 @@ const Alumini_EventsReunion = ({ onLogout }: AluminiEventsReunionProps) => {
                       </p>
                     </div>
                   </div>
-                  
-                  <button 
-                    className={styles.viewDetailsBtn} 
+
+                  <button
+                    className={styles.viewDetailsBtn}
                     onClick={() => navigate('/alumini/event_reunion/view_invitation', { state: { invitation: inv } })}
                   >
                     View Details

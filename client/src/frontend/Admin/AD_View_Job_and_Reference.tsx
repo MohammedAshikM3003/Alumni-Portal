@@ -5,6 +5,7 @@ import Sidebar from './Components/Sidebar/Sidebar';
 import Back from '../Coordinator/Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
 import { Trash2 } from 'lucide-react';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -365,7 +366,7 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
                 <div className={styles.inputGroup}>
                   <label className={styles.formLabel}>Target Branch / Department</label>
                   <div className={styles.formInput} style={{ backgroundColor: '#f8fafc', border: 'none' }}>
-                    {jobReference.targetBranch}
+                    {formatBranchName(jobReference.targetBranch)}
                   </div>
                 </div>
 

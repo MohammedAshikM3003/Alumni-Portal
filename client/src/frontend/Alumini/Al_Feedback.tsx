@@ -1,5 +1,6 @@
 import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './Al_Feedback.module.css';
+import './scrollbar.js';
 import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import { DateInput, TimeInput } from '../../components/Calendar';
@@ -249,7 +250,7 @@ const Alumini_Feedback = ({ onLogout }: AluminiFeedbackProps) => {
             
             {/* Header Section */}
             <div className={styles.docHeader}>
-              <h2>K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS), TIRUCHENGODE – 637 215</h2>
+              <h2>K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS), TIRUCHENGODE – 637215</h2>
               <h3>DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING</h3>
               <h4>PROGRAM NAME: B.E. Computer Science and Engineering</h4>
             </div>

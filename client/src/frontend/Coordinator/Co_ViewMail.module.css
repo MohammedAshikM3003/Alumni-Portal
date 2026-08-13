@@ -49,26 +49,6 @@
   margin: 0;
 }
 
-/* Back Button */
-.backButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--badge-text);
-  cursor: pointer;
-  transition: color 0.2s;
-  width: fit-content;
-}
-
-.backButton:hover {
-  color: var(--forest-green);
-}
-
-.backButton span {
-  font-size: 14px;
-  font-weight: 500;
-}
-
 /* Scrollbar(VolumeBar) */
 .mainContent::-webkit-scrollbar {
   width: 12px;

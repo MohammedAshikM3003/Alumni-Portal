@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Al_JobReference_History.module.css';
+import './scrollbar.js';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
+import { getPageCache, setPageCache } from '../../utils/pageCache';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -14,8 +16,9 @@ const formatDate = (dateString: string) => {
 const mapStatus = (status: string) => {
   switch (status) {
     case 'approved': return 'ACTIVE';
+    case 'pending': return 'PENDING';
     case 'rejected': return 'CLOSED';
-    default: return 'ACTIVE';
+    default: return 'PENDING';
   }
 };
 
@@ -63,15 +66,16 @@ const Alumini_JobReference_History = ({ onLogout }: AluminiJobReferenceHistoryPr
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [jobsData, setJobsData] = useState<JobRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cachedJobs = getPageCache<JobRecord[]>('alumni_jobs');
+  const [jobsData, setJobsData] = useState<JobRecord[]>(cachedJobs || []);
+  const [loading, setLoading] = useState(!cachedJobs);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
     const fetchJobReferences = async () => {
       if (!user?.token) {
-        setError('Please login to view job references');
+        if (!cachedJobs) setError('Please login to view job references');
         setLoading(false);
         return;
       }
@@ -109,10 +113,11 @@ const Alumini_JobReference_History = ({ onLogout }: AluminiJobReferenceHistoryPr
           });
 
           setJobsData(formattedData);
+          setPageCache('alumni_jobs', formattedData);
         }
       } catch (err: any) {
           if (err.name === 'AbortError') return;
-        setError(err.message);
+          if (!cachedJobs) setError(err.message || 'Failed to fetch job references');
       } finally {
         setLoading(false);
       }

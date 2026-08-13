@@ -1,4 +1,35 @@
 /* Page Wrapper */
+.pageContainer {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #F8FAFC;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #111827;
+}
+
+.mainContent {
+  flex: 1;
+  margin-left: 70px;
+  width: calc(100% - 70px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-color: #0084D6 #E5E7EB;
+  scrollbar-width: thin;
+}
+
+/* Scrollbar imported from scrollbar.js */
+
 .emailSubtext {
   font-size: 0.875rem;
   color: #64748b;
@@ -18,7 +49,7 @@
   width: 32px;
   height: 32px;
   border: 3px solid #e5e7eb;
-  border-top-color: #FF3D00;
+  border-top-color: #0081C9;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -32,14 +63,21 @@
 .tableWrapper {
   background-color: white;
   border-radius: 0.75rem;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  scrollbar-color: #0084D6 #E5E7EB;
+  scrollbar-width: thin;
 }
+
+/* Scrollbar imported from scrollbar.js */
 
 .mailTable {
   width: 100%;
+  min-width: 750px;
   border-collapse: collapse;
   font-size: 0.9375rem;
+  table-layout: fixed;
 }
 
 .mailTable thead {
@@ -57,28 +95,27 @@
   letter-spacing: 0.05em;
 }
 
-.thSender {
-  width: 15%;
+.thSender, .tdSender {
+  width: 180px;
   padding-left: 1.5rem;
 }
 
-.thSubject {
-  flex: 1;
-  min-width: 300px;
+.thSubject, .tdSubject {
+  width: 250px;
 }
 
-.thDate {
-  width: 12%;
+.thDate, .tdDate {
+  width: 120px;
   text-align: center;
 }
 
-.thStatus {
-  width: 12%;
+.thStatus, .tdStatus {
+  width: 110px;
   text-align: center;
 }
 
-.thAction {
-  width: 10%;
+.thAction, .tdAction {
+  width: 90px;
   text-align: center;
   padding-right: 1.5rem;
 }
@@ -100,34 +137,12 @@
   padding: 1rem;
   color: #334155;
   vertical-align: middle;
-}
-
-.tdSender {
-  width: 15%;
-  padding-left: 1.5rem;
-}
-
-.tdSubject {
-  flex: 1;
-  min-width: 300px;
+  text-align: left;
 }
 
 .tdDate {
-  width: 12%;
-  text-align: center;
   font-size: 0.875rem;
   color: #64748b;
-}
-
-.tdStatus {
-  width: 12%;
-  text-align: center;
-}
-
-.tdAction {
-  width: 10%;
-  text-align: center;
-  padding-right: 1.5rem;
 }
 
 .senderCell {
@@ -206,41 +221,7 @@
   overflow-x: hidden;
 }
 
-/* Volume Bar Style Scrollbar - Webkit (Chrome, Safari, Edge) */
-.mainContent::-webkit-scrollbar {
-  width: 10px;
-}
-
-.mainContent::-webkit-scrollbar-track {
-  background-color: #E5E7EB;
-  border-radius: 10px;
-  margin: 8px 0;
-}
-
-.mainContent::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #007BFF, #0069D9);
-  border-radius: 10px;
-  transition: all 0.3s ease;
-  border: 2px solid #E5E7EB;
-  box-shadow: inset 0 0 6px rgba(0, 123, 255, 0.3);
-}
-
-.mainContent::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #0069D9, #0051CC);
-  border-color: #007BFF;
-  box-shadow: inset 0 0 8px rgba(0, 123, 255, 0.5), 0 0 4px rgba(0, 123, 255, 0.4);
-}
-
-.mainContent::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(to bottom, #0051CC, #003d99);
-  box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.7);
-}
-
-/* Firefox Scrollbar */
-.mainContent {
-  scrollbar-color: linear-gradient(to bottom, #007BFF, #0069D9) #E5E7EB;
-  scrollbar-width: auto;
-}
+/* Scrollbar imported from scrollbar.js */
 
 .contentContainer {
   width: 100%;
@@ -312,11 +293,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.refreshButton:hover {
+  color: #0081C9;
+  border-color: #0081C9;
+}
+
+.refreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refreshButton span {
+  display: inline-flex;
   transition: transform 0.3s ease;
 }
 
-.refreshButton:active {
+.refreshButton:active:not(:disabled) span {
   transform: rotate(180deg);
+}
+
+.refreshIconSpin {
+  display: inline-flex;
+  animation: spin 0.6s linear infinite;
 }
 
 /* Mail Grid */
@@ -465,6 +466,143 @@
   color: white;
 }
 
+/* Mobile Cards List View */
+.mobileCardsList {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.mobileEmailCard {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 18px 20px;
+  border: 1px solid #F3F4F6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mobileEmailCard:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.mobileEmailCard:active {
+  transform: scale(0.98);
+}
+
+.mobileEmailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobileSenderRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mobileAvatarText {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.avatarBlue { background-color: #E0F2FE; color: #007BFF; }
+.avatarOrange { background-color: #FFEDD5; color: #EA580C; }
+.avatarPurple { background-color: #F3E8FF; color: #9333EA; }
+.avatarGreen { background-color: #DCFCE7; color: #16A34A; }
+
+.mobileSenderDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mobileSenderTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mobileSenderName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.mobileMailDate {
+  font-size: 12px;
+  color: #6B7280;
+  margin: 0;
+}
+
+.mobileCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobileMailSubject {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0;
+}
+
+.mobileMailText {
+  font-size: 13px;
+  color: #6B7280;
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mobileCardFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.viewDetailsBtn {
+  background-color: #FFFFFF;
+  border: 1.5px solid #007BFF;
+  color: #007BFF;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.viewDetailsBtn:hover {
+  background-color: #007BFF;
+  color: white;
+}
+
 /* Responsive Design */
 @media (max-width: 1280px) {
   .mailGrid {
@@ -473,15 +611,51 @@
 }
 
 @media (max-width: 768px) {
+  .tableWrapper {
+    display: none !important;
+  }
+
+  .mobileCardsList {
+    display: flex !important;
+  }
+
+  .mainContent {
+    margin-left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
   .mailGrid {
     grid-template-columns: 1fr;
   }
   
   .contentContainer {
-    padding: 1rem;
+    padding: 3.5rem 1rem 1.5rem 1rem;
+    overflow-x: hidden;
   }
-  
+
+  .pageTitle {
+    display: none;
+  }
+
+  .headerBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .searchWrapper {
+    flex: 1;
+  }
+
   .searchInput {
-    width: 12rem;
+    width: 100%;
   }
 }

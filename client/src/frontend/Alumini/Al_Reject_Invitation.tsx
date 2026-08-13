@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/authContext/authContext';
 import { useTokenAuth } from '../../context/tokenAuthContext/tokenAuthContext';
 import styles from './Al_Reject_Invitation.module.css';
+import './scrollbar.js';
 
 export default function Al_Reject_Invitation() {
   const { token } = useParams();

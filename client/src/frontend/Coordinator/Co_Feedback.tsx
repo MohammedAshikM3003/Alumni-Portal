@@ -2,7 +2,6 @@ import { useState, useEffect, FC } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Co_Feedback.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
-import Back from './Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -117,9 +116,6 @@ const CoordinatorFeedbackHistory: FC<CoordinatorFeedbackHistoryProps> = ({ onLog
       <Sidebar currentView="feedback" onLogout={onLogout} />
       {/* Main Content Area */}
       <main className={styles.mainContent}>
-        <div className="sticky top-0 bg-[#F8FAFC] pt-6 pb-2 z-10 border-b border-slate-200">
-          <Back to={'/coordinator/dashboard'} />
-        </div>
         <div className={styles.contentWrapper}>
           <div className={styles.pageHeader}>
             <h2 className={styles.pageTitle}>Alumni Feedback</h2>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styles from './Al_View_Job.module.css';
+import './scrollbar.js';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from '../Coordinator/Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
@@ -23,6 +24,7 @@ interface JobReference {
 	vacancies: number;
 	location: string;
 	workMode: 'offline' | 'online' | 'hybrid';
+	applicationLink?: string;
 	status: 'pending' | 'approved' | 'rejected';
 	createdAt: string;
 	updatedAt: string;
@@ -39,19 +41,20 @@ const formatDate = (dateString: string | number | Date) => {
 	});
 };
 
-const mapStatus = (status: string) => {
+const getStatusLabel = (status: JobReference['status']) => {
 	switch (status) {
 		case 'approved':
 			return 'ACTIVE';
 		case 'rejected':
 			return 'CLOSED';
 		default:
-			return 'ACTIVE';
+			return 'PENDING';
 	}
 };
 
 	const statusOptions: Array<{ value: JobReference['status']; label: string; icon: string }> = [
 	{ value: 'approved', label: 'Active', icon: 'work' },
+	{ value: 'pending', label: 'Pending', icon: 'schedule' },
 	{ value: 'rejected', label: 'Closed', icon: 'do_not_disturb_on' },
 ];
 
@@ -197,6 +200,23 @@ const Alumini_View_Job = ({ onLogout }: { onLogout: () => void }) => {
 							<div className={styles.metaItem}>
 								<span className={styles.metaLabel}>Work mode</span>
 								<span className={styles.metaValue}>{jobReference.workMode}</span>
+							</div>
+							<div className={styles.metaItem}>
+								<span className={styles.metaLabel}>Application Link</span>
+								<span className={styles.metaValue}>
+									{jobReference.applicationLink && jobReference.applicationLink.trim() ? (
+										<a
+											href={jobReference.applicationLink.startsWith('http') ? jobReference.applicationLink : `https://${jobReference.applicationLink}`}
+											target="_blank"
+											rel="noopener noreferrer"
+											style={{ color: '#0084D6', textDecoration: 'underline', wordBreak: 'break-all', fontWeight: 'bold' }}
+										>
+											{jobReference.applicationLink}
+										</a>
+									) : (
+										<span style={{ color: '#94A3B8', fontStyle: 'italic', fontWeight: 'normal' }}>Not Provided</span>
+									)}
+								</span>
 							</div>
 						</div>
 

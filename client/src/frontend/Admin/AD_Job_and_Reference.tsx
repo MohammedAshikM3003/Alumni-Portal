@@ -4,6 +4,7 @@ import styles from './AD_Job_and_Reference.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
 import { Trash2, Building2 } from 'lucide-react';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -34,8 +35,27 @@ interface CoordinatorItem {
   _id: string;
   name: string;
   department?: string;
+  staffId?: string;
   userId?: any;
 }
+
+const KEYWORDS: Record<string, string[]> = {
+  cse: ['cse', 'computer science', 'cs'],
+  it: ['it', 'information technology'],
+  ece: ['ece', 'electronics', 'communication'],
+  eee: ['eee', 'electrical'],
+  mech: ['mech', 'mechanical'],
+  civil: ['civil'],
+  auto: ['auto', 'automobile'],
+  bme: ['bme', 'biomedical'],
+  csd: ['csd', 'design'],
+  iot: ['iot'],
+  cyber: ['cyber', 'security'],
+  sfe: ['safety', 'fire', 'sfe'],
+  mca: ['mca'],
+  mba: ['mba', 'management'],
+  'ai/ds': ['ai', 'ds', 'aiml', 'data science']
+};
 
 const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
   const navigate = useNavigate();
@@ -181,7 +201,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
       });
 
       if (matchingCoords.length === 0) {
-        for (const [key, kwList] of Object.entries(keywords)) {
+        for (const [key, kwList] of Object.entries(KEYWORDS)) {
           if (key === branch || kwList.some(kw => branch.includes(kw))) {
             matchingCoords = coordinatorsList.filter(coord => {
               const d = (coord.department || '').toLowerCase().trim();
@@ -231,7 +251,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
       });
 
       if (matchingCoords.length === 0) {
-        for (const [key, kwList] of Object.entries(keywords)) {
+        for (const [key, kwList] of Object.entries(KEYWORDS)) {
           if (key === branch || kwList.some(kw => branch.includes(kw))) {
             matchingCoords = coordinatorsList.filter(coord => {
               const d = (coord.department || '').toLowerCase().trim();
@@ -824,8 +844,8 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
           >
             <option value="">All Departments</option>
             {departments.map((dept) => (
-              <option key={dept._id} value={dept.branch}>
-                {dept.branch}
+              <option key={dept._id} value={formatBranchName(dept.branch)}>
+                {formatBranchName(dept.branch)}
               </option>
             ))}
           </select>
@@ -902,7 +922,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
                   <div className={styles.badgeWrapper}>
                     {job.targetBranch && (
                       <span className={styles.branchBadge}>
-                        {job.targetBranch}
+                        {formatBranchName(job.targetBranch)}
                       </span>
                     )}
                     {job.status === 'approved' && (

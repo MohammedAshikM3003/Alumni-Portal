@@ -18,38 +18,44 @@
   padding: 48px;
   height: 100vh;
   overflow-y: scroll;
-  scrollbar-color: linear-gradient(to bottom, #007BFF, #0069D9) #E5E7EB;
-  scrollbar-width: auto;
+  scrollbar-color: #0084D6 #E5E7EB;
+  scrollbar-width: thin;
 }
 
 /* Volume Bar Style Scrollbar - Webkit (Chrome, Safari, Edge) */
-.mainContent::-webkit-scrollbar {
-  width: 10px;
+.mainContent::-webkit-scrollbar,
+.eventContainer::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.mainContent::-webkit-scrollbar-track {
+.mainContent::-webkit-scrollbar-track,
+.eventContainer::-webkit-scrollbar-track {
   background-color: #E5E7EB;
   border-radius: 10px;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
-.mainContent::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #007BFF, #0069D9);
+.mainContent::-webkit-scrollbar-thumb,
+.eventContainer::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #0084D6 0%, #0069D9 100%);
   border-radius: 10px;
   transition: all 0.3s ease;
   border: 2px solid #E5E7EB;
-  box-shadow: inset 0 0 6px rgba(0, 123, 255, 0.3);
+  box-shadow: inset 0 0 6px rgba(0, 132, 214, 0.3);
 }
 
-.mainContent::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #0069D9, #0051CC);
-  border-color: #007BFF;
-  box-shadow: inset 0 0 8px rgba(0, 123, 255, 0.5), 0 0 4px rgba(0, 123, 255, 0.4);
+.mainContent::-webkit-scrollbar-thumb:hover,
+.eventContainer::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #0069D9 0%, #0051CC 100%);
+  border-color: #0084D6;
+  box-shadow: inset 0 0 8px rgba(0, 132, 214, 0.5);
 }
 
-.mainContent::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(to bottom, #0051CC, #003d99);
-  box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.7);
+.mainContent::-webkit-scrollbar-thumb:active,
+.eventContainer::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #0051CC 0%, #003d99 100%);
+  box-shadow: inset 0 0 10px rgba(0, 132, 214, 0.7);
 }
 
 /* EVENT LAYOUT CONTAINER */
@@ -64,26 +70,6 @@
   scroll-behavior: smooth;
 }
 
-/* Custom Scrollbar Styling - Webkit (Chrome, Safari, Edge) */
-.eventContainer::-webkit-scrollbar {
-  height: 8px;
-}
-
-.eventContainer::-webkit-scrollbar-track {
-  background-color: #F0F0F0;
-  border-radius: 10px;
-}
-
-.eventContainer::-webkit-scrollbar-thumb {
-  background-color: #0084D6;
-  border-radius: 10px;
-  transition: background-color 0.3s ease;
-}
-
-.eventContainer::-webkit-scrollbar-thumb:hover {
-  background-color: #006BB5;
-}
-
 /* Back Button */
 .backButton {
     display: flex;
@@ -93,6 +79,7 @@
     cursor: pointer;
     transition: color 0.2s;
     width: fit-content;
+    margin-bottom: 18px;
 }
 
 .backButton:hover {
@@ -305,97 +292,9 @@
 }
 
 .checkIcon {
-  color: #10B981; /* Green checkmark */
+  color: #10B981;
   font-size: 20px;
   font-weight: 700;
-}
-
-.overlay { display: none; }
-
-
-/* ================== RESPONSIVE BREAKPOINTS ================== */
-
-/* 1. Large Laptops (1440px limit) */
-@media (max-width: 1440px) {
-  .mainContent { padding: 32px; }
-  .eventContainer { gap: 20px; }
-  .eventInfo { padding: 40px; }
-}
-
-/* 2. Mini-Sidebar Breakpoint (1024px) - Matches your screenshot! */
-@media (max-width: 1024px) {
-  .sidebar { width: 88px; align-items: center; }
-  .sidebarHeader { padding: 24px 0; justify-content: center; }
-  
-  .desktopLogo { display: none; }
-  .mobileLogo { display: flex; }
-  
-  .navMenu { padding: 16px 0; width: 100%; align-items: center; }
-  
-  .navItem { 
-    padding: 0; justify-content: center; 
-    width: 48px; height: 48px; 
-  }
-  
-  .navText { display: none; }
-  
-  .activeNavItem {
-    margin-left: 0; padding-left: 0; border-left: none;
-    background-color: #007BFF; border-radius: 12px;
-  }
-  .activeNavItem span:first-child { color: #FFFFFF; }
-
-  .sidebarFooter { width: 100%; align-items: center; padding: 16px 0; }
-  .logoutBtn { padding: 0; justify-content: center; width: 48px; height: 48px; }
-
-  .mainContent { margin-left: 88px; padding: 32px; }
-  
-  .eventPoster { flex: 0 0 300px; }
-  .infoStrip { gap: 20px; flex-wrap: wrap; }
-}
-
-/* 3. Tablets / Hamburger Menu (768px) */
-@media (max-width: 768px) {
-  .sidebar { width: 260px; transform: translateX(-100%); align-items: flex-start; }
-  .sidebarOpen { transform: translateX(0); }
-  
-  .desktopLogo { display: flex; }
-  .mobileLogo { display: none; }
-  .navMenu { padding: 16px 12px; width: 100%; align-items: stretch; }
-  .navItem { width: auto; justify-content: flex-start; padding: 12px 16px; height: auto;}
-  .navText { display: block; }
-  
-  .activeNavItem { 
-    background-color: #F0F7FF; border-radius: 0 8px 8px 0; 
-    margin-left: -12px; padding-left: 24px; border-left: 4px solid #007BFF;
-  }
-  .activeNavItem span:first-child { color: #007BFF; }
-  .logoutBtn { width: auto; justify-content: flex-start; padding: 12px 16px; height: auto; }
-
-  .mainContent { margin-left: 0; padding: 24px; }
-  .mobileHeader { display: flex; }
-  .overlay {
-    display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(17, 24, 39, 0.4); z-index: 40;
-  }
-
-  /* Stack event cards vertically */
-  .eventContainer { flex-direction: column; height: auto; }
-  .eventPoster { flex: auto; width: 100%; }
-}
-
-/* 4. Small Mobile Phones (425px) */
-@media (max-width: 425px) {
-  .mainContent { padding: 16px; }
-  
-  .eventInfo { padding: 24px; }
-  .eventTitle { font-size: 24px; margin-bottom: 24px; }
-  
-  .infoStrip { flex-direction: column; gap: 24px; margin-bottom: 32px; }
-  .featuresGrid { grid-template-columns: 1fr; gap: 16px; }
-  
-  .posterTitle { font-size: 24px; }
-  .posterContent { padding: 40px 20px; }
 }
 
 /* Countdown Styles */
@@ -474,31 +373,15 @@
   border-color: #CBD5E1;
 }
 
-.rsvpBtn.attendingSelected {
-  border-color: #10B981;
-  background-color: #ECFDF5;
-  color: #065F46;
-}
-
-.rsvpBtn.notAttendingSelected {
-  border-color: #EF4444;
-  background-color: #FEF2F2;
-  color: #991B1B;
-}
-
-.rsvpBtn.tentativeSelected {
-  border-color: #F59E0B;
-  background-color: #FFFBEB;
-  color: #92400E;
-}
-
 /* Guidelines Grid */
 .guidelinesGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-top: 32px;
   margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .guidelineCard {
@@ -509,6 +392,9 @@
   background-color: #F8FAFC;
   border: 1px solid #E2E8F0;
   border-radius: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .guidelineIcon {
@@ -520,24 +406,28 @@
   border-radius: 8px;
   background-color: #EFF6FF;
   color: #3B82F6;
+  flex-shrink: 0;
 }
 
 .guidelineContent {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .guidelineTitle {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: #1F2937;
   margin: 0 0 4px 0;
 }
 
 .guidelineDesc {
-  font-size: 12px;
+  font-size: 13px;
   color: #6B7280;
   margin: 0;
   line-height: 1.4;
+  word-break: break-word;
 }
 
 /* Add to Calendar Button */
@@ -561,4 +451,93 @@
 .calendarBtn:hover {
   background-color: #0069D9;
   transform: translateY(-1px);
+}
+
+.overlay { display: none; }
+
+
+/* ================== RESPONSIVE BREAKPOINTS ================== */
+
+/* 1. Large Laptops (1440px limit) */
+@media (max-width: 1440px) {
+  .mainContent { padding: 32px; }
+  .eventContainer { gap: 20px; }
+  .eventInfo { padding: 40px; }
+}
+
+/* 2. Mini-Sidebar Breakpoint (1024px) */
+@media (max-width: 1024px) {
+  .sidebar { width: 88px; align-items: center; }
+  .sidebarHeader { padding: 24px 0; justify-content: center; }
+  
+  .desktopLogo { display: none; }
+  .mobileLogo { display: flex; }
+  
+  .navMenu { padding: 16px 0; width: 100%; align-items: center; }
+  .navItem { padding: 0; justify-content: center; width: 48px; height: 48px; }
+  .navText { display: none; }
+  
+  .activeNavItem {
+    margin-left: 0; padding-left: 0; border-left: none;
+    background-color: #007BFF; border-radius: 12px;
+  }
+  .activeNavItem span:first-child { color: #FFFFFF; }
+
+  .sidebarFooter { width: 100%; align-items: center; padding: 16px 0; }
+  .logoutBtn { padding: 0; justify-content: center; width: 48px; height: 48px; }
+
+  .mainContent { margin-left: 88px; padding: 32px; }
+  
+  .eventPoster { flex: 0 0 300px; }
+  .infoStrip { gap: 20px; flex-wrap: wrap; }
+}
+
+/* 3. Tablets / Hamburger Menu (768px) */
+@media (max-width: 768px) {
+  .sidebar { width: 260px; transform: translateX(-100%); align-items: flex-start; }
+  .sidebarOpen { transform: translateX(0); }
+  
+  .desktopLogo { display: flex; }
+  .mobileLogo { display: none; }
+  .navMenu { padding: 16px 12px; width: 100%; align-items: stretch; }
+  .navItem { width: auto; justify-content: flex-start; padding: 12px 16px; height: auto;}
+  .navText { display: block; }
+  
+  .activeNavItem { 
+    background-color: #F0F7FF; border-radius: 0 8px 8px 0; 
+    margin-left: -12px; padding-left: 24px; border-left: 4px solid #007BFF;
+  }
+  .activeNavItem span:first-child { color: #007BFF; }
+  .logoutBtn { width: auto; justify-content: flex-start; padding: 12px 16px; height: auto; }
+
+  .mainContent { margin-left: 0; padding: 4.25rem 1rem 1.5rem 1rem; width: 100%; box-sizing: border-box; }
+  .mobileHeader { display: flex; }
+  .overlay {
+    display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(17, 24, 39, 0.4); z-index: 40;
+  }
+
+  /* Stack event cards vertically & fix subcards overflow */
+  .eventContainer { flex-direction: column; height: auto; width: 100%; box-sizing: border-box; }
+  .eventPoster { flex: auto; width: 100%; box-sizing: border-box; }
+  .eventInfo { padding: 24px 16px; width: 100%; box-sizing: border-box; }
+  .guidelinesGrid { grid-template-columns: 1fr !important; gap: 12px; width: 100%; box-sizing: border-box; }
+  .guidelineCard { width: 100%; box-sizing: border-box; min-width: 0; }
+  .infoStrip { flex-direction: column; gap: 20px; }
+  .countdownContainer { flex-wrap: wrap; justify-content: center; padding: 12px; }
+}
+
+/* 4. Small Mobile Phones (425px) */
+@media (max-width: 425px) {
+  .mainContent { padding: 4.25rem 1rem 1.5rem 1rem; }
+  
+  .eventInfo { padding: 20px 12px; width: 100%; box-sizing: border-box; }
+  .eventTitle { font-size: 22px; margin-bottom: 20px; }
+  
+  .infoStrip { flex-direction: column; gap: 16px; margin-bottom: 24px; }
+  .featuresGrid { grid-template-columns: 1fr; gap: 12px; }
+  .guidelinesGrid { grid-template-columns: 1fr !important; gap: 12px; width: 100%; box-sizing: border-box; }
+  
+  .posterTitle { font-size: 22px; }
+  .posterContent { padding: 32px 16px; }
 }

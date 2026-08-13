@@ -69,16 +69,42 @@ const Admin_Draft_History = ({ onLogout }: { onLogout?: () => void }) => {
     return index % 2 === 0 ? 'slate' : 'primary';
   };
 
+  const handleOpenDraft = (draftId: string) => {
+    navigate('/admin/mail/broadcast_message', { state: { draftId, editDraft: true } });
+  };
+
   return (
     <div className={styles.pageLayout}>
       <Sidebar onLogout={onLogout} currentView={'mail'} />
 
       <main className={styles.mainContent}>
-        <div className={styles.backButton} onClick={() => navigate('/admin/mail')}>
-          <span className="material-symbols-outlined">arrow_back</span>
-          <span>Back</span>
-        </div>
         <div className={styles.contentWrapper}>
+          {/* Back Button */}
+          <div className={styles.backButtonRow}>
+            <button
+              type="button"
+              className={styles.backButton}
+              onClick={() => navigate('/admin/mail')}
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+              <span>Back to Mail</span>
+            </button>
+          </div>
+
+          {/* Page Header */}
+          <div className={styles.headerSection}>
+            <div className={styles.headerTitleGroup}>
+              <div className={styles.titleWithBadge}>
+                <h1 className={styles.pageTitle}>Drafts</h1>
+                {!loading && (
+                  <span className={styles.countBadge}>{drafts.length}</span>
+                )}
+              </div>
+              <p className={styles.pageSubtitle}>Saved draft messages ready to edit and broadcast</p>
+            </div>
+          </div>
+
+          {/* Desktop/Tablet List Headers */}
           <div className={styles.listHeader}>
             <div className={styles.colRecipient}>Recipient</div>
             <div className={styles.colSubject}>Subject Line</div>
@@ -102,36 +128,73 @@ const Admin_Draft_History = ({ onLogout }: { onLogout?: () => void }) => {
                 <div
                   key={draft._id}
                   className={styles.draftCard}
+                  onClick={() => handleOpenDraft(draft._id)}
                 >
-                  <div className={styles.colRecipient}>
+                  {/* Mobile-only Card Header */}
+                  <div className={styles.cardHeaderMobile}>
+                    <div className={styles.recipientGroup}>
+                      <div className={`${styles.avatar} ${getIconStyle(index) === 'primary' ? styles.avatarPrimary : styles.avatarSlate}`}>
+                        <span className="material-symbols-outlined">person</span>
+                      </div>
+                      <div className={styles.recipientInfo}>
+                        <span className={styles.recipientName}>{draft.recipientName || 'No recipient'}</span>
+                      </div>
+                    </div>
+                    <span className={styles.dateTextMobile}>{formatDate(draft.updatedAt)}</span>
+                  </div>
+
+                  {/* Desktop-only Recipient Column */}
+                  <div className={styles.colRecipientDesktop}>
                     <div className={`${styles.avatar} ${getIconStyle(index) === 'primary' ? styles.avatarPrimary : styles.avatarSlate}`}>
                       <span className="material-symbols-outlined">person</span>
                     </div>
                     <span className={styles.recipientName}>{draft.recipientName || 'No recipient'}</span>
                   </div>
 
+                  {/* Subject and Preview snippet */}
                   <div className={styles.colSubject}>
                     <p className={styles.subjectTitle}>{draft.title || 'No subject'}</p>
                     <p className={styles.snippetText}>
                       {draft.content
-                        ? draft.content.length > 80
-                          ? draft.content.substring(0, 80) + '...'
+                        ? draft.content.length > 90
+                          ? draft.content.substring(0, 90) + '...'
                           : draft.content
                         : 'No content'}
                     </p>
                   </div>
 
-                  <div className={styles.colDate}>
+                  {/* Desktop-only Date & Action Column */}
+                  <div className={styles.colDateDesktop}>
                     <div className={styles.actionGroup}>
                       <span className={styles.dateText}>{formatDate(draft.updatedAt)}</span>
                       <button
+                        type="button"
                         className={styles.viewBtn}
-                        title="View"
-                        onClick={() => navigate('/admin/mail/broadcast_message', { state: { draftId: draft._id, editDraft: true } })}
+                        title="Edit Draft"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDraft(draft._id);
+                        }}
                       >
-                        <span>View</span>
+                        <span>Edit</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
                       </button>
                     </div>
+                  </div>
+
+                  {/* Mobile-only Card Footer */}
+                  <div className={styles.cardFooterMobile}>
+                    <button
+                      type="button"
+                      className={styles.viewBtnMobile}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDraft(draft._id);
+                      }}
+                    >
+                      <span>Edit Draft</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>edit</span>
+                    </button>
                   </div>
                 </div>
               ))}

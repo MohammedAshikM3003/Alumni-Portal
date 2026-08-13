@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, Eye, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Eye, Trash2, ArrowLeft, Check, AlertTriangle } from 'lucide-react';
 import styles from './AD_View_Department.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -34,6 +35,16 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
   const [error, setError] = useState<string | null>(null);
   const [department, setDepartment] = useState<Department | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Modals state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type?: 'success' | 'warning' | 'error';
+    onClose?: () => void;
+  } | null>(null);
 
   // Complete Staff Data
   const [staffList, setStaffList] = useState<Staff[]>([]);
@@ -138,18 +149,20 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
     navigate(`/admin/department/view_faculty/${staffId}`);
   };
 
-  const handleDeleteDepartment = async () => {
-    if (!window.confirm('Are you sure you want to delete this department?\n\nWARNING: All faculty members in this department will also be deleted and their accounts will be removed. This action cannot be undone.')) {
-      return;
-    }
+  const handleDeleteDepartment = () => {
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDeleteDepartment = async () => {
     if (!department?._id) {
       setError('Department information not available');
+      setShowDeleteConfirm(false);
       return;
     }
 
     if (!user?.token) {
       setError('Please login to delete departments');
+      setShowDeleteConfirm(false);
       return;
     }
 
@@ -165,15 +178,32 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
       });
 
       const data = await response.json();
+      setShowDeleteConfirm(false);
 
       if (response.ok && data.success) {
-        alert(data.message || 'Department deleted successfully!');
-        navigate('/admin/department');
+        setAlertModal({
+          isOpen: true,
+          type: 'success',
+          title: 'Department Deleted',
+          message: `The "${formatBranchName(department.branch)}" department has been deleted successfully.`,
+          onClose: () => navigate('/admin/department'),
+        });
       } else {
-        setError(data.message || 'Failed to delete department');
+        setAlertModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Delete Failed',
+          message: data.message || 'Failed to delete department',
+        });
       }
     } catch (err: any) {
-      setError('Error deleting department');
+      setShowDeleteConfirm(false);
+      setAlertModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Delete Failed',
+        message: 'Error connecting to server. Please try again.',
+      });
       console.error('Error deleting department:', err);
     } finally {
       setDeleting(false);
@@ -201,7 +231,7 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
               </button>
               <h1 className={styles.pageTitle}>
                 {loading ? 'Loading...' :
-                 department ? `${department.branch} (${department.deptCode})` :
+                 department ? `${formatBranchName(department.branch)} (${department.deptCode})` :
                  deptCode ? `Department ${deptCode}` : 'Department Details'}
               </h1>
               <p className={styles.pageSubtitle}>Manage coordinators and administrators for this department.</p>
@@ -326,6 +356,72 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
 
         </div>
       </main>
+
+      {/* Delete Department Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className={styles.alertModalOverlay} onClick={() => !deleting && setShowDeleteConfirm(false)}>
+          <div className={styles.alertModalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.alertIconCircleRed}>
+              <Trash2 size={36} strokeWidth={2.2} />
+            </div>
+            <h2 className={styles.alertTitle}>Delete Department</h2>
+            <p className={styles.alertMessage}>
+              Are you sure you want to delete the "{formatBranchName(department?.branch || '')}" department? All associated faculty members will also be removed. This action cannot be undone.
+            </p>
+            <div className={styles.modalActionButtons}>
+              <button
+                type="button"
+                className={styles.cancelModalBtn}
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.deleteModalBtn}
+                onClick={confirmDeleteDepartment}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Alert Modal Popup (Success / Error) */}
+      {alertModal?.isOpen && (
+        <div
+          className={styles.alertModalOverlay}
+          onClick={() => {
+            if (alertModal.onClose) alertModal.onClose();
+            setAlertModal(null);
+          }}
+        >
+          <div className={styles.alertModalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={alertModal.type === 'error' ? styles.alertIconCircleRed : styles.alertIconCircle}>
+              {alertModal.type === 'error' ? (
+                <AlertTriangle size={36} strokeWidth={2.5} />
+              ) : (
+                <Check size={36} strokeWidth={3} />
+              )}
+            </div>
+            <h2 className={styles.alertTitle}>{alertModal.title}</h2>
+            <p className={styles.alertMessage}>{alertModal.message}</p>
+            <button
+              type="button"
+              className={styles.alertOkBtn}
+              onClick={() => {
+                if (alertModal.onClose) alertModal.onClose();
+                setAlertModal(null);
+              }}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -4,6 +4,7 @@ import styles from './AD_View_Alumni.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -35,6 +36,7 @@ interface AlumniData {
   profilePhoto?: string;
   designation?: string;
   placementType?: string;
+  companyName?: string;
   companyAddress?: string;
   employmentRemarks?: string;
   isEntrepreneur: boolean;
@@ -223,6 +225,7 @@ const Admin_View_Alumni = ({ onLogout }: { onLogout?: () => void }) => {
 
   const profileInitial = alumniData.name?.charAt(0).toUpperCase() || 'A';
   const batch = `${alumniData.yearFrom} - ${alumniData.yearTo}`;
+  const companyDisplay = alumniData.companyName || alumniData.companyAddress || '';
 
   return (
     <div className={styles.dashboardWrapper}>
@@ -268,17 +271,25 @@ const Admin_View_Alumni = ({ onLogout }: { onLogout?: () => void }) => {
               <div className={styles.profileIntro}>
                 <div className={styles.introTop}>
                   <h2>{alumniData.name}</h2>
-                  <span className={`${styles.badge} ${alumniData.isActive ? styles.badgeActive : styles.badgeInactive}`}>
-                    {alumniData.isActive ? 'Active' : 'Inactive'}
-                  </span>
                   {alumniData.placementType && (
                     <span className={`${styles.badge} ${styles.badgePlacement}`}>
                       {alumniData.placementType}
                     </span>
                   )}
                 </div>
-                <p className={styles.designation}>{alumniData.designation || 'Alumni'}</p>
-                <p className={styles.department}>{alumniData.branch} | Batch: {batch}</p>
+                <p className={styles.designation}>
+                  {alumniData.designation ? (
+                    <>
+                      {alumniData.designation}
+                      {companyDisplay && ` at ${companyDisplay}`}
+                    </>
+                  ) : companyDisplay ? (
+                    companyDisplay
+                  ) : (
+                    'Alumni'
+                  )}
+                </p>
+                <p className={styles.department}>{formatBranchName(alumniData.branch)} | Batch: {batch}</p>
 
                 <div className={styles.quickContact}>
                   <div className={styles.contactItem}>
@@ -359,7 +370,7 @@ const Admin_View_Alumni = ({ onLogout }: { onLogout?: () => void }) => {
                   </div>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Branch</span>
-                    <span className={styles.infoValue}>{alumniData.branch}</span>
+                    <span className={styles.infoValue}>{formatBranchName(alumniData.branch)}</span>
                   </div>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Batch</span>
@@ -402,6 +413,10 @@ const Admin_View_Alumni = ({ onLogout }: { onLogout?: () => void }) => {
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Placement Type</span>
                     <span className={styles.infoValue}>{alumniData.placementType || 'N/A'}</span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>Company Name</span>
+                    <span className={styles.infoValue}>{alumniData.companyName || alumniData.companyAddress || 'N/A'}</span>
                   </div>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Designation</span>

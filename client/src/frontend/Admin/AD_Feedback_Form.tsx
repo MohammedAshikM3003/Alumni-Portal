@@ -53,7 +53,7 @@ const Admin_Feedback_Form = ({ onLogout }: { onLogout?: () => void }) => {
 
       try {
         const response = await fetch(`${API_BASE}/api/feedback/${id}`, {
-            signal: controller.signal,
+          signal: controller.signal,
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -69,7 +69,7 @@ const Admin_Feedback_Form = ({ onLogout }: { onLogout?: () => void }) => {
           setFeedback(data.feedback);
         }
       } catch (err: any) {
-          if (err.name === 'AbortError') return;
+        if (err.name === 'AbortError') return;
         setError(err.message);
       } finally {
         setLoading(false);
@@ -210,7 +210,7 @@ const Admin_Feedback_Form = ({ onLogout }: { onLogout?: () => void }) => {
 
               <div className={styles.metaGrid}>
                 <div className={styles.inputGroup}>
-                  <label>Reviewed By (Individual or committee name with Address):</label>
+                  <label>Reviewed By:</label>
                   <input readOnly type="text" value={feedback.reviewedBy || feedback.submittedBy?.name || ''} />
                 </div>
                 <div className={styles.inputGroup}>

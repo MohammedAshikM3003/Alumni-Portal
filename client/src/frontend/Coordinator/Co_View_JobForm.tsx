@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import styles from './Co_View_JobForm.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from './Components/BackButton/Back';
@@ -41,6 +41,7 @@ interface JobReference {
     vacancies: number | string;
     location: string;
     workMode: string;
+    link?: string;
 }
 
 interface CoordinatorViewJobFormProps {
@@ -49,9 +50,11 @@ interface CoordinatorViewJobFormProps {
 
 const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) => {
     const { id } = useParams<{ id: string }>();
+    const location = useLocation();
+    const passedJobData = location.state?.jobData as JobReference | undefined;
     const { user } = useAuth();
-    const [jobReference, setJobReference] = useState<JobReference | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [jobReference, setJobReference] = useState<JobReference | null>(passedJobData || null);
+    const [loading, setLoading] = useState<boolean>(!passedJobData);
     const [error, setError] = useState<string | null>(null);
     const [updating, setUpdating] = useState<boolean>(false);
 
@@ -97,6 +100,11 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
 
     useEffect(() => {
       const controller = new AbortController();
+        if (passedJobData) {
+            setJobReference(passedJobData);
+            setLoading(false);
+            return;
+        }
         const fetchJobReference = async (): Promise<void> => {
             if (!user?.token) {
                 setError('Please login to view job reference');
@@ -180,18 +188,6 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
                     <Back to={'/coordinator/job_and_reference'} />
                 </div>
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
-                    <header className="bg-white border-b border-slate-200 p-3 flex items-center mb-8 rounded-xl shadow-sm">
-                        <div className="flex items-center gap-4 w-full px-4">
-                            <div className="relative w-full">
-                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">notifications</span>
-                                <div className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm flex items-center overflow-hidden whitespace-nowrap">
-                                    <span className="font-semibold text-[#FF3D00] mr-2">New:</span>
-                                    <span className="text-slate-600">{jobReference.submittedBy?.name || 'Alumni'} sent a referral for {jobReference.role} at {jobReference.companyName}...</span>
-                                    <span className="ml-auto text-xs text-slate-400">{formatDate(jobReference.createdAt)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </header>
 
                     <div className="max-w-auto mx-auto">
                         <div className="flex justify-between items-center mb-8">
@@ -257,6 +253,16 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
                                     <div>
                                         <label className="block text-sm font-medium text-slate-500 mb-1.5 uppercase tracking-wider">Work Mode</label>
                                         <p className="text-lg font-bold text-slate-900 capitalize">{jobReference.workMode}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-500 mb-1.5 uppercase tracking-wider">Application Link</label>
+                                        {jobReference.link ? (
+                                            <a href={jobReference.link.startsWith('http') ? jobReference.link : `https://${jobReference.link}`} target="_blank" rel="noopener noreferrer" className="text-lg font-bold text-blue-600 hover:underline break-all">
+                                                {jobReference.link}
+                                            </a>
+                                        ) : (
+                                            <p className="text-lg font-bold text-slate-400 italic">Not provided</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>

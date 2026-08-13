@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/authContext/authContext';
 import { DateInput, TimeInput } from '../../components/Calendar';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -269,7 +270,7 @@ const Admin_Event_and_Reunion_Form1 = ({ onLogout }: { onLogout?: () => void }) 
                   <option value="">Select organizing department</option>
                   {departments.map((dept) => (
                     <option key={dept._id} value={dept._id}>
-                      {dept.branch} ({dept.deptCode})
+                      {formatBranchName(dept.branch)} ({dept.deptCode})
                     </option>
                   ))}
                 </select>
@@ -301,7 +302,7 @@ const Admin_Event_and_Reunion_Form1 = ({ onLogout }: { onLogout?: () => void }) 
                             onChange={() => toggleCoOrganizer(dept._id)}
                           />
                           <span className={styles.checkmark}></span>
-                          <span>{dept.branch} ({dept.deptCode})</span>
+                          <span>{formatBranchName(dept.branch)} ({dept.deptCode})</span>
                         </label>
                       ))}
                     </div>

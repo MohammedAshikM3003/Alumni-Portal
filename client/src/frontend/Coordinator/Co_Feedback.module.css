@@ -1,112 +1,112 @@
 .sidebarTransition {
-    transition: width 0.3s ease-in-out;
+  transition: width 0.3s ease-in-out;
 }
 
 .customSidebarScrollbar::-webkit-scrollbar {
-    width: 4px;
+  width: 4px;
 }
 
 .customSidebarScrollbar::-webkit-scrollbar-thumb {
-    background: var(--text-lighter);
-    border-radius: 10px;
+  background: var(--text-lighter);
+  border-radius: 10px;
 }
 
 .mainScrollable {
-    flex: 1;
-    height: 100vh;
-    overflow-y: auto;
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 /* Volume Bar Style Scrollbar - Red Theme */
 .mainScrollable::-webkit-scrollbar {
-    width: 10px;
+  width: 10px;
 }
 
 .mainScrollable::-webkit-scrollbar-track {
-    background-color: var(--border-color);
-    border-radius: 100px;
-    margin: 8px 0;
+  background-color: var(--border-color);
+  border-radius: 100px;
+  margin: 8px 0;
 }
 
 .mainScrollable::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, var(--primary-green), var(--primary-hover));
-    border-radius: 100px;
-    border: 2px solid var(--border-color);
-    box-shadow: inset 0 0 6px rgba(255, 61, 0, 0.3);
+  background: linear-gradient(to bottom, var(--primary-green), var(--primary-hover));
+  border-radius: 100px;
+  border: 2px solid var(--border-color);
+  box-shadow: inset 0 0 6px rgba(255, 61, 0, 0.3);
 }
 
 .mainScrollable::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, var(--primary-hover), var(--primary-dark));
-    border-color: var(--primary-green);
-    box-shadow: inset 0 0 8px rgba(255, 61, 0, 0.5), 0 0 4px rgba(255, 61, 0, 0.4);
+  background: linear-gradient(to bottom, var(--primary-hover), var(--primary-dark));
+  border-color: var(--primary-green);
+  box-shadow: inset 0 0 8px rgba(255, 61, 0, 0.5), 0 0 4px rgba(255, 61, 0, 0.4);
 }
 
 .mainScrollable::-webkit-scrollbar-thumb:active {
-    background: linear-gradient(to bottom, var(--primary-dark), var(--primary-dark));
-    box-shadow: inset 0 0 10px rgba(255, 61, 0, 0.7);
+  background: linear-gradient(to bottom, var(--primary-dark), var(--primary-dark));
+  box-shadow: inset 0 0 10px rgba(255, 61, 0, 0.7);
 }
 
 .header {
-    position: sticky;
-    top: 0;
-    width: 100%;
-    flex: none;
-    background-color: white;
-    border-bottom: 1px solid var(--border-light);
-    padding: 0.600rem 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    z-index: 40;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  flex: none;
+  background-color: white;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0.600rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  z-index: 40;
 }
 
 .headerLeft {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .collegeName {
-    color: var(--text-title);
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 1.8rem;
-    text-transform: uppercase;
-    letter-spacing: -0.025em;
-    margin-left: 10px;
+  color: var(--text-title);
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 1.8rem;
+  text-transform: uppercase;
+  letter-spacing: -0.025em;
+  margin-left: 10px;
 }
 
 .sidebarHeader {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.1rem 1.25rem 1.5rem 0.1rem;
-    border-bottom: 0px solid var(--bg-surface);
-    overflow: hidden;
-    white-space: nowrap;
-    justify-content: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.1rem 1.25rem 1.5rem 0.1rem;
+  border-bottom: 0px solid var(--bg-surface);
+  overflow: hidden;
+  white-space: nowrap;
+  justify-content: flex-start;
 }
 
 .sidebarLogo {
-    width: 70px;
-    height: 70px;
-    min-width: 70px;
-    object-fit: contain;
-    flex-shrink: 0;
+  width: 70px;
+  height: 70px;
+  min-width: 70px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .customSidebarScrollbar::-webkit-scrollbar {
-    width: 4px;
+  width: 4px;
 }
 
 .customSidebarScrollbar::-webkit-scrollbar-thumb {
-    background: var(--text-lighter);
-    border-radius: 10px;
+  background: var(--text-lighter);
+  border-radius: 10px;
 }
 
 .customSidebarScrollbar::-webkit-scrollbar-button {
-    display: none;
+  display: none;
 }
 
 /* ================== MAIN CONTENT ================== */
@@ -149,8 +149,10 @@
 }
 
 .pageTitle {
-  font-size: 1.875rem; /* text-3xl */
-  font-weight: 900; /* font-black */
+  font-size: 1.875rem;
+  /* text-3xl */
+  font-weight: 900;
+  /* font-black */
   letter-spacing: -0.025em;
   color: var(--text-primary);
   margin: 0;
@@ -238,7 +240,7 @@
 .viewBtn {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--primary-green);
+  color: #ff3d00;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   display: flex;

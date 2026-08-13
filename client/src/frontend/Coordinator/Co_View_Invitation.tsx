@@ -1,7 +1,8 @@
 import { useState, useEffect, FC } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import styles from './Co_View_Invitation.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
+import Back from './Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -34,7 +35,6 @@ interface CoordinatorViewInvitationProps {
 }
 
 const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogout }) => {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
 
@@ -43,6 +43,7 @@ const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogou
   const [error, setError] = useState<string | null>(null);
   const [photoGroups, setPhotoGroups] = useState<PhotoGroup[]>([]);
   const [invitation, setInvitation] = useState<any>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   // Fetch event details
   useEffect(() => {
@@ -135,6 +136,9 @@ const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogou
       <div className={styles.pageContainer}>
         <Sidebar onLogout={onLogout} currentView={'Events_and_Reunions'} />
         <main className={styles.mainContent}>
+          <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
+            <Back to={'/coordinator/invitations'} />
+          </div>
           <div className={styles.errorState}>{error || 'Event not found'}</div>
         </main>
       </div>
@@ -147,9 +151,8 @@ const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogou
 
       <main className={styles.mainContent}>
         {/* Back Button */}
-        <div className={styles.backButton} onClick={() => navigate('/coordinator/invitations')}>
-          <span className="material-symbols-outlined">arrow_back</span>
-          <span>Back to Events</span>
+        <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
+          <Back to={'/coordinator/invitations'} />
         </div>
 
         <div className={styles.contentWrapper}>
@@ -304,7 +307,7 @@ const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogou
                   {photoGroups.map((group, groupIndex) => (
                     <div key={groupIndex} className={`${styles.photoGroup} ${styles[group.type]}`}>
                       {group.images.map((photoId) => (
-                        <div key={photoId} className={styles.photoItem}>
+                        <div key={photoId} className={styles.photoItem} onClick={() => setSelectedPhoto(photoId)}>
                           <img
                             src={`${API_BASE}/api/images/${photoId}`}
                             alt="Event photo"
@@ -325,6 +328,29 @@ const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogou
           )}
         </div>
       </main>
+
+      {/* Event Photo Preview Modal */}
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div className="relative max-w-5xl max-h-[90vh] flex flex-col items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="absolute -top-12 right-0 text-white hover:text-red-500 transition-colors p-2 font-bold text-xl flex items-center gap-1 bg-black/50 rounded-full"
+              onClick={() => setSelectedPhoto(null)}
+              title="Close"
+            >
+              <span className="material-symbols-outlined text-2xl">close</span>
+            </button>
+            <img
+              src={`${API_BASE}/api/images/${selectedPhoto}`}
+              alt="Event photo full preview"
+              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/20"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

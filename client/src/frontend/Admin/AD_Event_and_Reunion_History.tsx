@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './AD_Event_and_Reunion_History.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -291,8 +292,8 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
             >
               <option value="">All Organizing Depts</option>
               {departments.map((dept) => (
-                <option key={dept._id} value={dept.branch}>
-                  {dept.deptCode} - {dept.branch}
+                <option key={dept._id} value={formatBranchName(dept.branch)}>
+                  {dept.deptCode} - {formatBranchName(dept.branch)}
                 </option>
               ))}
             </select>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Al_Donation_Form.module.css';
+import './scrollbar.js';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
 
@@ -185,13 +186,12 @@ const Alumini_DonationFormPage = ({ onLogout }: AluminiDonationFormPageProps) =>
         
         {/* Main Content Area */}
         <main className={styles.mainContent}>
-            <br />
+            <div className={styles.contentWrapper}>
                 {/* Navigation Back */}
                 <div className={styles.backButton} onClick={() => window.history.back()}>
                     <span className="material-symbols-outlined">arrow_back</span>
                     <span>Back</span>
                 </div>
-            <div className={styles.contentWrapper}>
                 {/* Header Section */}
                 <header className={styles.header}>
                 <h1 className={styles.pageTitle}>Donation for Independent Parent</h1>
@@ -238,18 +238,7 @@ const Alumini_DonationFormPage = ({ onLogout }: AluminiDonationFormPageProps) =>
                     {isPaying ? 'Processing...' : 'Donate Now'}
                 </button>
 
-                {/* Security Badges */}
-                <div className={styles.securityBadges}>
-                    <div className={styles.badgeItem}>
-                    <span className="material-symbols-outlined">verified_user</span>
-                    <span>SSL SECURED</span>
-                    </div>
-                    <div className={styles.badgeDot}>•</div>
-                    <div className={styles.badgeItem}>
-                    <span className="material-symbols-outlined">gpp_good</span>
-                    <span>VERIFIED TRANSACTION</span>
-                    </div>
-                </div>
+
 
                 </div>
             </div>

@@ -4,6 +4,7 @@ import { Search, Eye, Plus, Users, Award, X, Send, Mail } from 'lucide-react';
 import styles from './AD_Alumini.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -25,6 +26,7 @@ interface Alumni {
   yearFrom: number;
   yearTo: number;
   placementType?: string;
+  companyName?: string;
   companyAddress?: string | Address;
   presentAddress?: Address;
 }
@@ -83,7 +85,7 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
   const handleAddEmail = () => {
     const trimmed = emailInput.trim();
     if (!trimmed) return;
-    
+
     // Validate email pattern
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmed)) {
@@ -130,7 +132,7 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
         });
         setEmailsList([]);
         setEmailInput('');
-        
+
         // Auto close after 2 seconds
         setTimeout(() => {
           setIsPopupOpen(false);
@@ -220,7 +222,7 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
     }
 
     if (selectedBranch) {
-      result = result.filter((a) => a.branch === selectedBranch);
+      result = result.filter((a) => formatBranchName(a.branch).toLowerCase() === selectedBranch.toLowerCase());
     }
 
     if (selectedBatch) {
@@ -327,8 +329,8 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
               >
                 <option value="">All Branches</option>
                 {departments.map((dept) => (
-                  <option key={dept._id} value={dept.branch}>
-                    {dept.branch}
+                  <option key={dept._id} value={formatBranchName(dept.branch)}>
+                    {formatBranchName(dept.branch)}
                   </option>
                 ))}
               </select>

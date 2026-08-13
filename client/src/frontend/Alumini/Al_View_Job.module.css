@@ -17,33 +17,41 @@
 }
 
 /* Volume Bar Style Scrollbar - Webkit (Chrome, Safari, Edge) */
+/* Volume Bar Style Scrollbar - Webkit (Chrome, Safari, Edge) */
 .mainContent::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 .mainContent::-webkit-scrollbar-track {
   background-color: #E5E7EB;
   border-radius: 10px;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
 .mainContent::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #007BFF, #0069D9);
+  background: linear-gradient(180deg, #0084D6 0%, #0069D9 100%);
   border-radius: 10px;
   transition: all 0.3s ease;
   border: 2px solid #E5E7EB;
-  box-shadow: inset 0 0 6px rgba(0, 123, 255, 0.3);
+  box-shadow: inset 0 0 6px rgba(0, 132, 214, 0.3);
 }
 
 .mainContent::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #0069D9, #0051CC);
-  border-color: #007BFF;
-  box-shadow: inset 0 0 8px rgba(0, 123, 255, 0.5), 0 0 4px rgba(0, 123, 255, 0.4);
+  background: linear-gradient(180deg, #0069D9 0%, #0051CC 100%);
+  border-color: #0084D6;
+  box-shadow: inset 0 0 8px rgba(0, 132, 214, 0.5);
 }
 
 .mainContent::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(to bottom, #0051CC, #003d99);
-  box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.7);
+  background: linear-gradient(180deg, #0051CC 0%, #003d99 100%);
+  box-shadow: inset 0 0 10px rgba(0, 132, 214, 0.7);
+}
+
+/* Firefox Scrollbar */
+.mainContent {
+  scrollbar-color: #0084D6 #E5E7EB;
+  scrollbar-width: thin;
 }
 
 .headerRow {
@@ -53,16 +61,6 @@
 .backBtn {
 	display: inline-flex;
 	align-items: center;
-	gap: 10px;
-	border: 1px solid #e2e8f0;
-	background: #ffffff;
-	color: #334155;
-	border-radius: 999px;
-	padding: 10px 16px;
-	font-size: 14px;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .stateCard {
@@ -102,7 +100,7 @@
 	letter-spacing: 0.14em;
 	font-size: 12px;
 	font-weight: 800;
-	color: #ea580c;
+	color: #0081C9;
 }
 
 .title {
@@ -134,6 +132,11 @@
 .status_ACTIVE {
 	background: #dcfce7;
 	color: #15803d;
+}
+
+.status_PENDING {
+	background: #fef9c3;
+	color: #a16207;
 }
 
 .status_CLOSED {
@@ -276,7 +279,7 @@
 @media (max-width: 768px) {
 	.mainContent {
 		margin-left: 0;
-		padding: 24px;
+		padding: 4.5rem 1rem 1rem 1rem;
 	}
 
 	.detailHeader {

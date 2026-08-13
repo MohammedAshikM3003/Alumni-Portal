@@ -2,55 +2,64 @@
 
 .pageContainer {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: #F8FAFC; 
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #111827; 
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
 /* ================== MAIN CONTENT ================== */
 .mainContent {
   flex: 1;
-  margin-left: 60px;
+  margin-left: 70px;
   display: flex;
   flex-direction: column;
   transition: margin-left 0.3s ease-in-out;
-  height: 100vh;
-  overflow-y: scroll;
-  scrollbar-color: linear-gradient(to bottom, #2563EB, #1D4ED8) #E5E7EB;
-  scrollbar-width: auto;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-color: #0084D6 #E5E7EB;
+  scrollbar-width: thin;
 }
 
 /* Volume Bar Style Scrollbar - Webkit (Chrome, Safari, Edge) */
 .mainContent::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 .mainContent::-webkit-scrollbar-track {
   background-color: #E5E7EB;
   border-radius: 10px;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
 .mainContent::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #2563EB, #1D4ED8);
+  background: linear-gradient(180deg, #0084D6 0%, #0069D9 100%);
   border-radius: 10px;
   transition: all 0.3s ease;
   border: 2px solid #E5E7EB;
-  box-shadow: inset 0 0 6px rgba(37, 99, 235, 0.3);
+  box-shadow: inset 0 0 6px rgba(0, 132, 214, 0.3);
 }
 
 .mainContent::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #1D4ED8, #1E40AF);
-  border-color: #2563EB;
-  box-shadow: inset 0 0 8px rgba(37, 99, 235, 0.5), 0 0 4px rgba(37, 99, 235, 0.4);
+  background: linear-gradient(180deg, #0069D9 0%, #0051CC 100%);
+  border-color: #0084D6;
+  box-shadow: inset 0 0 8px rgba(0, 132, 214, 0.5);
 }
 
 .mainContent::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(to bottom, #1E40AF, #1B3A7C);
-  box-shadow: inset 0 0 10px rgba(37, 99, 235, 0.7);
+  background: linear-gradient(180deg, #0051CC 0%, #003d99 100%);
+  box-shadow: inset 0 0 10px rgba(0, 132, 214, 0.7);
 }
 
 
@@ -132,6 +141,8 @@
 
 .textInput {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 12px 16px;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
@@ -144,6 +155,8 @@
 }
 .dateInput {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 12px 16px;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
@@ -157,6 +170,8 @@
 
 .TimeInput {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 12px 16px;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
@@ -272,6 +287,8 @@
 
 .commentBox {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 12px 16px;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
@@ -287,6 +304,8 @@
 /* Signature & Submit Section */
 .signatureSection {
   margin-top: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .signatureTitleWrapper {
@@ -339,7 +358,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 240px;
+  min-height: 200px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 .uploadBox:hover {
   background-color: #F1F5F9;
@@ -553,20 +576,23 @@
 .imageContainer {
   position: relative;
   width: 100%;
+  max-width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 6px;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .signaturePreview {
   width: 100%;
-  height: 100%;
   max-width: 100%;
-  object-fit: cover;
+  max-height: 180px;
+  object-fit: contain;
   border-radius: 6px;
+  box-sizing: border-box;
 }
 
 .submitBtn {
@@ -787,13 +813,17 @@
   .sidebar { transform: translateX(-100%); }
   .sidebarOpen { transform: translateX(0); }
   
-  .mainContent { margin-left: 0; }
-  .hamburgerBtn { display: block; }
-  .profileInfo { display: none; } 
-  
-  .topHeader { padding: 16px 24px; }
-  .contentWrapper { padding: 24px; }
-  .mainDocumentCard { padding: 24px; }
+  .mainContent {
+    margin-left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  .topHeader { padding: 16px 24px 16px 60px; }
+  .contentWrapper { padding: 4.25rem 1rem 1.5rem 1rem; width: 100%; box-sizing: border-box; }
+  .mainDocumentCard { padding: 24px 16px; border-radius: 12px; width: 100%; box-sizing: border-box; }
 
   .overlay {
     display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -801,18 +831,20 @@
   }
   
   .reviewerSection { flex-direction: column; gap: 16px; margin-bottom: 24px; }
-  .inputGroup, .inputGroupDate { width: 100%; }
+  .inputGroup2 { flex-direction: column; gap: 16px; width: 100%; }
+  .inputGroup, .inputGroupDate, .inputGroupTime { width: 100%; }
 }
 
 @media (max-width: 425px) {
   .topHeader { padding: 12px 16px; gap: 12px;}
-  .contentWrapper { padding: 16px; }
-  .mainDocumentCard { padding: 20px; }
+  .contentWrapper { padding: 4.25rem 0.75rem 1.5rem 0.75rem; width: 100%; box-sizing: border-box; }
+  .mainDocumentCard { padding: 20px 12px; border-radius: 10px; width: 100%; box-sizing: border-box; }
   
-  .docHeader h2 { font-size: 17px; }
-  .docHeader h3 { font-size: 16px; }
-  .docHeader h4 { font-size: 15px; }
+  .docHeader h2 { font-size: 15px; line-height: 1.35; word-break: keep-all; }
+  .docHeader h3 { font-size: 14px; line-height: 1.3; }
+  .docHeader h4 { font-size: 14px; line-height: 1.3; }
   
-  .feedbackCard { padding: 16px; }
+  .inputGroup2 { flex-direction: column; gap: 16px; width: 100%; }
+  .feedbackCard { padding: 16px 12px; }
   .radioGroup { flex-direction: column; gap: 12px; }
 }

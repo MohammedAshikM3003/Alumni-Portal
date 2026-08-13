@@ -4,6 +4,7 @@ import styles from './AD_Event_and_Reunion_Invitation.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
 import { DateInput, TimeInput } from '../../components/Calendar';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -525,7 +526,7 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
                   <option value="">Select organizing department</option>
                   {departments.map((dept) => (
                     <option key={dept._id} value={dept._id}>
-                      {dept.branch} ({dept.deptCode})
+                      {formatBranchName(dept.branch)} ({dept.deptCode})
                     </option>
                   ))}
                 </select>
@@ -557,7 +558,7 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
                               onChange={() => toggleCoOrganizer(dept._id)}
                             />
                             <span className={styles.checkmark}></span>
-                            <span>{dept.branch} ({dept.deptCode})</span>
+                            <span>{formatBranchName(dept.branch)} ({dept.deptCode})</span>
                           </label>
                         ))}
                       </div>
@@ -567,7 +568,7 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
                   <input
                     type="text"
                     className={styles.formInput}
-                    value={event.coOrganizers?.map(co => `${co.branch} (${co.deptCode})`).join(', ') || 'None'}
+                    value={event.coOrganizers?.map(co => `${formatBranchName(co.branch)} (${co.deptCode})`).join(', ') || 'None'}
                     readOnly
                   />
                 )}
