@@ -22,6 +22,7 @@ import registrationRoutes from './routes/registrationRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import flyerRoutes from './routes/flyerRoutes.js';
+import { autoCompletePastEvents } from './controllers/eventController.js';
 
 // Load environment variables from a .env file
 config();
@@ -124,4 +125,8 @@ const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
     console.log(`🚀 Server is running on port ${PORT}`);
     console.log('⚠️  Make sure Ollama is running: ollama serve');
+    
+    // Auto-complete past events immediately at start and every 60 seconds
+    autoCompletePastEvents();
+    setInterval(autoCompletePastEvents, 60 * 1000);
 });

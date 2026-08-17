@@ -6,64 +6,62 @@ const scrollbarStyles = `
 /* ================================================================= */
 
 /* Remove overlapping root window scrollbars on HTML/Body to prevent double scrollbars */
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
+body.theme-alumni::-webkit-scrollbar {
   width: 0px !important;
   height: 0px !important;
   display: none !important;
 }
 
-html,
-body {
+body.theme-alumni {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
 
 /* Unified Custom 6px Blue Overlay Scrollbar for Desktop and Mobile containers */
-::-webkit-scrollbar,
-.mainContent::-webkit-scrollbar,
-.contentArea::-webkit-scrollbar,
-.mailContainer::-webkit-scrollbar,
-.customScrollbar::-webkit-scrollbar,
-.tableWrapper::-webkit-scrollbar,
-.mainScrollable::-webkit-scrollbar,
-.customSidebarScrollbar::-webkit-scrollbar {
+body.theme-alumni ::-webkit-scrollbar,
+body.theme-alumni .mainContent::-webkit-scrollbar,
+body.theme-alumni .contentArea::-webkit-scrollbar,
+body.theme-alumni .mailContainer::-webkit-scrollbar,
+body.theme-alumni .customScrollbar::-webkit-scrollbar,
+body.theme-alumni .tableWrapper::-webkit-scrollbar,
+body.theme-alumni .mainScrollable::-webkit-scrollbar,
+body.theme-alumni .customSidebarScrollbar::-webkit-scrollbar {
   width: 6px !important;
   height: 6px !important;
   display: block !important;
 }
 
-::-webkit-scrollbar-button,
-::-webkit-scrollbar-button:single-button,
-::-webkit-scrollbar-button:vertical:decrement,
-::-webkit-scrollbar-button:vertical:increment,
-::-webkit-scrollbar-button:horizontal:decrement,
-::-webkit-scrollbar-button:horizontal:increment,
-::-webkit-scrollbar-button:start,
-::-webkit-scrollbar-button:end,
-::-webkit-scrollbar-button:vertical:start:decrement,
-::-webkit-scrollbar-button:vertical:end:increment,
-::-webkit-scrollbar-button:horizontal:start:decrement,
-::-webkit-scrollbar-button:horizontal:end:increment,
-*::-webkit-scrollbar-button,
-*::-webkit-scrollbar-button:single-button,
-*::-webkit-scrollbar-button:vertical:decrement,
-*::-webkit-scrollbar-button:vertical:increment,
-*::-webkit-scrollbar-button:horizontal:decrement,
-*::-webkit-scrollbar-button:horizontal:increment,
-*::-webkit-scrollbar-button:start,
-*::-webkit-scrollbar-button:end,
-*::-webkit-scrollbar-button:vertical:start:decrement,
-*::-webkit-scrollbar-button:vertical:end:increment,
-*::-webkit-scrollbar-button:horizontal:start:decrement,
-*::-webkit-scrollbar-button:horizontal:end:increment,
-.mainContent::-webkit-scrollbar-button,
-.contentArea::-webkit-scrollbar-button,
-.mailContainer::-webkit-scrollbar-button,
-.customScrollbar::-webkit-scrollbar-button,
-.tableWrapper::-webkit-scrollbar-button,
-.mainScrollable::-webkit-scrollbar-button,
-.customSidebarScrollbar::-webkit-scrollbar-button {
+body.theme-alumni ::-webkit-scrollbar-button,
+body.theme-alumni ::-webkit-scrollbar-button:single-button,
+body.theme-alumni ::-webkit-scrollbar-button:vertical:decrement,
+body.theme-alumni ::-webkit-scrollbar-button:vertical:increment,
+body.theme-alumni ::-webkit-scrollbar-button:horizontal:decrement,
+body.theme-alumni ::-webkit-scrollbar-button:horizontal:increment,
+body.theme-alumni ::-webkit-scrollbar-button:start,
+body.theme-alumni ::-webkit-scrollbar-button:end,
+body.theme-alumni ::-webkit-scrollbar-button:vertical:start:decrement,
+body.theme-alumni ::-webkit-scrollbar-button:vertical:end:increment,
+body.theme-alumni ::-webkit-scrollbar-button:horizontal:start:decrement,
+body.theme-alumni ::-webkit-scrollbar-button:horizontal:end:increment,
+body.theme-alumni *::-webkit-scrollbar-button,
+body.theme-alumni *::-webkit-scrollbar-button:single-button,
+body.theme-alumni *::-webkit-scrollbar-button:vertical:decrement,
+body.theme-alumni *::-webkit-scrollbar-button:vertical:increment,
+body.theme-alumni *::-webkit-scrollbar-button:horizontal:decrement,
+body.theme-alumni *::-webkit-scrollbar-button:horizontal:increment,
+body.theme-alumni *::-webkit-scrollbar-button:start,
+body.theme-alumni *::-webkit-scrollbar-button:end,
+body.theme-alumni *::-webkit-scrollbar-button:vertical:start:decrement,
+body.theme-alumni *::-webkit-scrollbar-button:vertical:end:increment,
+body.theme-alumni *::-webkit-scrollbar-button:horizontal:start:decrement,
+body.theme-alumni *::-webkit-scrollbar-button:horizontal:end:increment,
+body.theme-alumni .mainContent::-webkit-scrollbar-button,
+body.theme-alumni .contentArea::-webkit-scrollbar-button,
+body.theme-alumni .mailContainer::-webkit-scrollbar-button,
+body.theme-alumni .customScrollbar::-webkit-scrollbar-button,
+body.theme-alumni .tableWrapper::-webkit-scrollbar-button,
+body.theme-alumni .mainScrollable::-webkit-scrollbar-button,
+body.theme-alumni .customSidebarScrollbar::-webkit-scrollbar-button {
   display: none !important;
   width: 0px !important;
   height: 0px !important;
@@ -73,43 +71,43 @@ body {
   padding: 0 !important;
 }
 
-::-webkit-scrollbar-corner,
-*::-webkit-scrollbar-corner,
-.mainContent::-webkit-scrollbar-corner,
-.contentArea::-webkit-scrollbar-corner,
-.mailContainer::-webkit-scrollbar-corner,
-.customScrollbar::-webkit-scrollbar-corner,
-.tableWrapper::-webkit-scrollbar-corner,
-.mainScrollable::-webkit-scrollbar-corner,
-.customSidebarScrollbar::-webkit-scrollbar-corner {
+body.theme-alumni ::-webkit-scrollbar-corner,
+body.theme-alumni *::-webkit-scrollbar-corner,
+body.theme-alumni .mainContent::-webkit-scrollbar-corner,
+body.theme-alumni .contentArea::-webkit-scrollbar-corner,
+body.theme-alumni .mailContainer::-webkit-scrollbar-corner,
+body.theme-alumni .customScrollbar::-webkit-scrollbar-corner,
+body.theme-alumni .tableWrapper::-webkit-scrollbar-corner,
+body.theme-alumni .mainScrollable::-webkit-scrollbar-corner,
+body.theme-alumni .customSidebarScrollbar::-webkit-scrollbar-corner {
   background: transparent !important;
   display: none !important;
   width: 0px !important;
   height: 0px !important;
 }
 
-::-webkit-scrollbar-track,
-.mainContent::-webkit-scrollbar-track,
-.contentArea::-webkit-scrollbar-track,
-.mailContainer::-webkit-scrollbar-track,
-.customScrollbar::-webkit-scrollbar-track,
-.tableWrapper::-webkit-scrollbar-track,
-.mainScrollable::-webkit-scrollbar-track,
-.customSidebarScrollbar::-webkit-scrollbar-track {
+body.theme-alumni ::-webkit-scrollbar-track,
+body.theme-alumni .mainContent::-webkit-scrollbar-track,
+body.theme-alumni .contentArea::-webkit-scrollbar-track,
+body.theme-alumni .mailContainer::-webkit-scrollbar-track,
+body.theme-alumni .customScrollbar::-webkit-scrollbar-track,
+body.theme-alumni .tableWrapper::-webkit-scrollbar-track,
+body.theme-alumni .mainScrollable::-webkit-scrollbar-track,
+body.theme-alumni .customSidebarScrollbar::-webkit-scrollbar-track {
   background: transparent !important;
   background-color: transparent !important;
   border-radius: 0 !important;
   margin: 0 !important;
 }
 
-::-webkit-scrollbar-thumb,
-.mainContent::-webkit-scrollbar-thumb,
-.contentArea::-webkit-scrollbar-thumb,
-.mailContainer::-webkit-scrollbar-thumb,
-.customScrollbar::-webkit-scrollbar-thumb,
-.tableWrapper::-webkit-scrollbar-thumb,
-.mainScrollable::-webkit-scrollbar-thumb,
-.customSidebarScrollbar::-webkit-scrollbar-thumb {
+body.theme-alumni ::-webkit-scrollbar-thumb,
+body.theme-alumni .mainContent::-webkit-scrollbar-thumb,
+body.theme-alumni .contentArea::-webkit-scrollbar-thumb,
+body.theme-alumni .mailContainer::-webkit-scrollbar-thumb,
+body.theme-alumni .customScrollbar::-webkit-scrollbar-thumb,
+body.theme-alumni .tableWrapper::-webkit-scrollbar-thumb,
+body.theme-alumni .mainScrollable::-webkit-scrollbar-thumb,
+body.theme-alumni .customSidebarScrollbar::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #0084D6 0%, #0051CC 100%) !important;
   border-radius: 10px !important;
   border: none !important;
@@ -117,28 +115,29 @@ body {
   transition: all 0.2s ease-in-out !important;
 }
 
-::-webkit-scrollbar-thumb:hover,
-.mainContent::-webkit-scrollbar-thumb:hover,
-.contentArea::-webkit-scrollbar-thumb:hover,
-.mailContainer::-webkit-scrollbar-thumb:hover,
-.customScrollbar::-webkit-scrollbar-thumb:hover,
-.tableWrapper::-webkit-scrollbar-thumb:hover,
-.mainScrollable::-webkit-scrollbar-thumb:hover,
-.customSidebarScrollbar::-webkit-scrollbar-thumb:hover,
-::-webkit-scrollbar-thumb:active {
+body.theme-alumni ::-webkit-scrollbar-thumb:hover,
+body.theme-alumni .mainContent::-webkit-scrollbar-thumb:hover,
+body.theme-alumni .contentArea::-webkit-scrollbar-thumb:hover,
+body.theme-alumni .mailContainer::-webkit-scrollbar-thumb:hover,
+body.theme-alumni .customScrollbar::-webkit-scrollbar-thumb:hover,
+body.theme-alumni .tableWrapper::-webkit-scrollbar-thumb:hover,
+body.theme-alumni .mainScrollable::-webkit-scrollbar-thumb:hover,
+body.theme-alumni .customSidebarScrollbar::-webkit-scrollbar-thumb:hover,
+body.theme-alumni ::-webkit-scrollbar-thumb:active {
   background: linear-gradient(180deg, #0069D9 0%, #003D99 100%) !important;
   box-shadow: 0 0 10px rgba(0, 132, 214, 1.0), inset 0 0 6px rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Firefox & Generic Touch Styling */
-*,
-.mainContent,
-.contentArea,
-.mailContainer,
-.customScrollbar,
-.tableWrapper,
-.mainScrollable,
-.customSidebarScrollbar {
+body.theme-alumni,
+body.theme-alumni *,
+body.theme-alumni .mainContent,
+body.theme-alumni .contentArea,
+body.theme-alumni .mailContainer,
+body.theme-alumni .customScrollbar,
+body.theme-alumni .tableWrapper,
+body.theme-alumni .mainScrollable,
+body.theme-alumni .customSidebarScrollbar {
   -webkit-overflow-scrolling: touch !important;
   scrollbar-color: #0084D6 transparent !important;
   scrollbar-width: thin !important;

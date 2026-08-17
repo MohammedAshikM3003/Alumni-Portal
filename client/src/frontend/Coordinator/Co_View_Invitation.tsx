@@ -19,7 +19,7 @@ interface Event {
   eventDay: string;
   eventTime: string;
   venue: string;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'upcoming' | 'completed' | 'cancelled';
   organizer: Department;
   coOrganizers: Department[];
   photos: string[];
@@ -63,7 +63,11 @@ const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogou
         const data = await response.json();
 
         if (data.success && data.event) {
-          setEvent(data.event);
+          const loadedEvent = {
+            ...data.event,
+            status: data.event.status === 'pending' ? 'upcoming' : data.event.status,
+          };
+          setEvent(loadedEvent);
           
           // Fetch matching invitation
           try {
@@ -159,9 +163,6 @@ const CoordinatorViewInvitation: FC<CoordinatorViewInvitationProps> = ({ onLogou
           {/* Header */}
           <header className={styles.headerSection}>
             <div className={styles.headerContent}>
-              <span className={`${styles.statusBadge} ${styles[`status${event.status.charAt(0).toUpperCase() + event.status.slice(1)}`]}`}>
-                {event.status}
-              </span>
               <h1 className={styles.mainTitle}>{event.eventName}</h1>
             </div>
           </header>

@@ -24,8 +24,9 @@ const getStatusBadgeClass = (status: string | undefined) => {
   switch (status) {
     case 'completed': return styles.statusCompleted;
     case 'cancelled': return styles.statusCancelled;
-    case 'pending': return styles.statusPending;
-    default: return styles.statusPending;
+    case 'upcoming':
+    case 'pending': return styles.statusUpcoming;
+    default: return styles.statusUpcoming;
   }
 };
 
@@ -41,6 +42,7 @@ interface EventHistory {
   time: string;
   venue: string;
   status: string;
+  batch?: string;
   createdAt: string;
 }
 
@@ -63,7 +65,6 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedTimeframe, setSelectedTimeframe] = useState('');
 
   const cardsPerPage = 9;
 
@@ -104,6 +105,7 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
             time: formatTime(event.eventTime),
             venue: event.venue,
             status: event.status,
+            batch: event.batch,
             createdAt: event.createdAt,
           }));
           setEventsData(formattedData);
@@ -162,23 +164,17 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
 
     const matchesDept = !selectedDept || event.organizer.toLowerCase() === selectedDept.toLowerCase();
 
-    const matchesStatus = !selectedStatus || event.status === selectedStatus;
+    const matchesStatus = !selectedStatus || 
+      (selectedStatus === 'upcoming' && (event.status === 'upcoming' || event.status === 'pending')) ||
+      event.status === selectedStatus;
 
-    let matchesTimeframe = true;
-    if (selectedTimeframe === 'upcoming') {
-      matchesTimeframe = event.rawDate >= now;
-    } else if (selectedTimeframe === 'past') {
-      matchesTimeframe = event.rawDate < now;
-    }
-
-    return matchesSearch && matchesDept && matchesStatus && matchesTimeframe;
+    return matchesSearch && matchesDept && matchesStatus;
   });
 
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedDept('');
     setSelectedStatus('');
-    setSelectedTimeframe('');
     setCurrentPage(1);
   };
 
@@ -240,9 +236,6 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
           <header className={styles.pageHeader} style={{ marginBottom: '1.25rem' }}>
             <div className={styles.headerText}>
               <h2 className={styles.pageTitle}>Events & Reunion History</h2>
-              <p className={styles.pageSubtitle}>
-                Reflecting on our past gatherings, celebrations, and alumni milestones across departments.
-              </p>
             </div>
             <button className={styles.hostBtn} onClick={() => { navigate('/admin/event_and_reunion_form1'); }}>
               <span className="material-symbols-outlined">add_circle</span>
@@ -305,50 +298,45 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
               style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none' }}
             >
               <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
+              <option value="upcoming">Upcoming</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>
-
-            {/* Timeframe Filter */}
-            <select
-              value={selectedTimeframe}
-              onChange={(e) => { setSelectedTimeframe(e.target.value); setCurrentPage(1); }}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none' }}
-            >
-              <option value="">All Timeframes</option>
-              <option value="upcoming">Upcoming Events</option>
-              <option value="past">Past Events</option>
-            </select>
-
-            {/* Reset Button */}
-            {(searchTerm || selectedDept || selectedStatus || selectedTimeframe) && (
-              <button
-                onClick={clearFilters}
-                style={{ padding: '0.5rem 0.75rem', background: '#f1f5f9', border: 'none', borderRadius: '0.5rem', color: '#64748b', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-
-          {/* Event History Grid */}
-          <section className={styles.eventsGrid}>
-            {paginatedEvents.length > 0 ? (
-              paginatedEvents.map((event) => (
-                <article key={event.id} className={styles.eventCard}>
-                  <div className={styles.cardContent}>
-                    <div className={styles.cardHeader}>
-                      <span className={`${styles.statusBadge} ${getStatusBadgeClass(event.status)}`}>
-                        {event.status}
-                      </span>
-                    </div>
+ 
+              {/* Reset Button */}
+              {(searchTerm || selectedDept || selectedStatus) && (
+               <button
+                 onClick={clearFilters}
+                 style={{ padding: '0.5rem 0.75rem', background: '#f1f5f9', border: 'none', borderRadius: '0.5rem', color: '#64748b', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}
+               >
+                 Clear Filters
+               </button>
+             )}
+           </div>
+ 
+           {/* Event History Grid */}
+           <section className={styles.eventsGrid}>
+             {paginatedEvents.length > 0 ? (
+               paginatedEvents.map((event) => (
+                 <article key={event.id} className={styles.eventCard}>
+                   <div className={styles.cardContent}>
+                     <div className={styles.cardHeader}>
+                       <span className={`${styles.statusBadge} ${getStatusBadgeClass(event.status)}`}>
+                         {event.status === 'pending' || event.status === 'upcoming' ? 'upcoming' : event.status}
+                       </span>
+                     </div>
                     <div className={styles.cardText}>
                       <h3 className={styles.eventTitle}>{event.title}</h3>
                       <div className={styles.eventOrganizer}>
                         <span className="material-symbols-outlined">business</span>
                         {event.organizer} ({event.organizerCode})
                       </div>
+                      {event.batch && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: '#475569', marginTop: '0.4rem', marginBottom: '0.2rem' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '1.15rem' }}>school</span>
+                          <span>Batch: {event.batch}</span>
+                        </div>
+                      )}
                       <div className={styles.eventMeta}>
                         <span className={styles.eventDate}>
                           <span className="material-symbols-outlined">calendar_month</span>

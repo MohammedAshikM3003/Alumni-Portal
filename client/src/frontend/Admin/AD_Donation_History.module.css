@@ -30,7 +30,7 @@
 .pageContainer {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 40%, #f1f5f9 100%);
+  background-color: #f8fafc;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #1e293b;
 }
@@ -111,7 +111,7 @@
 }
 
 .pageTitle {
-  font-size: 1.75rem;
+  font-size: 2.25rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
@@ -325,7 +325,7 @@
 .tdSno {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: #475569;
   font-variant-numeric: tabular-nums;
 }
 
@@ -442,7 +442,7 @@
 
 .paginationText {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: #475569;
   margin: 0;
   font-weight: 500;
 }
@@ -506,4 +506,15 @@
   padding: 3rem 1rem;
   color: #94a3b8;
   font-size: 0.9rem;
+}
+
+/* Hide number input spinners (up and down arrows) */
+.mainContent input::-webkit-outer-spin-button,
+.mainContent input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.mainContent input[type=number] {
+  -moz-appearance: textfield;
 }

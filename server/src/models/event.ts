@@ -6,9 +6,10 @@ export interface IEvent {
   eventDay: string;
   eventTime: string;
   venue: string;
+  batch?: string;
   organizer: Types.ObjectId;
   coOrganizers: Types.ObjectId[];
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'upcoming' | 'completed' | 'cancelled';
   photos: string[];
   createdBy: Types.ObjectId;
   createdAt: Date;
@@ -45,6 +46,10 @@ const eventSchema = new Schema<IEvent>(
       trim: true,
       maxlength: 300,
     },
+    batch: {
+      type: String,
+      trim: true,
+    },
     organizer: {
       type: Schema.Types.ObjectId,
       ref: 'Department',
@@ -56,8 +61,8 @@ const eventSchema = new Schema<IEvent>(
     }],
     status: {
       type: String,
-      enum: ['pending', 'completed', 'cancelled'],
-      default: 'pending',
+      enum: ['upcoming', 'completed', 'cancelled'],
+      default: 'upcoming',
     },
     photos: [{
       type: String, // GridFS file ID

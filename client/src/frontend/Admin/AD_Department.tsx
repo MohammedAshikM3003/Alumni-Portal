@@ -285,7 +285,7 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
                       <td>
                         <div className={styles.actionGroup}>
                           <button className={styles.viewButton} onClick={() => handleView(dept.deptCode)} title="View Department Details">
-                            <Eye size={18} />
+                            <Eye size={20} />
                             <span>View</span>
                           </button>
                         </div>

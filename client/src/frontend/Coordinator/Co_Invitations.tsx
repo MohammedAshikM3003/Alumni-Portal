@@ -19,7 +19,7 @@ interface ApiEvent {
   eventDay: string;
   eventTime: string;
   venue: string;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'upcoming' | 'completed' | 'cancelled';
   organizer: Department;
   coOrganizers: Department[];
   createdAt: string;
@@ -35,7 +35,7 @@ interface EventData {
   day: string;
   time: string;
   venue: string;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'upcoming' | 'completed' | 'cancelled';
   createdAt: string;
 }
 
@@ -60,8 +60,8 @@ const getStatusBadgeClass = (status: string): string => {
   switch (status) {
     case 'completed': return styles.statusCompleted;
     case 'cancelled': return styles.statusCancelled;
-    case 'pending': return styles.statusPending;
-    default: return styles.statusPending;
+    case 'upcoming': return styles.statusUpcoming;
+    default: return styles.statusUpcoming;
   }
 };
 
@@ -116,7 +116,7 @@ const CoordinatorInvitations: FC<CoordinatorInvitationsProps> = ({ onLogout }) =
             day: event.eventDay,
             time: formatTime(event.eventTime),
             venue: event.venue,
-            status: event.status,
+            status: event.status === 'pending' ? 'upcoming' : event.status,
             createdAt: event.createdAt,
           }));
           setEventsData(formattedData);

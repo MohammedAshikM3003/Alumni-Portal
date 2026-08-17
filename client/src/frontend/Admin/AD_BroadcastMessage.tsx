@@ -37,7 +37,10 @@ interface Event {
   eventDate?: string;
   venue?: string;
   eventTime?: string;
-  status?: 'pending' | 'completed' | 'cancelled';
+  status?: 'upcoming' | 'completed' | 'cancelled';
+  organizer?: any;
+  coOrganizers?: any[];
+  batch?: string;
 }
 
 interface Department {
@@ -1006,6 +1009,62 @@ const Admin_BroadcastMessage = ({ onLogout, adminName, adminEmail }: AdminBroadc
         validationErrors.push({ message: `Please enter Alumni Email${entryNum}`, fieldId: `alumniEmail-${i}` });
       } else if (!emailRegex.test(entry.alumniEmail.trim())) {
         validationErrors.push({ message: `Please enter a valid email address${entryNum}`, fieldId: `alumniEmail-${i}` });
+      }
+    }
+
+    // Validate matching department and target batch against the selected event
+    if (isEventFormEnabled && sharedData.eventName) {
+      const selectedEvent = events.find(ev => ev.eventName === sharedData.eventName);
+      if (selectedEvent) {
+        // 1. Gather all organizing and co-organizing branches
+        const organizingBranches: string[] = [];
+        if (selectedEvent.organizer) {
+          const orgBranch = selectedEvent.organizer.branch || selectedEvent.organizer;
+          if (orgBranch) organizingBranches.push(formatBranchName(orgBranch).toLowerCase());
+        }
+        if (selectedEvent.coOrganizers && Array.isArray(selectedEvent.coOrganizers)) {
+          selectedEvent.coOrganizers.forEach((co: any) => {
+            const coBranch = co.branch || co;
+            if (coBranch) organizingBranches.push(formatBranchName(coBranch).toLowerCase());
+          });
+        }
+
+        // 2. Parse event target batches
+        const targetBatches = selectedEvent.batch 
+          ? selectedEvent.batch.split(',').map((b: string) => b.trim().toLowerCase()).filter(Boolean)
+          : [];
+        const hasAllBatches = targetBatches.some(b => b === 'all batches');
+
+        for (let i = 0; i < alumniEntries.length; i++) {
+          const entry = alumniEntries[i];
+          const entryNum = alumniEntries.length > 1 ? ` (Entry ${i + 1})` : '';
+
+          // Validate department matches organizer or co-organizers
+          if (entry.department.trim() && organizingBranches.length > 0) {
+            const alumniBranch = formatBranchName(entry.department).toLowerCase();
+            if (!organizingBranches.includes(alumniBranch)) {
+              const organizerLabel = selectedEvent.organizer?.branch 
+                ? formatBranchName(selectedEvent.organizer.branch) 
+                : 'organizing department';
+              validationErrors.push({
+                message: `This event is only for the ${organizerLabel} department${selectedEvent.coOrganizers && selectedEvent.coOrganizers.length > 0 ? ' or its co-organizers' : ''}${entryNum}`,
+                fieldId: `department-${i}`
+              });
+            }
+          }
+
+          // Validate batch matches event target batch
+          if (entry.batchStart.trim() && targetBatches.length > 0 && !hasAllBatches) {
+            const batchEnd = getBatchEnd(entry.batchStart);
+            const alumniBatchStr = `${entry.batchStart}-${batchEnd}`.toLowerCase();
+            if (!targetBatches.includes(alumniBatchStr)) {
+              validationErrors.push({
+                message: `This event is only for target batch(es): ${selectedEvent.batch}${entryNum}`,
+                fieldId: `batchStart-${i}`
+              });
+            }
+          }
+        }
       }
     }
 

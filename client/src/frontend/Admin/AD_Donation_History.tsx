@@ -95,7 +95,7 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const entriesPerPage = 7;
+  const entriesPerPage = 8;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -421,9 +421,6 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
           <div className={styles.pageHeader} style={{ marginBottom: '1.75rem' }}>
             <div>
               <h2 className={styles.pageTitle}>Alumni Donations Tracking</h2>
-              <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '0.35rem 0 0 0', fontWeight: 400 }}>
-                Comprehensive donation analytics across all college departments.
-              </p>
             </div>
             <div className={styles.exportDropdownWrapper} ref={dropdownRef}>
               <button
@@ -674,9 +671,9 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
                 placeholder="Search donor or cause..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                style={{ ...filterInputStyle, width: '100%', paddingLeft: '2.4rem' }}
-                onFocus={e => { e.target.style.borderColor = '#228B22'; e.target.style.boxShadow = '0 0 0 3px rgba(34,139,34,0.1)'; }}
-                onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                style={{ ...filterInputStyle, width: '100%', paddingLeft: '2.4rem', background: '#f8fafc' }}
+                onFocus={e => { e.target.style.borderColor = '#228B22'; e.target.style.boxShadow = '0 0 0 3px rgba(34,139,34,0.1)'; e.target.style.backgroundColor = '#fff'; }}
+                onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; e.target.style.backgroundColor = '#f8fafc'; }}
               />
             </div>
 
@@ -774,13 +771,7 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
                           </div>
                         </td>
                         <td>
-                          <span style={{
-                            fontSize: '0.75rem', background: '#f0fdf4', color: '#15803d',
-                            padding: '0.2rem 0.55rem', borderRadius: '0.375rem', fontWeight: 600,
-                            border: '1px solid #bbf7d0', display: 'inline-block',
-                          }}>
-                            {row.department}
-                          </span>
+                          {row.department}
                         </td>
                         <td className={styles.tdBatch}>{row.batch}</td>
                         <td className={styles.tdAmount}>{row.amount}</td>
@@ -796,7 +787,7 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
                             title="View Details"
                             onClick={() => { navigate(`/admin/view_donation/${row.id}`) }}
                           >
-                            <Eye size={18} />
+                            <Eye size={20} />
                           </button>
                         </td>
                       </tr>

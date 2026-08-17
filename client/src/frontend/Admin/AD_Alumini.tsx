@@ -260,9 +260,6 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
           <div className={styles.pageHeader}>
             <div>
               <h1 className={styles.pageTitle}>Alumni Directory</h1>
-              <p className={styles.pageSubtitle}>
-                Manage and track your institution's global alumni network.
-              </p>
             </div>
             <div className={styles.pageActionButtons}>
               <button
@@ -419,7 +416,7 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
                                   title="View Details"
                                   onClick={() => navigate(`/admin/alumini/${row._id}`)}
                                 >
-                                  <Eye size={18} />
+                                  <Eye size={20} />
                                 </button>
                               </div>
                             </td>

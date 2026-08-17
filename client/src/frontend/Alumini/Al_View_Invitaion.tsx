@@ -219,7 +219,7 @@ const Alumini_View_Invitation = ({ onLogout }: AluminiViewInvitationProps) => {
           {/* Right Panel: Event Information */}
           <div className={styles.eventInfo}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-              <span className={styles.badge} style={{ backgroundColor: isUpcoming ? '#E0F2FE' : '#F1F5F9', color: isUpcoming ? '#007BFF' : '#475569', marginBottom: 0 }}>
+              <span className={styles.badge} style={{ backgroundColor: isUpcoming ? '#ede9fe' : '#F1F5F9', color: isUpcoming ? '#6d28d9' : '#475569', marginBottom: 0 }}>
                 {badgeText}
               </span>
               {isUpcoming && (

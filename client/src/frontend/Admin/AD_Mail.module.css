@@ -18,27 +18,25 @@
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #228b22 #e9efe9;
 }
 
 .mainContent::-webkit-scrollbar {
-  width: 10px;
+  width: 12px;
 }
 
 .mainContent::-webkit-scrollbar-track {
-  background: #e9efe9;
-  border-radius: 999px;
+  background: #f1f5f9;
+  border-left: 1px solid #e2e8f0;
 }
 
 .mainContent::-webkit-scrollbar-thumb {
-  background: #228b22;
-  border-radius: 999px;
-  border: 2px solid #e9efe9;
+  background-color: #228B22;
+  border-radius: 10px;
+  border: 3px solid #f1f5f9;
 }
 
 .mainContent::-webkit-scrollbar-thumb:hover {
-  background: #1b6e1b;
+  background-color: #1a6b1a;
 }
 
 .contentWrapper {
@@ -63,7 +61,7 @@
 }
 
 .pageTitle {
-  font-size: 1.875rem;
+  font-size: 2.25rem;
   font-weight: 700;
   color: #001E2B;
   letter-spacing: -0.02em;

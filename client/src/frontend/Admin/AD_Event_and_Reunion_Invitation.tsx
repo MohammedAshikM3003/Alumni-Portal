@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import styles from './AD_Event_and_Reunion_Invitation.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
-import { DateInput, TimeInput } from '../../components/Calendar';
 import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -21,6 +20,7 @@ interface EventDetails {
   eventDay: string;
   eventTime: string;
   venue: string;
+  batch?: string;
   organizer: Department;
   coOrganizers: Department[];
   status: string;
@@ -31,6 +31,18 @@ interface PhotoGroup {
   type: string;
   images: string[];
 }
+
+// Generate target batch options dynamically (from currentYear + 4 down to 1995)
+const generateBatchOptions = (): string[] => {
+  const currentYear = new Date().getFullYear();
+  const options = ['All Batches'];
+  for (let year = currentYear + 4; year >= 1995; year--) {
+    options.push(`${year - 4}-${year}`);
+  }
+  return options;
+};
+
+const BATCH_OPTIONS = generateBatchOptions();
 
 const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => void }) => {
   const navigate = useNavigate();
@@ -56,11 +68,15 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
   const [eventDay, setEventDay] = useState('');
   const [eventTime, setEventTime] = useState('');
   const [venue, setVenue] = useState('');
+  const [batch, setBatch] = useState('');
   const [organizer, setOrganizer] = useState('');
   const [coOrganizers, setCoOrganizers] = useState<string[]>([]);
-  const [status, setStatus] = useState('pending');
+  const [status, setStatus] = useState('upcoming');
   const [isCoOrgDropdownOpen, setIsCoOrgDropdownOpen] = useState(false);
+  const [isBatchDropdownOpen, setIsBatchDropdownOpen] = useState(false);
+  const [customBatch, setCustomBatch] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const batchDropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch event and departments
   useEffect(() => {
@@ -88,9 +104,10 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
           setEventDay(e.eventDay);
           setEventTime(e.eventTime);
           setVenue(e.venue);
+          setBatch(e.batch || '');
           setOrganizer(e.organizer?._id || '');
           setCoOrganizers(e.coOrganizers?.map((co: any) => co._id) || []);
-          setStatus(e.status);
+          setStatus(e.status === 'pending' ? 'upcoming' : e.status);
           setPhotos(e.photos || []);
 
           // Fetch matching invitation
@@ -152,6 +169,9 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsCoOrgDropdownOpen(false);
       }
+      if (batchDropdownRef.current && !batchDropdownRef.current.contains(event.target as Node)) {
+        setIsBatchDropdownOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -167,6 +187,113 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
     } else {
       setCoOrganizers([...coOrganizers, deptId]);
     }
+  };
+
+  // Toggle batch selection
+  const selectedBatches = batch ? batch.split(',').map(b => b.trim()).filter(Boolean) : [];
+  
+  const sortBatches = (batchList: string[]): string[] => {
+    const isYearRange = (s: string) => /^\d{4}-\d{4}$/.test(s);
+    return [...batchList].sort((a, b) => {
+      if (a === 'All Batches') return -1;
+      if (b === 'All Batches') return 1;
+      if (isYearRange(a) && isYearRange(b)) {
+        return a.localeCompare(b); // Sort ascending numerically
+      }
+      if (isYearRange(a)) return -1;
+      if (isYearRange(b)) return 1;
+      return a.localeCompare(b);
+    });
+  };
+
+  const allBatchOptions = sortBatches([...new Set([...BATCH_OPTIONS, ...selectedBatches])]);
+  
+  const getSelectedBatchNames = () => {
+    if (selectedBatches.length === 0) return 'Select target batches';
+    return selectedBatches.join(', ');
+  };
+
+  const toggleBatchSelection = (batchVal: string) => {
+    let current = [...selectedBatches];
+    if (batchVal === 'All Batches') {
+      if (current.includes('All Batches')) {
+        setBatch('');
+      } else {
+        setBatch('All Batches');
+      }
+    } else {
+      current = current.filter(b => b !== 'All Batches');
+      if (current.includes(batchVal)) {
+        current = current.filter(b => b !== batchVal);
+      } else {
+        current.push(batchVal);
+      }
+      setBatch(sortBatches(current).join(', '));
+    }
+  };
+
+  const addCustomBatch = (val: string) => {
+    const trimmed = val.trim();
+    if (!trimmed) return;
+    
+    const currentYear = new Date().getFullYear();
+    const maxStartYear = currentYear + 4;
+    
+    // Check YYYY format
+    if (/^\d{4}$/.test(trimmed)) {
+      const startYear = parseInt(trimmed, 10);
+      if (startYear < 1995 || startYear > maxStartYear) {
+        alert(`Please enter a valid start year between 1995 and ${maxStartYear}.`);
+        return;
+      }
+    }
+    
+    // Check YYYY-YYYY format
+    if (/^\d{4}-\d{4}$/.test(trimmed)) {
+      const [start, end] = trimmed.split('-').map(Number);
+      if (start < 1995 || start > maxStartYear || end < 1995 || end > maxStartYear + 4) {
+        alert(`Please enter a valid batch start year between 1995 and ${maxStartYear}.`);
+        return;
+      }
+    }
+
+    let formatted = trimmed;
+    if (/^\d{4}$/.test(trimmed)) {
+      const startYear = parseInt(trimmed, 10);
+      formatted = `${startYear}-${startYear + 4}`;
+    }
+    
+    let current = [...selectedBatches];
+    current = current.filter(b => b !== 'All Batches');
+    if (!current.includes(formatted)) {
+      current.push(formatted);
+      setBatch(sortBatches(current).join(', '));
+    }
+    setCustomBatch('');
+  };
+
+  // Time formatting/parsing to store in HH:MM format
+  const parseEventTime = (timeStr: string) => {
+    if (!timeStr) return { hour: '10', minute: '00', period: 'AM' };
+    const [hStr, mStr] = timeStr.split(':');
+    const h = parseInt(hStr, 10);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayH = String(h % 12 || 12).padStart(2, '0');
+    const displayM = mStr || '00';
+    return { hour: displayH, minute: displayM, period };
+  };
+
+  const { hour: timeHour, minute: timeMinute, period: timePeriod } = parseEventTime(eventTime);
+
+  const handleTimeChange = (h: string, m: string, p: string) => {
+    let hour24 = parseInt(h, 10);
+    if (p === 'PM' && hour24 !== 12) {
+      hour24 += 12;
+    } else if (p === 'AM' && hour24 === 12) {
+      hour24 = 0;
+    }
+    const timeStr = `${String(hour24).padStart(2, '0')}:${m}`;
+    setEventTime(timeStr);
   };
 
   // Get selected co-organizer names for display
@@ -200,6 +327,7 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
           organizer,
           coOrganizers,
           status,
+          batch: batch.trim(),
         }),
       });
 
@@ -253,6 +381,7 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
       setEventDay(event.eventDay);
       setEventTime(event.eventTime);
       setVenue(event.venue);
+      setBatch(event.batch || '');
       setOrganizer(event.organizer?._id || '');
       setCoOrganizers(event.coOrganizers?.map(co => co._id) || []);
       setStatus(event.status);
@@ -430,17 +559,16 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
           {/* Header */}
           <header className={styles.headerSection}>
             <div className={styles.headerContent}>
-              <span className={`${styles.statusBadge} ${styles[`status${status.charAt(0).toUpperCase() + status.slice(1)}`]}`}>
-                {status}
-              </span>
               <h1 className={styles.mainTitle}>{isEditing ? 'Edit Event' : event.eventName}</h1>
             </div>
             {!isEditing && (
               <div className={styles.headerActions}>
-                <button className={styles.editBtn} onClick={() => setIsEditing(true)}>
-                  <span className="material-symbols-outlined">edit</span>
-                  Edit
-                </button>
+                {status !== 'completed' && (
+                  <button className={styles.editBtn} onClick={() => setIsEditing(true)}>
+                    <span className="material-symbols-outlined">edit</span>
+                    Edit
+                  </button>
+                )}
                 <button className={styles.deleteBtn} onClick={handleDelete} disabled={isDeleting}>
                   <span className="material-symbols-outlined">delete</span>
                   {isDeleting ? 'Deleting...' : 'Delete'}
@@ -468,7 +596,8 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
               <div className={styles.rowGroup}>
                 <div className={styles.inputGroup}>
                   <label className={styles.formLabel}>Event Date</label>
-                  <DateInput
+                  <input
+                    type="date"
                     name="eventDate"
                     className={styles.formInput}
                     value={eventDate}
@@ -490,25 +619,145 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
               {/* Time */}
               <div className={styles.inputGroup}>
                 <label className={styles.formLabel}>Event Time</label>
-                <TimeInput
-                  name="eventTime"
-                  className={styles.formInput}
-                  value={eventTime}
-                  onChange={(e) => setEventTime(e.target.value)}
-                  disabled={!isEditing}
-                />
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  {/* Hour Selection */}
+                  <select
+                    className={`${styles.formInput} ${styles.formSelect}`}
+                    value={timeHour}
+                    onChange={(e) => handleTimeChange(e.target.value, timeMinute, timePeriod)}
+                    disabled={!isEditing}
+                    style={{ flex: 1 }}
+                  >
+                    {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map((h) => (
+                      <option key={h} value={h}>
+                        {h}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Minute Selection */}
+                  <select
+                    className={`${styles.formInput} ${styles.formSelect}`}
+                    value={timeMinute}
+                    onChange={(e) => handleTimeChange(timeHour, e.target.value, timePeriod)}
+                    disabled={!isEditing}
+                    style={{ flex: 1 }}
+                  >
+                    {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Period Selection */}
+                  <select
+                    className={`${styles.formInput} ${styles.formSelect}`}
+                    value={timePeriod}
+                    onChange={(e) => handleTimeChange(timeHour, timeMinute, e.target.value)}
+                    disabled={!isEditing}
+                    style={{ flex: 1 }}
+                  >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
               </div>
 
               {/* Venue */}
               <div className={styles.inputGroup}>
                 <label className={styles.formLabel}>Venue</label>
-                <input
+               <input
                   type="text"
                   className={styles.formInput}
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
                   disabled={!isEditing}
                 />
+              </div>
+
+              {/* Target Batch */}
+              <div className={styles.inputGroup}>
+                <label className={styles.formLabel}>Target Batch (Optional)</label>
+                {isEditing ? (
+                  <div className={styles.multiSelectDropdown} ref={batchDropdownRef}>
+                    <div
+                      className={styles.multiSelectTrigger}
+                      onClick={() => setIsBatchDropdownOpen(!isBatchDropdownOpen)}
+                    >
+                      <span className={selectedBatches.length === 0 ? styles.placeholder : ''}>
+                        {getSelectedBatchNames()}
+                      </span>
+                      <span className="material-symbols-outlined">
+                        {isBatchDropdownOpen ? 'expand_less' : 'expand_more'}
+                      </span>
+                    </div>
+                    {isBatchDropdownOpen && (
+                      <div className={styles.multiSelectOptions}>
+                        {/* Add Custom Batch Input */}
+                        <div style={{ display: 'flex', gap: '0.5rem', padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--border-color)' }} onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="text"
+                            placeholder="Type custom batch..."
+                            value={customBatch}
+                            onChange={(e) => setCustomBatch(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addCustomBatch(customBatch);
+                              }
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: '0.4rem 0.75rem',
+                              fontSize: '0.85rem',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '0.375rem',
+                              outline: 'none'
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              addCustomBatch(customBatch);
+                            }}
+                            style={{
+                              padding: '0.4rem 0.75rem',
+                              fontSize: '0.85rem',
+                              backgroundColor: 'var(--primary)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '0.375rem',
+                              cursor: 'pointer',
+                              fontWeight: '600'
+                            }}
+                          >
+                            Add
+                          </button>
+                        </div>
+                        {allBatchOptions.map((opt) => (
+                          <label key={opt} className={styles.checkboxOption}>
+                            <input
+                              type="checkbox"
+                              checked={selectedBatches.includes(opt)}
+                              onChange={() => toggleBatchSelection(opt)}
+                            />
+                            <span className={styles.checkmark}></span>
+                            <span>{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    className={styles.formInput}
+                    value={batch || 'All Batches'}
+                    readOnly
+                  />
+                )}
               </div>
 
               {/* Organizer */}
@@ -583,7 +832,7 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
                   >
-                    <option value="pending">Pending</option>
+                    <option value="upcoming">Upcoming</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>

@@ -277,8 +277,8 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
                 <table className={styles.mailTable}>
                   <thead>
                     <tr>
-                      <th className={styles.thSender}>FROM / TO</th>
-                      <th className={styles.thSubject}>SUBJECT &amp; PREVIEW</th>
+                      <th className={styles.thSender}>FROM</th>
+                      <th className={styles.thSubject}>SUBJECT</th>
                       <th className={styles.thDate}>DATE</th>
                       <th className={styles.thStats}>RESPONSE STATS</th>
                       <th className={styles.thAction}>ACTION</th>
@@ -306,8 +306,6 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
                           <td className={styles.tdSubject}>
                             <div className={styles.subjectCell}>
                               <span className={styles.subjectTitle}>{subject}</span>
-                              <span className={styles.subjectSeparator}> — </span>
-                              <span className={styles.contentPreview}>{cleanContent}</span>
                             </div>
                           </td>
                           <td className={styles.tdDate}>

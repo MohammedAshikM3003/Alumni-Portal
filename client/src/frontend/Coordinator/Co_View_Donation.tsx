@@ -328,7 +328,7 @@ const CoordinatorViewDonation: FC<CoordinatorViewDonationProps> = ({ onLogout })
 
                                 <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-[#FF3D00]">
+                                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-emerald-600">
                                             <span className="material-symbols-outlined">verified</span>
                                         </div>
                                         <div>

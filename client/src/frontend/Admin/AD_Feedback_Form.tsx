@@ -8,7 +8,6 @@ import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
-
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -25,6 +24,7 @@ interface FeedbackData {
     name: string;
   };
   date: string;
+  time?: string;
   visionIV: FeedbackSection;
   missionIM: FeedbackSection;
   visionDV: FeedbackSection;
@@ -32,6 +32,36 @@ interface FeedbackData {
   peos: FeedbackSection;
   signature: string;
 }
+
+const FeedbackCard = ({ title, sectionKey, feedback }: { title: string; sectionKey: 'visionIV' | 'missionIM' | 'visionDV' | 'missionDM' | 'peos'; feedback: FeedbackData }) => {
+  const section = feedback[sectionKey];
+  return (
+    <div className={styles.feedbackCard}>
+      <h5 className={styles.cardTitle}>{title}</h5>
+      <div className={styles.radioGroup}>
+        <label className={styles.radioLabel}>
+          <input type="radio" name={sectionKey} checked={section?.rating === 'needs_improvement'} disabled readOnly />
+          Needs improvement
+        </label>
+        <label className={styles.radioLabel}>
+          <input type="radio" name={sectionKey} checked={section?.rating === 'satisfied'} disabled readOnly />
+          Satisfied
+        </label>
+        <label className={styles.radioLabel}>
+          <input type="radio" name={sectionKey} checked={section?.rating === 'best'} disabled readOnly />
+          Best
+        </label>
+      </div>
+      <input 
+        type="text"
+        className={styles.commentBox} 
+        placeholder="Comments/Suggestions"
+        value={section?.comment || ''}
+        readOnly
+      />
+    </div>
+  );
+};
 
 const Admin_Feedback_Form = ({ onLogout }: { onLogout?: () => void }) => {
   const navigate = useNavigate();
@@ -149,191 +179,184 @@ const Admin_Feedback_Form = ({ onLogout }: { onLogout?: () => void }) => {
     );
   }
 
-  const assessments = [
-    {
-      id: 'vision_iv',
-      title: 'Section: Vision (IV)',
-      rating: feedback.visionIV?.rating,
-      comment: feedback.visionIV?.comment || '',
-    },
-    {
-      id: 'mission_im',
-      title: 'Section: Mission (IM)',
-      rating: feedback.missionIM?.rating,
-      comment: feedback.missionIM?.comment || '',
-    },
-    {
-      id: 'vision_dv',
-      title: 'Section: Vision (DV)',
-      rating: feedback.visionDV?.rating,
-      comment: feedback.visionDV?.comment || '',
-    },
-    {
-      id: 'mission_dm',
-      title: 'Section: Mission (DM)',
-      rating: feedback.missionDM?.rating,
-      comment: feedback.missionDM?.comment || '',
-    },
-    {
-      id: 'peos',
-      title: 'Section: PEOs',
-      rating: feedback.peos?.rating,
-      comment: feedback.peos?.comment || '',
-    },
-  ];
-
   const signatureUrl = feedback.signature ? `${API_BASE}/api/feedback/image/${feedback.signature}` : null;
 
   return (
     <div className={styles.pageLayout}>
-
-      {/* Sidebar */}
+      {/* Sidebar Navigation */}
       <Sidebar onLogout={onLogout} currentView={'feedback'} />
 
-      {/* BEGIN: Main Content Area */}
+      {/* Main Content Area */}
       <main className={styles.mainContent}>
         {/* Back Button */}
-
         <div className={styles.backButton} onClick={() => navigate('/admin/feedback')} >
           <span className="material-symbols-outlined">arrow_back</span>
           <span>Back</span>
         </div>
-        {/* BEGIN: Scrollable Feedback Container */}
-        <div className={styles.scrollableContainer}>
-          <div className={styles.formCard} ref={formCardRef}>
 
-            {/* BEGIN: Form Header */}
-            <div className={styles.formHeader}>
-              <h2 className={styles.collegeName}>K.S.R. COLLEGE OF ENGINEERING (Autonomous), TIRUCHENGODE – 637 215</h2>
-              <h3 className={styles.departmentName}>DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING</h3>
-              <p className={styles.programName}>PROGRAM NAME: B.E. Computer Science and Engineering</p>
+        {/* Content Wrapper */}
+        <div className={styles.contentWrapper}>
+          
+          {/* SINGLE UNIFIED DOCUMENT CARD */}
+          <div className={styles.mainDocumentCard} ref={formCardRef}>
+            
+            {/* Header Section */}
+            <div className={styles.docHeader}>
+              <h2>K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS), TIRUCHENGODE – 637215</h2>
+              <h3>DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING</h3>
+              <h4>PROGRAM NAME: B.E. Computer Science and Engineering</h4>
+            </div>
 
-              <div className={styles.metaGrid}>
-                <div className={styles.inputGroup}>
-                  <label>Reviewed By:</label>
-                  <input readOnly type="text" value={feedback.reviewedBy || feedback.submittedBy?.name || ''} />
-                </div>
-                <div className={styles.inputGroup}>
-                  <label>Date:</label>
-                  <input readOnly type="text" value={formatDate(feedback.date)} />
+            {/* Reviewer Details Section */}
+            <div className={styles.reviewerSection}>
+              <div className={styles.inputGroup}>
+                <label>REVIEWED BY (INDIVIDUAL OR COMMITTEE NAME WITH ADDRESS):</label>
+                <input 
+                  readOnly 
+                  type="text" 
+                  className={styles.textInput} 
+                  value={feedback.reviewedBy || feedback.submittedBy?.name || ''} 
+                />
+              </div>
+              <div className={styles.inputGroup}>
+                <div className={styles.inputGroup2}>
+                  <div className={styles.inputGroupDate}>
+                    <label>DATE:</label>
+                    <div className={styles.dateInputWrapper}>
+                      <input 
+                        readOnly 
+                        type="text" 
+                        className={styles.dateInput} 
+                        value={formatDate(feedback.date)} 
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.inputGroupTime}>
+                    <label>TIME:</label>
+                    <div className={styles.TimeInputWrapper}>
+                      <input 
+                        readOnly 
+                        type="text" 
+                        className={styles.TimeInput} 
+                        value={feedback.time || ''} 
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            {/* END: Form Header */}
 
-            {/* BEGIN: Form Columns */}
-            <div className={styles.formColumns}>
+            <hr className={styles.mainDivider} />
 
-              {/* BEGIN: Left Column (Reference Data) */}
-              <div className={styles.referenceColumn}>
-                <section className={styles.refSection}>
-                  <h4>Vision of the Institution</h4>
-                  <p>To become a globally prominent institution in engineering and management, offering value-based holistic education that fosters research, innovation and sustainable development.</p>
-                </section>
-
-                <section className={styles.refSection}>
-                  <h4>Mission of the Institution</h4>
-                  <ul>
-                    <li>
-                      <span className={styles.listNum}>1.</span>
-                      <span>To impart value-based quality education through modern pedagogy and state-of-the-art infrastructure.</span>
-                    </li>
-                    <li>
-                      <span className={styles.listNum}>2.</span>
-                      <span>To enhance learning and managerial skills through cutting-edge laboratories and industry collaboration.</span>
-                    </li>
-                    <li>
-                      <span className={styles.listNum}>3.</span>
-                      <span>To promote research and innovation through collaboration, social responsibility and commitment to sustainable development.</span>
-                    </li>
-                  </ul>
-                </section>
-
-                <section className={styles.refSection}>
-                  <h4>Vision of the Department</h4>
-                  <p>To produce globally competent learners and innovators in Computer Science and Engineering, committed to ethical values and sustainable development.</p>
-                </section>
-
-                <section className={styles.refSection}>
-                  <h4>Mission of the Department</h4>
-                  <div className={styles.gridList}>
-                    <p><span className={styles.boldGreen}>DM1:</span> To provide student-centric education;</p>
-                    <p><span className={styles.boldGreen}>DM2:</span> To impart quality technical education;</p>
-                    <p><span className={styles.boldGreen}>DM3:</span> To meet global industry demand;</p>
-                    <p><span className={styles.boldGreen}>DM4:</span> To promote interdisciplinary innovation.</p>
-                  </div>
-                </section>
-
-                <section className={styles.refSection}>
-                  <h4>Program Educational Objectives (PEOs)</h4>
-                  <div className={styles.gridList}>
-                    <p><span className={styles.boldGreen}>PEO1:</span> Graduates will integrate engineering fundamentals and computing to devise innovative solutions and effectively resolve complex problems.</p>
-                    <p><span className={styles.boldGreen}>PEO2:</span> Graduates will drive sustainable and ethical solutions by engaging in lifelong learning and adapting to technological advancements.</p>
-                    <p><span className={styles.boldGreen}>PEO3:</span> Graduates will enhance their careers through continuous learning, innovation, and research to meet the evolving needs of the industry.</p>
-                  </div>
-                </section>
+            {/* Content Body - Row by Row Grid for Perfect Alignment */}
+            <div className={styles.docBody}>
+              
+              {/* ROW 1: Vision of Institution */}
+              <div className={styles.gridRow}>
+                <div className={styles.leftCol}>
+                  <h5 className={styles.blueHeading}>VISION OF THE INSTITUTION</h5>
+                  <p className={styles.italicText}>To become a globally prominent institution in engineering and management, offering value-based holistic education that fosters research, innovation and sustainable development.</p>
+                </div>
+                <div className={styles.rightCol}>
+                  <FeedbackCard title="Section: Vision (IV)" sectionKey="visionIV" feedback={feedback} />
+                </div>
               </div>
-              {/* END: Left Column */}
 
-              {/* BEGIN: Right Column (Assessment Forms) */}
-              <div className={styles.assessmentColumn}>
+              {/* ROW 2: Mission of Institution */}
+              <div className={styles.gridRow}>
+                <div className={styles.leftCol}>
+                  <h5 className={styles.blueHeading}>MISSION OF THE INSTITUTION</h5>
+                  <ol className={styles.orderedList}>
+                    <li>To impart value-based quality education through modern pedagogy and state-of-the-art infrastructure.</li>
+                    <li>To enhance learning and managerial skills through cutting-edge laboratories and industry collaboration.</li>
+                    <li>To promote research and innovation through collaboration, social responsibility and commitment to sustainable development.</li>
+                  </ol>
+                </div>
+                <div className={styles.rightCol}>
+                  <FeedbackCard title="Section: Mission (IM)" sectionKey="missionIM" feedback={feedback} />
+                </div>
+              </div>
 
-                {assessments.map((item) => (
-                  <div key={item.id} className={styles.assessmentCard}>
-                    <h5>{item.title}</h5>
-                    <div className={styles.radioGroup}>
-                      <label className={styles.radioLabel}>
-                        <input disabled name={item.id} type="radio" className={styles.radioInput} checked={item.rating === 'needs_improvement'} readOnly />
-                        <span>Needs improvement</span>
-                      </label>
-                      <label className={styles.radioLabel}>
-                        <input disabled name={item.id} type="radio" className={styles.radioInput} checked={item.rating === 'satisfied'} readOnly />
-                        <span>Satisfied</span>
-                      </label>
-                      <label className={styles.radioLabel}>
-                        <input disabled name={item.id} type="radio" className={styles.radioInput} checked={item.rating === 'best'} readOnly />
-                        <span>Best</span>
-                      </label>
-                    </div>
-                    <textarea
-                      readOnly
-                      className={styles.feedbackTextarea}
-                      placeholder="Comments/Suggestions"
-                      rows={2}
-                      value={item.comment}
-                    ></textarea>
+              {/* ROW 3: Vision of Department */}
+              <div className={styles.gridRow}>
+                <div className={styles.leftCol}>
+                  <h5 className={styles.blueHeading}>VISION OF THE DEPARTMENT</h5>
+                  <p className={styles.italicText}>To produce globally competent learners and innovators in Computer Science and Engineering, committed to ethical values and sustainable development.</p>
+                </div>
+                <div className={styles.rightCol}>
+                  <FeedbackCard title="Section: Vision (DV)" sectionKey="visionDV" feedback={feedback} />
+                </div>
+              </div>
+
+              {/* ROW 4: Mission of Department */}
+              <div className={styles.gridRow}>
+                <div className={styles.leftCol}>
+                  <h5 className={styles.blueHeading}>MISSION OF THE DEPARTMENT</h5>
+                  <ul className={styles.noBulletList}>
+                    <li><strong>DM1:</strong> To provide student-centric education</li>
+                    <li><strong>DM2:</strong> To impart quality technical education</li>
+                    <li><strong>DM3:</strong> To meet global industry demand</li>
+                    <li><strong>DM4:</strong> To promote interdisciplinary innovation</li>
+                  </ul>
+                </div>
+                <div className={styles.rightCol}>
+                  <FeedbackCard title="Section: Mission (DM)" sectionKey="missionDM" feedback={feedback} />
+                </div>
+              </div>
+
+              {/* ROW 5: PEOs & Final Submission */}
+              <div className={styles.gridRow}>
+                <div className={styles.leftCol}>
+                  <h5 className={styles.blueHeading}>PROGRAM EDUCATIONAL OBJECTIVES (PEOS)</h5>
+                  <div className={styles.peoBlock}>
+                    <h6>PEO1:</h6>
+                    <p>Graduates will integrate engineering fundamentals and computing to devise innovative solutions and effectively resolve complex problems.</p>
                   </div>
-                ))}
-
-                {/* Signature & Submission */}
-                <div className={styles.signatureSection}>
-                  <div className={styles.signatureBox}>
-                    <p className={styles.signatureLabel}>Digital Signature</p>
-                    <div className={styles.signatureDisplay}>
+                  <div className={styles.peoBlock}>
+                    <h6>PEO2:</h6>
+                    <p>Graduates will drive sustainable and ethical solutions by engaging in lifelong learning and adapting to technological advancements.</p>
+                  </div>
+                  <div className={styles.peoBlock}>
+                    <h6>PEO3:</h6>
+                    <p>Graduates will enhance their careers through continuous learning, innovation, and research to meet the evolving needs of the industry.</p>
+                  </div>
+                </div>
+                
+                <div className={styles.rightCol}>
+                  <FeedbackCard title="Section: Program Educational Objectives (PEOs)" sectionKey="peos" feedback={feedback} />
+                  
+                  {/* Digital Signature */}
+                  <div className={styles.signatureSection}>
+                    <div className={styles.signatureTitleWrapper}>
+                      <h5 className={styles.signatureTitle}>DIGITAL SIGNATURE:</h5>
+                    </div>
+                    <div className={styles.uploadBox}>
                       {signatureUrl ? (
-                        <img src={signatureUrl} alt="Signature" className={styles.signatureImage} />
+                        <div className={styles.imageContainer}>
+                          <img src={signatureUrl} alt="Signature Preview" className={styles.signaturePreview} />
+                        </div>
                       ) : (
-                        <span className={styles.signatureFont}>{feedback.submittedBy?.name?.split(' ')[0] || 'N/A'}</span>
+                        <div className={styles.imageContainer}>
+                          <span className={styles.signatureFont}>
+                            {feedback.submittedBy?.name?.split(' ')[0] || 'N/A'}
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>
-                  <div className={styles.actionRow}>
-                    <button type="button" className={styles.downloadBtn} onClick={handleDownload}>Download</button>
-                  </div>
-                </div>
 
+                  {/* Download Button */}
+                  <button className={styles.submitBtn} onClick={handleDownload}>
+                    Download Feedback Form
+                  </button>
+                </div>
               </div>
-              {/* END: Right Column */}
 
             </div>
-            {/* END: Form Columns */}
 
           </div>
         </div>
-        {/* END: Scrollable Feedback Container */}
-
       </main>
-      {/* END: Main Content Area */}
     </div>
   );
 };
