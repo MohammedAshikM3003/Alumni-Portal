@@ -37,6 +37,8 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
   const [loading, setLoading] = useState(true);
   const [draftCount, setDraftCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "accept" | "reject">("all");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 10;
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -86,6 +88,10 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
     fetchDraftCount(controller.signal);
     return () => controller.abort();
   }, [user?.token]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchQuery]);
 
   const handleRefresh = () => {
     setSearchQuery("");
@@ -161,6 +167,11 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedMails.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedMails = sortedMails.slice(startIndex, startIndex + itemsPerPage);
+
   // Counts for pills
   const allCount = mailData.length;
   const pendingCount = mailData.filter(m => (m.responseStats && m.responseStats.pending > 0) || m.status === 'pending' || m.dominantStatus === 'pending').length;
@@ -177,7 +188,6 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
           <div className={styles.headerSection}>
             <div>
               <h2 className={styles.pageTitle}>Mail History</h2>
-              <p className={styles.pageSubtitle}>View, track, and manage all sent mail broadcasts and invitation threads</p>
             </div>
           </div>
 
@@ -280,12 +290,12 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
                       <th className={styles.thSender}>FROM</th>
                       <th className={styles.thSubject}>SUBJECT</th>
                       <th className={styles.thDate}>DATE</th>
-                      <th className={styles.thStats}>RESPONSE STATS</th>
+                      <th className={styles.thStats}>RESPONSE STATUS</th>
                       <th className={styles.thAction}>ACTION</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedMails.map((mail) => {
+                    {paginatedMails.map((mail) => {
                       const subject = mail.title?.trim() || 'No Subject';
                       const cleanContent = mail.content?.replace(/\r?\n|\r/g, ' ').trim() || '';
                       const stats = mail.responseStats;
@@ -354,7 +364,7 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
 
               {/* Mobile Card List View */}
               <div className={styles.mobileMailList}>
-                {sortedMails.map((mail) => {
+                {paginatedMails.map((mail) => {
                   const subject = mail.title?.trim() || 'No Subject';
                   const cleanContent = mail.content?.replace(/\r?\n|\r/g, ' ').trim() || '';
                   const stats = mail.responseStats;
@@ -407,6 +417,40 @@ export default function Admin_Mail({ onLogout }: { onLogout?: () => void }) {
                   );
                 })}
               </div>
+
+              {/* Pagination Footer */}
+              {totalPages > 1 && (
+                <div className={styles.paginationFooter}>
+                  <span className={styles.paginationText}>
+                    Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedMails.length)} of {sortedMails.length} mails
+                  </span>
+                  <div className={styles.paginationControls}>
+                    <button
+                      className={styles.pageBtn}
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        className={`${styles.pageBtn} ${currentPage === page ? styles.activePageBtn : ''}`}
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      className={styles.pageBtn}
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>

@@ -128,7 +128,6 @@ const CoordinatorJobHistory: FC<CoordinatorJobHistoryProps> = ({ onLogout }) => 
                                             <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xl border-2 border-slate-50">
                                                 {getInitials(job.submittedBy?.name || 'Unknown')}
                                             </div>
-                                            <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white ${job.status === 'approved' ? 'bg-green-500' : job.status === 'rejected' ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
                                         </div>
                                         <h3 className="mt-3 font-bold text-base text-slate-900">{job.submittedBy?.name || 'Unknown'}</h3>
                                         <p className="text-slate-500 text-[10px] font-medium uppercase tracking-wide">Referrer</p>

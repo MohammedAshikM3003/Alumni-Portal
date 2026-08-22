@@ -32,7 +32,7 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;
     title: string;
-    message: string;
+    message: string | React.ReactNode;
     type?: 'warning' | 'error' | 'success';
   } | null>(null);
   const [formData, setFormData] = useState({
@@ -142,7 +142,11 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
         isOpen: true,
         type: 'warning',
         title: 'Department Already Exists',
-        message: `The "${deptName}" department has already been created. Please enter a different name.`,
+        message: (
+          <>
+            The <span className={styles.highlightDept}>"{formatBranchName(deptName)}"</span> department has already been created. Please enter a different name.
+          </>
+        ),
       });
       setSubmitting(false);
       return;
@@ -172,7 +176,11 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
             isOpen: true,
             type: 'warning',
             title: 'Department Already Exists',
-            message: `The "${deptName}" department has already been created. Please enter a different name.`,
+            message: (
+              <>
+                The <span className={styles.highlightDept}>"{formatBranchName(deptName)}"</span> department has already been created. Please enter a different name.
+              </>
+            ),
           });
         } else {
           setError(data.message || 'Failed to create department');

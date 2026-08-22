@@ -914,3 +914,206 @@
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+
+/* ================== NEW DASHBOARD LAYOUT (IMAGE 2 STYLE) ================== */
+.dashboardStatsRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.1fr 1.1fr;
+  gap: 1.25rem;
+  padding: 0 2.5rem 1.5rem 2.5rem;
+}
+
+@media (max-width: 1200px) {
+  .dashboardStatsRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboardStatsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card 1: Search & Filter Card */
+.filterCard {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.searchBoxWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.875rem;
+  color: var(--text-light);
+  pointer-events: none;
+}
+
+.searchBoxInput {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.searchBoxInput:focus {
+  background-color: white;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(46, 111, 64, 0.1);
+}
+
+.dropdownRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+}
+
+.dropdownSelect {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: white;
+  color: var(--text-muted);
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dropdownSelect:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(46, 111, 64, 0.1);
+}
+
+/* Card 2 & 3: KPI Metric Cards */
+.kpiMetricCard {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.kpiMetricLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.5rem 0;
+}
+
+.kpiMetricValue {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--primary-green);
+  margin: 0;
+  line-height: 1;
+}
+
+/* Card 4: Add Alumni Button Card */
+.addAlumniButtonCard {
+  background-color: var(--primary-green);
+  border-radius: 16px;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(46, 111, 64, 0.15);
+  color: white;
+  border: 1px solid transparent;
+}
+
+.addAlumniButtonCard:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(46, 111, 64, 0.25);
+}
+
+.addAlumniIcon {
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.addAlumniText {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.sendLinksBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  background-color: var(--primary-green);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 6px rgba(46, 111, 64, 0.15);
+}
+
+.sendLinksBtn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(46, 111, 64, 0.25);
+}
+
+.sendLinksBtn:active {
+  transform: translateY(0);
+}
+
+.clearBtnCompact {
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  border: 1px solid #fee2e2;
+  border-radius: 8px;
+  background-color: #fef2f2;
+  color: #ef4444;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.clearBtnCompact:hover {
+  background-color: #fee2e2;
+}

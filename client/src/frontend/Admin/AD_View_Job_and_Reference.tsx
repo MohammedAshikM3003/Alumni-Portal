@@ -282,7 +282,7 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
         </div>
         <div className={styles.contentWrapper}>
           {/* Form Card */}
-          <div className={`${styles.formCard} ${getBorderClassByStatus(jobReference.status)}`}>
+          <div className={styles.formCard}>
             <div className={styles.formHeader}>
               <div className="flex justify-between items-center">
                 <div>
@@ -290,19 +290,6 @@ const Admin_View_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) =
                   <p className={styles.formSubtitle}>Submitted {formatDate(jobReference.createdAt)}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase flex items-center gap-1 ${jobReference.status === 'approved' ? 'bg-green-100 text-green-700' : jobReference.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                    {jobReference.status === 'approved' && (
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>verified</span>
-                    )}
-                    {jobReference.status === 'rejected' && (
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>cancel</span>
-                    )}
-                    {jobReference.status === 'approved'
-                      ? `Approved by ${getCoordinatorName(jobReference, 'approved')}`
-                      : jobReference.status === 'rejected'
-                      ? `Rejected by ${getCoordinatorName(jobReference, 'rejected')}`
-                      : jobReference.status}
-                  </span>
                   <button
                     onClick={handleDelete}
                     className="flex items-center gap-2 px-4 py-2 bg-white text-red-500 border border-red-500 rounded-lg font-semibold text-sm hover:bg-red-500 hover:text-white transition-all duration-200"

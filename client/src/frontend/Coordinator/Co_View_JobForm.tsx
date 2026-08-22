@@ -192,12 +192,9 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
                     <div className="max-w-auto mx-auto">
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-2xl font-bold text-slate-900">View Job Reference</h2>
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${jobReference.status === 'approved' ? 'bg-green-100 text-green-700' : jobReference.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                {jobReference.status}
-                            </span>
                         </div>
 
-                        <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8 ${getBorderClassByStatus(jobReference.status)}`}>
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
                             <div className="p-8 pb-0">
                                 {/* Alumni Section */}
                                 <div className="mb-8 pb-8 border-b border-slate-200">
@@ -274,25 +271,6 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
                             </div>
                         </div>
 
-                        {/* Approval Actions Section */}
-                        {jobReference.status === 'pending' && (
-                            <div className="mt-8 p-6 bg-white rounded-2xl border border-slate-200 flex justify-end gap-4 shadow-sm">
-                                <button
-                                    onClick={() => handleStatusUpdate('rejected')}
-                                    disabled={updating}
-                                    className="px-5 py-2.5 rounded-xl border border-red-200 text-red-600 font-bold text-sm bg-white hover:bg-red-50 transition-colors disabled:opacity-50"
-                                >
-                                    Reject Referral
-                                </button>
-                                <button
-                                    onClick={() => handleStatusUpdate('approved')}
-                                    disabled={updating}
-                                    className="px-5 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm transition-colors shadow-md shadow-green-600/10 disabled:opacity-50"
-                                >
-                                    {updating ? 'Updating...' : 'Approve Referral'}
-                                </button>
-                            </div>
-                        )}
 
                     </div>
                 </div>

@@ -672,7 +672,7 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 style={{ ...filterInputStyle, width: '100%', paddingLeft: '2.4rem', background: '#f8fafc' }}
-                onFocus={e => { e.target.style.borderColor = '#228B22'; e.target.style.boxShadow = '0 0 0 3px rgba(34,139,34,0.1)'; e.target.style.backgroundColor = '#fff'; }}
+                onFocus={e => { e.target.style.borderColor = '#228B22'; e.target.style.boxShadow = '0 0 0 3px rgba(34,139,34,0.1)'; e.target.style.backgroundColor = '#f8fafc'; }}
                 onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; e.target.style.backgroundColor = '#f8fafc'; }}
               />
             </div>
@@ -682,6 +682,8 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
               value={selectedDept}
               onChange={(e) => { setSelectedDept(e.target.value); setCurrentPage(1); }}
               style={{ ...filterInputStyle, minWidth: '160px', cursor: 'pointer' }}
+              onFocus={e => { e.target.style.borderColor = '#228B22'; e.target.style.boxShadow = '0 0 0 3px rgba(34,139,34,0.1)'; }}
+              onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
             >
               <option value="">All Departments</option>
               {departments.map((dept) => (
@@ -718,6 +720,8 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               style={{ ...filterInputStyle, cursor: 'pointer' }}
+              onFocus={e => { e.target.style.borderColor = '#228B22'; e.target.style.boxShadow = '0 0 0 3px rgba(34,139,34,0.1)'; }}
+              onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
             >
               <option value="date_desc">Date: Newest First</option>
               <option value="date_asc">Date: Oldest First</option>

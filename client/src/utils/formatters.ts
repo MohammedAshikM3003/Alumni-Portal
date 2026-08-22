@@ -9,8 +9,18 @@
  */
 export const formatBranchName = (branch: string | undefined | null): string => {
   if (!branch) return '';
-  const trimmed = branch.trim();
+  let trimmed = branch.trim();
   if (!trimmed) return '';
+
+  // Deduplicate repeated halves (case-insensitive)
+  const halfLen = Math.floor(trimmed.length / 2);
+  if (halfLen > 0) {
+    const firstHalf = trimmed.substring(0, halfLen).toLowerCase();
+    const secondHalf = trimmed.substring(halfLen).toLowerCase();
+    if (firstHalf === secondHalf) {
+      trimmed = trimmed.substring(0, halfLen);
+    }
+  }
 
   const minorWords = new Set(['and', 'of', 'in', 'for', 'the', 'to', 'on', 'at', 'by', 'with', '&']);
 

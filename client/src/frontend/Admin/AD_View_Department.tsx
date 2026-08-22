@@ -41,7 +41,7 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;
     title: string;
-    message: string;
+    message: string | React.ReactNode;
     type?: 'success' | 'warning' | 'error';
     onClose?: () => void;
   } | null>(null);
@@ -185,7 +185,11 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
           isOpen: true,
           type: 'success',
           title: 'Department Deleted',
-          message: `The "${formatBranchName(department.branch)}" department has been deleted successfully.`,
+          message: (
+            <>
+              The <span className={styles.highlightDept}>"{formatBranchName(department.branch)}"</span> department has been deleted successfully.
+            </>
+          ),
           onClose: () => navigate('/admin/department'),
         });
       } else {
@@ -366,7 +370,7 @@ const Admin_View_Department = ( { onLogout }: { onLogout?: () => void } ) => {
             </div>
             <h2 className={styles.alertTitle}>Delete Department</h2>
             <p className={styles.alertMessage}>
-              Are you sure you want to delete the "{formatBranchName(department?.branch || '')}" department? All associated faculty members will also be removed. This action cannot be undone.
+              Are you sure you want to delete the <span className={styles.highlightDept}>"{formatBranchName(department?.branch || '')}"</span> department? All associated faculty members will also be removed. This action cannot be undone.
             </p>
             <div className={styles.modalActionButtons}>
               <button

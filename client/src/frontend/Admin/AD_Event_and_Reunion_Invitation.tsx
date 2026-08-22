@@ -209,7 +209,7 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
   const allBatchOptions = sortBatches([...new Set([...BATCH_OPTIONS, ...selectedBatches])]);
   
   const getSelectedBatchNames = () => {
-    if (selectedBatches.length === 0) return 'Select target batches';
+    if (selectedBatches.length === 0) return 'Select batches';
     return selectedBatches.join(', ');
   };
 
@@ -676,9 +676,9 @@ const Admin_Event_and_Reunion_Invitation = ({ onLogout }: { onLogout?: () => voi
                 />
               </div>
 
-              {/* Target Batch */}
+              {/* Batch */}
               <div className={styles.inputGroup}>
-                <label className={styles.formLabel}>Target Batch (Optional)</label>
+                <label className={styles.formLabel}>Batch (Optional)</label>
                 {isEditing ? (
                   <div className={styles.multiSelectDropdown} ref={batchDropdownRef}>
                     <div

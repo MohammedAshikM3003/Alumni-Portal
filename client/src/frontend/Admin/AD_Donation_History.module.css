@@ -310,11 +310,7 @@
 }
 
 .table tbody tr:hover td {
-  background-color: #f0fdf4;
-}
-
-.table tbody tr:hover .tdAmount {
-  color: #15803d;
+  background-color: #f8fafc;
 }
 
 .table tr:last-child td {

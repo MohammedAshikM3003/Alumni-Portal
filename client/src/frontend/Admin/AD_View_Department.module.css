@@ -689,8 +689,8 @@
 }
 
 .alertIconCircle {
-  width: 68px;
-  height: 68px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background-color: #276738;
   display: flex;
@@ -698,11 +698,12 @@
   justify-content: center;
   margin-bottom: 1.5rem;
   color: #ffffff;
+  box-shadow: 0 8px 20px rgba(39, 103, 56, 0.25);
 }
 
 .alertIconCircleRed {
-  width: 68px;
-  height: 68px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background-color: #ef4444;
   display: flex;
@@ -710,6 +711,7 @@
   justify-content: center;
   margin-bottom: 1.5rem;
   color: #ffffff;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.25);
 }
 
 .alertTitle {
@@ -727,23 +729,29 @@
   line-height: 1.5;
 }
 
+.highlightDept {
+  font-weight: 700;
+  color: #ef4444;
+}
+
 .alertOkBtn {
   width: 100%;
   padding: 0.85rem 1.5rem;
   background-color: #276738;
   color: #ffffff;
   border: none;
-  border-radius: 9999px;
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(39, 103, 56, 0.2);
 }
 
 .alertOkBtn:hover {
   background-color: #1e4f2b;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(39, 103, 56, 0.3);
+  box-shadow: 0 6px 16px rgba(39, 103, 56, 0.35);
 }
 
 .alertOkBtn:active {
@@ -759,10 +767,10 @@
 .cancelModalBtn {
   flex: 1;
   padding: 0.85rem 1.5rem;
-  background-color: #f1f5f9;
-  color: #475569;
+  background-color: #f8fafc;
+  color: #64748b;
   border: 1px solid #e2e8f0;
-  border-radius: 9999px;
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -770,7 +778,8 @@
 }
 
 .cancelModalBtn:hover {
-  background-color: #e2e8f0;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
   color: #0f172a;
 }
 
@@ -780,17 +789,18 @@
   background-color: #ef4444;
   color: #ffffff;
   border: none;
-  border-radius: 9999px;
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
 .deleteModalBtn:hover {
   background-color: #dc2626;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
 }
 
 .deleteModalBtn:disabled {

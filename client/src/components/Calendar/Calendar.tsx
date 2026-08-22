@@ -78,7 +78,7 @@ const Calendar = ({ value, onChange, onClose, theme = 'admin', yearRange = 'defa
     const newDate = new Date(year, selectedDate?.getMonth() || currentDate.getMonth(), selectedDate?.getDate() || 1);
     setSelectedDate(newDate);
     setCurrentDate(newDate);
-    setViewMode('day');
+    setViewMode('month');
   };
 
   const handleApply = () => {

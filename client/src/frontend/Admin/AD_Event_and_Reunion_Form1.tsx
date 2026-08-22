@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/authContext/authContext';
 import { formatBranchName } from '../../utils/formatters';
+import { DateInput } from '../../components/Calendar';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -134,7 +135,7 @@ const Admin_Event_and_Reunion_Form1 = ({ onLogout }: { onLogout?: () => void }) 
   const allBatchOptions = sortBatches([...new Set([...BATCH_OPTIONS, ...selectedBatches])]);
   
   const getSelectedBatchNames = () => {
-    if (selectedBatches.length === 0) return 'Select target batches';
+    if (selectedBatches.length === 0) return 'Select batches';
     return selectedBatches.join(', ');
   };
 
@@ -328,9 +329,9 @@ const Admin_Event_and_Reunion_Form1 = ({ onLogout }: { onLogout?: () => void }) 
               <div className={styles.rowGroup}>
                  <div className={styles.inputGroup}>
                   <label className={styles.formLabel}>Event Date</label>
-                  <input
-                    type="date"
+                  <DateInput
                     name="eventDate"
+                    theme="admin"
                     className={`${styles.formInput} ${errors.eventDate ? styles.inputError : ''}`}
                     value={eventDate}
                     onChange={(e) => {
@@ -414,9 +415,9 @@ const Admin_Event_and_Reunion_Form1 = ({ onLogout }: { onLogout?: () => void }) 
                 {errors.venue && <span className={styles.errorText}>{errors.venue}</span>}
               </div>
 
-              {/* Target Batch */}
+              {/* Batch */}
               <div className={styles.inputGroup}>
-                <label className={styles.formLabel}>Target Batch (Optional)</label>
+                <label className={styles.formLabel}>Batch (Optional)</label>
                 <div className={styles.multiSelectDropdown} ref={batchDropdownRef}>
                   <div
                     className={styles.multiSelectTrigger}
