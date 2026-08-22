@@ -4,6 +4,7 @@ import type { Request, Response } from 'express';
 import User from '../models/user.js';
 import Alumni from '../models/alumni.js';
 import { formatBranchName } from '../utils/formatBranch.js';
+import { findCoordinatorForUser } from '../utils/coordinatorResolver.js';
 
 /**
  * Format DOB to password string (DDMMYYYY)
@@ -63,6 +64,20 @@ export const createAlumni = async (req: Request, res: Response): Promise<void> =
 			return;
 		}
 
+		let finalBranch = branch;
+		if (req.user?.role === 'coordinator') {
+			const coordinator = await findCoordinatorForUser(req.user);
+			if (!coordinator || !coordinator.department) {
+				res.status(403).json({
+					success: false,
+					message: 'Coordinator department not found or access denied',
+				});
+				return;
+			}
+			// Enforce coordinator department
+			finalBranch = coordinator.department;
+		}
+
 		// Check if user with email or registerNumber already exists
 		const existingUser = await User.findOne({
 			$or: [{ email }, { userId: registerNumber }],
@@ -111,7 +126,7 @@ export const createAlumni = async (req: Request, res: Response): Promise<void> =
 			yearFrom,
 			yearTo,
 			degree,
-			branch: formatBranchName(branch),
+			branch: formatBranchName(finalBranch),
 			presentAddress,
 			permanentAddress,
 			hasCompetitiveExams,
@@ -359,8 +374,30 @@ export const updateAlumni = async (req: Request, res: Response): Promise<void> =
 			return;
 		}
 
+		if (req.user?.role === 'coordinator') {
+			const coordinator = await findCoordinatorForUser(req.user);
+			if (!coordinator || !coordinator.department) {
+				res.status(403).json({ success: false, message: 'Coordinator department not found' });
+				return;
+			}
+			const existingAlumni = await Alumni.findById(id);
+			if (!existingAlumni) {
+				res.status(404).json({ success: false, message: 'Alumni not found' });
+				return;
+			}
+			if (formatBranchName(existingAlumni.branch).toLowerCase() !== formatBranchName(coordinator.department).toLowerCase()) {
+				res.status(403).json({ success: false, message: 'Access denied: You can only manage alumni from your department' });
+				return;
+			}
+		}
+
 		const updatePayload = { ...req.body };
-		if (updatePayload.branch) {
+		if (req.user?.role === 'coordinator') {
+			const coordinator = await findCoordinatorForUser(req.user);
+			if (coordinator?.department) {
+				updatePayload.branch = coordinator.department;
+			}
+		} else if (updatePayload.branch) {
 			updatePayload.branch = formatBranchName(updatePayload.branch);
 		}
 
@@ -403,6 +440,14 @@ export const deleteAlumni = async (req: Request, res: Response): Promise<void> =
 		if (!alumni) {
 			res.status(404).json({ success: false, message: 'Alumni not found' });
 			return;
+		}
+
+		if (req.user?.role === 'coordinator') {
+			const coordinator = await findCoordinatorForUser(req.user);
+			if (!coordinator || !coordinator.department || formatBranchName(alumni.branch).toLowerCase() !== formatBranchName(coordinator.department).toLowerCase()) {
+				res.status(403).json({ success: false, message: 'Access denied: You can only delete alumni from your department' });
+				return;
+			}
 		}
 
 		// Delete the alumni

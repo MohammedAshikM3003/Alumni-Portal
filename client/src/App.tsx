@@ -59,11 +59,13 @@ import CoordinatorViewJobForm from './frontend/Coordinator/Co_View_JobForm';
 import CoordinatorDonationHistory from './frontend/Coordinator/Co_Donation_History';
 import CoordinatorViewDonation from './frontend/Coordinator/Co_View_Donation';
 import CoordinatorInvitations from './frontend/Coordinator/Co_Invitations';
+import Coordinator_Event_and_Reunion_Form from './frontend/Coordinator/Co_Event_and_Reunion_Form';
 import CoordinatorViewInvitation from './frontend/Coordinator/Co_View_Invitation';
 import CoordinatorFeedbackHistory from './frontend/Coordinator/Co_Feedback'
 import CoordinatorFeedbackForm from './frontend/Coordinator/Co_Feedback_Form'
 import CoordinatorProfile from './frontend/Coordinator/Co_Profile'
 import Coordinator_Alumni from './frontend/Coordinator/Co_Alumni'
+import Coordinator_Alumini_Form from './frontend/Coordinator/Co_Alumini_Form'
 import Coordinator_View_Alumni from './frontend/Coordinator/Co_View_Alumni'
 
 import PageTitleManager from './components/PageTitleManager';
@@ -368,6 +370,10 @@ function App() {
           element={guard('coordinator', <Coordinator_Alumni onLogout={logout} />)}
         />
         <Route
+          path="/coordinator/alumni_form"
+          element={guard('coordinator', <Coordinator_Alumini_Form onLogout={logout} />)}
+        />
+        <Route
           path="/coordinator/alumni/:id"
           element={guard('coordinator', <Coordinator_View_Alumni onLogout={logout} />)}
         />
@@ -386,6 +392,10 @@ function App() {
         <Route
           path="/coordinator/invitations"
           element={guard('coordinator', <CoordinatorInvitations onLogout={logout} />)}
+        />
+        <Route
+          path="/coordinator/event_and_reunion_form"
+          element={guard('coordinator', <Coordinator_Event_and_Reunion_Form onLogout={logout} />)}
         />
         <Route
           path="/coordinator/view_invitations/:id"

@@ -5,7 +5,7 @@ import App from './App'
 import AuthProvider from './context/authContext/authContext'
 import { AdminProvider } from './context/adminContext/adminContext'
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 // This is react-dom at work: attaching your React app to the HTML div with id "root"
 const rootElement = document.getElementById('root');

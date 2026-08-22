@@ -6,6 +6,7 @@ import User from '../models/user.js';
 import Alumni from '../models/alumni.js';
 import { generateToken } from '../security/jwt.js';
 import createTransporter from '../utils/mailer.js';
+import { findCoordinatorForUser } from '../utils/coordinatorResolver.js';
 
 const normalizeBaseUrl = (url: string | undefined): string => String(url || '').replace(/\/+$/, '');
 
@@ -81,6 +82,14 @@ export const sendRegistrationLinks = async (req: Request, res: Response): Promis
 		const sent: string[] = [];
 		const failed: any[] = [];
 
+		let initialPrefilledData: Record<string, any> | null = null;
+		if (req.user?.role === 'coordinator') {
+			const coordinator = await findCoordinatorForUser(req.user);
+			if (coordinator?.department) {
+				initialPrefilledData = { branch: coordinator.department };
+			}
+		}
+
 		for (const [index, email] of emails.entries()) {
 			try {
 				logStep(traceId, 'send-links', 5, { index, email, message: 'Processing recipient' });
@@ -155,7 +164,7 @@ export const sendRegistrationLinks = async (req: Request, res: Response): Promis
 					</html>
 				`;
 
-				logStep(traceId, 'send-links', 9, { index, email, registrationUrl });
+				logStep(traceId, 'send-links', 9, { index, email, registrationUrl, message: 'Sending email' });
 				const mailInfo = await transporter.sendMail({
 					from: `"Alumni Portal" <${process.env.EMAIL_USER}>`,
 					to: email,
@@ -172,6 +181,7 @@ export const sendRegistrationLinks = async (req: Request, res: Response): Promis
 					token,
 					email: email.toLowerCase(),
 					expiresAt,
+					prefilledData: initialPrefilledData,
 					status: 'pending',
 				});
 				logStep(traceId, 'send-links', 10.1, {
@@ -297,6 +307,14 @@ export const sendSingleRegistrationLink = async (req: Request, res: Response): P
 			message: 'Token prepared in memory (not yet stored)',
 		});
 
+		let initialPrefilledData: Record<string, any> | null = null;
+		if (req.user?.role === 'coordinator') {
+			const coordinator = await findCoordinatorForUser(req.user);
+			if (coordinator?.department) {
+				initialPrefilledData = { branch: coordinator.department };
+			}
+		}
+
 		logStep(traceId, 'send-single-link', 8, { message: 'Creating OAuth2 transporter' });
 		const transporter = await createTransporter();
 		const portalBaseUrl = normalizeBaseUrl(process.env.PORTAL_URL || 'http://localhost:5173');
@@ -357,6 +375,7 @@ export const sendSingleRegistrationLink = async (req: Request, res: Response): P
 			token,
 			email: email.toLowerCase(),
 			expiresAt,
+			prefilledData: initialPrefilledData,
 			status: 'pending',
 		});
 		logStep(traceId, 'send-single-link', 11, {
@@ -416,6 +435,15 @@ export const sendPrefilledRegistrationLink = async (req: Request, res: Response)
 		if (!emailRegex.test(email)) {
 			logBreak(traceId, 'send-prefilled-link', 4, 'Invalid email format', { email });
 			return sendStepFailure(res, 400, traceId, 'send-prefilled-link', 4, 'Invalid email format');
+		}
+
+		if (req.user?.role === 'coordinator') {
+			const coordinator = await findCoordinatorForUser(req.user);
+			if (!coordinator || !coordinator.department) {
+				logBreak(traceId, 'send-prefilled-link', 4.5, 'Coordinator department missing');
+				return sendStepFailure(res, 403, traceId, 'send-prefilled-link', 4.5, 'Coordinator department not found or access denied');
+			}
+			prefilledData.branch = coordinator.department;
 		}
 
 		logStep(traceId, 'send-prefilled-link', 5, { email, message: 'Checking existing user' });
@@ -671,6 +699,8 @@ export const submitRegistration = async (req: Request, res: Response): Promise<v
 		let newUser;
 		let alumni;
 
+		const finalBranch = (tokenRecord.prefilledData as any)?.branch || branch;
+
 		if (existingAlumni) {
 			console.log(`Alumni exists for email ${email}. Updating record...`);
 
@@ -699,7 +729,7 @@ export const submitRegistration = async (req: Request, res: Response): Promise<v
 			existingAlumni.yearFrom = yearFrom;
 			existingAlumni.yearTo = yearTo;
 			existingAlumni.degree = degree;
-			existingAlumni.branch = branch;
+			existingAlumni.branch = finalBranch;
 			existingAlumni.presentAddress = presentAddress;
 			existingAlumni.permanentAddress = permanentAddress;
 			existingAlumni.hasCompetitiveExams = hasCompetitiveExams;
@@ -751,7 +781,7 @@ export const submitRegistration = async (req: Request, res: Response): Promise<v
 				yearFrom,
 				yearTo,
 				degree,
-				branch,
+				branch: finalBranch,
 				presentAddress,
 				permanentAddress,
 				hasCompetitiveExams,

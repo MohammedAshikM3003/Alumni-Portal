@@ -86,6 +86,7 @@ const Admin_Alumni_Registration = () => {
   const [tokenValid, setTokenValid] = useState(false);
   const [tokenEmail, setTokenEmail] = useState('');
   const [tokenError, setTokenError] = useState('');
+  const [isBranchLocked, setIsBranchLocked] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<FormData>({
@@ -172,6 +173,9 @@ const Admin_Alumni_Registration = () => {
               ...prevData,
               ...data.prefilledData
             }));
+            if (data.prefilledData.branch) {
+              setIsBranchLocked(true);
+            }
           }
         } else {
           setTokenError(data.message || 'Invalid or expired registration link');
@@ -573,19 +577,30 @@ const Admin_Alumni_Registration = () => {
                   </select>
                 </div>
                 <div className={styles.inputGroup}>
-                  <label className={styles.inputLabel}>Course / Branch *</label>
-                  <select
-                    className={styles.selectInput}
-                    value={formData.branch}
-                    onChange={(e) => handleInputChange('branch', e.target.value)}
-                  >
-                    <option value="">Select Course / Branch</option>
-                    {departments
-                      .filter(dept => !formData.degree || dept.stream === formData.degree)
-                      .map((dept) => (
-                        <option key={dept._id} value={formatBranchName(dept.branch)}>{formatBranchName(dept.branch)}</option>
-                      ))}
-                  </select>
+                  <label className={styles.inputLabel}>
+                    Course / Branch * {isBranchLocked && <span style={{ color: '#ff3d00', fontSize: '0.75rem', fontWeight: 600 }}>(Assigned by Department)</span>}
+                  </label>
+                  {isBranchLocked ? (
+                    <input
+                      type="text"
+                      className={styles.textInput}
+                      value={formData.branch}
+                      disabled
+                    />
+                  ) : (
+                    <select
+                      className={styles.selectInput}
+                      value={formData.branch}
+                      onChange={(e) => handleInputChange('branch', e.target.value)}
+                    >
+                      <option value="">Select Course / Branch</option>
+                      {departments
+                        .filter(dept => !formData.degree || dept.stream === formData.degree)
+                        .map((dept) => (
+                          <option key={dept._id} value={formatBranchName(dept.branch)}>{formatBranchName(dept.branch)}</option>
+                        ))}
+                    </select>
+                  )}
                 </div>
               </div>
             </div>

@@ -1,7 +1,23 @@
 import Event from '../models/event.js';
+import Department from '../models/department.js';
 import mongoose from 'mongoose';
 import type { Request, Response } from 'express';
 import { getGridFSBucket } from '../config/db.js';
+import { findCoordinatorForUser } from '../utils/coordinatorResolver.js';
+import { formatBranchName } from '../utils/formatBranch.js';
+
+// Helper to get coordinator department document
+const getCoordinatorDepartmentDoc = async (user: any) => {
+  const coordinator = await findCoordinatorForUser(user);
+  if (!coordinator || !coordinator.department) return null;
+  return await Department.findOne({
+    $or: [
+      { branch: coordinator.department },
+      { deptCode: coordinator.department },
+      { branch: formatBranchName(coordinator.department) }
+    ]
+  });
+};
 
 // Create a new event
 export const createEvent = async (req: Request, res: Response): Promise<void> => {
@@ -22,6 +38,16 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    let finalOrganizer = organizer;
+    if (req.user.role === 'coordinator') {
+      const coordDept = await getCoordinatorDepartmentDoc(req.user);
+      if (!coordDept) {
+        res.status(403).json({ success: false, message: 'Coordinator department not found or access denied' });
+        return;
+      }
+      finalOrganizer = coordDept._id;
+    }
+
     const event = await Event.create({
       eventName,
       eventDate,
@@ -29,7 +55,7 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       eventTime,
       venue,
       batch: batch || undefined,
-      organizer,
+      organizer: finalOrganizer,
       coOrganizers: coOrganizers || [],
       status: 'upcoming',
       createdBy: req.user._id,
@@ -159,6 +185,23 @@ export const updateEventStatus = async (req: Request, res: Response): Promise<vo
       return;
     }
 
+    if (req.user?.role === 'coordinator') {
+      const coordDept = await getCoordinatorDepartmentDoc(req.user);
+      if (!coordDept) {
+        res.status(403).json({ success: false, message: 'Coordinator department not found' });
+        return;
+      }
+      const existing = await Event.findById(id);
+      if (!existing) {
+        res.status(404).json({ success: false, message: 'Event not found' });
+        return;
+      }
+      if (existing.organizer.toString() !== coordDept._id.toString()) {
+        res.status(403).json({ success: false, message: 'Access denied: You can only update events organized by your department' });
+        return;
+      }
+    }
+
     const event = await Event.findByIdAndUpdate(
       id,
       { status },
@@ -193,7 +236,25 @@ export const updateEventStatus = async (req: Request, res: Response): Promise<vo
 export const updateEvent = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
+
+    if (req.user?.role === 'coordinator') {
+      const coordDept = await getCoordinatorDepartmentDoc(req.user);
+      if (!coordDept) {
+        res.status(403).json({ success: false, message: 'Coordinator department not found' });
+        return;
+      }
+      const existing = await Event.findById(id);
+      if (!existing) {
+        res.status(404).json({ success: false, message: 'Event not found' });
+        return;
+      }
+      if (existing.organizer.toString() !== coordDept._id.toString()) {
+        res.status(403).json({ success: false, message: 'Access denied: You can only edit events organized by your department' });
+        return;
+      }
+      updateData.organizer = coordDept._id;
+    }
 
     const event = await Event.findByIdAndUpdate(id, updateData, { returnDocument: 'after' })
       .populate('organizer', 'branch deptCode')
@@ -225,6 +286,23 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
 export const deleteEvent = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    if (req.user?.role === 'coordinator') {
+      const coordDept = await getCoordinatorDepartmentDoc(req.user);
+      if (!coordDept) {
+        res.status(403).json({ success: false, message: 'Coordinator department not found' });
+        return;
+      }
+      const existing = await Event.findById(id);
+      if (!existing) {
+        res.status(404).json({ success: false, message: 'Event not found' });
+        return;
+      }
+      if (existing.organizer.toString() !== coordDept._id.toString()) {
+        res.status(403).json({ success: false, message: 'Access denied: You can only delete events organized by your department' });
+        return;
+      }
+    }
 
     const event = await Event.findByIdAndDelete(id);
 
@@ -285,6 +363,20 @@ export const uploadEventPhoto = async (req: Request, res: Response): Promise<voi
         message: 'Event not found',
       });
       return;
+    }
+
+    if (req.user?.role === 'coordinator') {
+      const coordDept = await getCoordinatorDepartmentDoc(req.user);
+      if (!coordDept) {
+        res.status(403).json({ success: false, message: 'Coordinator department not found' });
+        return;
+      }
+      const isAuthorized = event.organizer.toString() === coordDept._id.toString() ||
+        event.coOrganizers.some((c: any) => c.toString() === coordDept._id.toString());
+      if (!isAuthorized) {
+        res.status(403).json({ success: false, message: 'Access denied: You can only upload photos for events involving your department' });
+        return;
+      }
     }
 
     if (event.status !== 'completed') {
@@ -374,6 +466,20 @@ export const deleteEventPhoto = async (req: Request, res: Response): Promise<voi
         message: 'Event not found',
       });
       return;
+    }
+
+    if (req.user?.role === 'coordinator') {
+      const coordDept = await getCoordinatorDepartmentDoc(req.user);
+      if (!coordDept) {
+        res.status(403).json({ success: false, message: 'Coordinator department not found' });
+        return;
+      }
+      const isAuthorized = event.organizer.toString() === coordDept._id.toString() ||
+        event.coOrganizers.some((c: any) => c.toString() === coordDept._id.toString());
+      if (!isAuthorized) {
+        res.status(403).json({ success: false, message: 'Access denied: You can only delete photos for events involving your department' });
+        return;
+      }
     }
 
     if (!event.photos.includes(photoId)) {
