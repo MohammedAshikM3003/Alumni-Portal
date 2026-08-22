@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import type { Request, Response } from 'express';
 import User from '../models/user.js';
 import Alumni from '../models/alumni.js';
+import { formatBranchName } from '../utils/formatBranch.js';
 
 /**
  * Format DOB to password string (DDMMYYYY)
@@ -39,6 +40,7 @@ export const createAlumni = async (req: Request, res: Response): Promise<void> =
 			competitiveExams,
 			collegeQualifications,
 			placementType,
+			companyName,
 			designation,
 			companyAddress,
 			employmentRemarks,
@@ -109,13 +111,14 @@ export const createAlumni = async (req: Request, res: Response): Promise<void> =
 			yearFrom,
 			yearTo,
 			degree,
-			branch,
+			branch: formatBranchName(branch),
 			presentAddress,
 			permanentAddress,
 			hasCompetitiveExams,
 			competitiveExams,
 			collegeQualifications,
 			placementType,
+			companyName,
 			designation,
 			companyAddress,
 			employmentRemarks,
@@ -162,7 +165,9 @@ export const getAllAlumni = async (req: Request, res: Response): Promise<void> =
 		const { branch, degree, yearFrom, yearTo } = req.query as { branch?: string; degree?: string; yearFrom?: string; yearTo?: string };
 		const filter: Record<string, any> = {};
 
-		if (branch) filter.branch = branch;
+		if (branch) {
+			filter.branch = { $regex: new RegExp(`^${branch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') };
+		}
 		if (degree) filter.degree = degree;
 		if (yearFrom) filter.yearFrom = parseInt(yearFrom, 10);
 		if (yearTo) filter.yearTo = parseInt(yearTo, 10);
@@ -303,6 +308,7 @@ export const updateMyProfile = async (req: Request, res: Response): Promise<void
 			'competitiveExams',
 			'collegeQualifications',
 			'placementType',
+			'companyName',
 			'designation',
 			'companyAddress',
 			'employmentRemarks',
@@ -320,7 +326,7 @@ export const updateMyProfile = async (req: Request, res: Response): Promise<void
 		const updates: Record<string, any> = {};
 		for (const key of allowedUpdates) {
 			if (req.body[key] !== undefined) {
-				updates[key] = req.body[key];
+				updates[key] = key === 'branch' ? formatBranchName(req.body[key]) : req.body[key];
 			}
 		}
 
@@ -353,7 +359,12 @@ export const updateAlumni = async (req: Request, res: Response): Promise<void> =
 			return;
 		}
 
-		const alumni = await Alumni.findByIdAndUpdate(id, req.body, {
+		const updatePayload = { ...req.body };
+		if (updatePayload.branch) {
+			updatePayload.branch = formatBranchName(updatePayload.branch);
+		}
+
+		const alumni = await Alumni.findByIdAndUpdate(id, updatePayload, {
 			returnDocument: 'after',
 			runValidators: true,
 		}).populate('userId', 'userId name email role');

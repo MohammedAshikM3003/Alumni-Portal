@@ -606,6 +606,7 @@ export const submitRegistration = async (req: Request, res: Response): Promise<v
 			competitiveExams,
 			collegeQualifications,
 			placementType,
+			companyName,
 			designation,
 			companyAddress,
 			employmentRemarks,
@@ -705,6 +706,7 @@ export const submitRegistration = async (req: Request, res: Response): Promise<v
 			existingAlumni.competitiveExams = competitiveExams;
 			existingAlumni.collegeQualifications = collegeQualifications;
 			existingAlumni.placementType = placementType;
+			existingAlumni.companyName = companyName;
 			existingAlumni.designation = designation;
 			existingAlumni.companyAddress = companyAddress;
 			existingAlumni.employmentRemarks = employmentRemarks;
@@ -756,6 +758,7 @@ export const submitRegistration = async (req: Request, res: Response): Promise<v
 				competitiveExams,
 				collegeQualifications,
 				placementType,
+				companyName,
 				designation,
 				companyAddress,
 				employmentRemarks,

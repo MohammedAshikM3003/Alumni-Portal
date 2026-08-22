@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import './scrollbar.js';
 
 interface TokenInfo {
   recipientEmail?: string;

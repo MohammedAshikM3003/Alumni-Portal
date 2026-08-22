@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import styles from './Al_Profile.module.css';
+import './scrollbar.js';
 
 import Cropper from 'react-easy-crop';
 import Sidebar from './Components/Sidebar/Sidebar';
@@ -114,12 +115,15 @@ interface ProfileProps {
   onLogout?: () => void;
 }
 
+import { getPageCache, setPageCache } from '../../utils/pageCache';
+
 const Alumini_Profile = ({ onLogout }: ProfileProps) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const profilePhotoInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const cachedProfile = getPageCache<ProfileData>('alumni_profile');
+  const [loading, setLoading] = useState(!cachedProfile);
   const [error, setError] = useState<string>('');
   const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
 
@@ -168,12 +172,16 @@ const Alumini_Profile = ({ onLogout }: ProfileProps) => {
     profilePhoto: null, // Base64 image for profile photo
   };
 
+  const activeInitial = cachedProfile || initialProfileData;
+
   const [editMode, setEditMode] = useState(false);
-  const [savedData, setSavedData] = useState<ProfileData>(initialProfileData);
-  const [formData, setFormData] = useState<ProfileData>(initialProfileData);
+  const [savedData, setSavedData] = useState<ProfileData>(activeInitial);
+  const [formData, setFormData] = useState<ProfileData>(activeInitial);
 
   // Signature states
-  const [signaturePreviewUrl, setSignaturePreviewUrl] = useState<string | null>(null);
+  const [signaturePreviewUrl, setSignaturePreviewUrl] = useState<string | null>(
+    activeInitial.signature ? getImageUrl(activeInitial.signature) : null
+  );
   const [showModal, setShowModal] = useState(false);
   const [tempPreviewUrl, setTempPreviewUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -181,19 +189,36 @@ const Alumini_Profile = ({ onLogout }: ProfileProps) => {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
   // Profile photo states
-  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(
+    activeInitial.profilePhoto ? getImageUrl(activeInitial.profilePhoto) : null
+  );
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [tempPhotoUrl, setTempPhotoUrl] = useState<string | null>(null);
   const [photoCrop, setPhotoCrop] = useState({ x: 0, y: 0 });
   const [photoZoom, setPhotoZoom] = useState(1);
   const [croppedPhotoPixels, setCroppedPhotoPixels] = useState<any>(null);
 
+  // Auto-hide success/error popup after 3 seconds
+  useEffect(() => {
+    if (saveMessage.text) {
+      const timer = setTimeout(() => {
+        setSaveMessage({ type: '', text: '' });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveMessage.text]);
+
   // Map API data to form fields
   const mapApiDataToForm = (alumni: any): ProfileData => {
     const formatDate = (dateStr: string | null | undefined) => {
       if (!dateStr) return '';
-      const date = new Date(dateStr);
-      return date.toISOString().split('T')[0];
+      try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+      } catch (e) {
+        return '';
+      }
     };
 
     return {
@@ -245,6 +270,8 @@ const Alumini_Profile = ({ onLogout }: ProfileProps) => {
   useEffect(() => {
     const controller = new AbortController();
     const fetchProfile = async () => {
+      if (authLoading) return;
+
       if (!user?.token) {
         setError('Please login to view your profile');
         setLoading(false);
@@ -252,8 +279,11 @@ const Alumini_Profile = ({ onLogout }: ProfileProps) => {
       }
 
       try {
+        setError('');
+        if (!cachedProfile) setLoading(true);
+
         const response = await fetch(`${API_BASE_URL}/api/alumni/me`, {
-            signal: controller.signal,
+          signal: controller.signal,
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -265,6 +295,8 @@ const Alumini_Profile = ({ onLogout }: ProfileProps) => {
           const mappedData = mapApiDataToForm(data.alumni);
           setFormData(mappedData);
           setSavedData(mappedData);
+          setError('');
+          setPageCache('alumni_profile', mappedData);
           // Set preview URLs from loaded data (convert GridFS IDs to URLs)
           if (mappedData.signature) {
             setSignaturePreviewUrl(getImageUrl(mappedData.signature));
@@ -273,12 +305,12 @@ const Alumini_Profile = ({ onLogout }: ProfileProps) => {
             setProfilePhotoUrl(getImageUrl(mappedData.profilePhoto));
           }
         } else {
-          setError(data.message || 'Failed to load profile');
+          if (!cachedProfile) setError(data.message || 'Failed to load profile');
         }
       } catch (err: any) {
-          if (err.name === 'AbortError') return;
+        if (err.name === 'AbortError') return;
         console.error('Error fetching profile:', err);
-        setError('Network error. Please try again.');
+        if (!cachedProfile) setError('Network error. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -287,7 +319,7 @@ const Alumini_Profile = ({ onLogout }: ProfileProps) => {
     fetchProfile();
 
     return () => controller.abort();
-  }, [user?.token]);
+  }, [user?.token, authLoading]);
 
   const handleChange = (field: keyof ProfileData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));

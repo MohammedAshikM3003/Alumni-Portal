@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
 import { DateInput } from '../../components/Calendar';
+import { formatBranchName } from '../../utils/formatters';
 
 interface FacultyFormData {
   name: string;
@@ -470,12 +471,12 @@ const Admin_Edit_Faculty = ({ onLogout }: { onLogout?: () => void }) => {
                         {departmentsLoading ? 'Loading departments...' : 'Select Department'}
                       </option>
                       {departments.map((dept) => (
-                        <option key={dept._id} value={dept.branch}>
-                          {dept.branch}{dept.deptCode ? ` (${dept.deptCode})` : ''}
+                        <option key={dept._id} value={formatBranchName(dept.branch)}>
+                          {formatBranchName(dept.branch)}{dept.deptCode ? ` (${dept.deptCode})` : ''}
                         </option>
                       ))}
-                      {formData.department && !departments.some((dept) => dept.branch === formData.department) && (
-                        <option value={formData.department}>{formData.department}</option>
+                      {formData.department && !departments.some((dept) => formatBranchName(dept.branch).toLowerCase() === formData.department.toLowerCase()) && (
+                        <option value={formData.department}>{formatBranchName(formData.department)}</option>
                       )}
                     </select>
                     {errors.department && <span className={styles.errorText}>{errors.department}</span>}

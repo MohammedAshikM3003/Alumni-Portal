@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import styles from './AD_Department.module.css';
-import { Search, Plus, Eye, X } from 'lucide-react';
+import { Search, Plus, Eye, X, Check, AlertTriangle } from 'lucide-react';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext/authContext';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -28,6 +29,12 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string | React.ReactNode;
+    type?: 'warning' | 'error' | 'success';
+  } | null>(null);
   const [formData, setFormData] = useState({
     stream: '',
     branch: '',
@@ -119,6 +126,32 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
       return;
     }
 
+    const deptName = formData.branch.trim() || formData.deptCode.trim() || 'Department';
+
+    // Check duplicate department code or stream + branch locally
+    const isDuplicateCode = departments.some(
+      d => d.deptCode.trim().toUpperCase() === formData.deptCode.trim().toUpperCase()
+    );
+    const isDuplicateBranch = departments.some(
+      d => d.stream.trim().toLowerCase() === formData.stream.trim().toLowerCase() &&
+           d.branch.trim().toLowerCase() === formData.branch.trim().toLowerCase()
+    );
+
+    if (isDuplicateCode || isDuplicateBranch) {
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Department Already Exists',
+        message: (
+          <>
+            The <span className={styles.highlightDept}>"{formatBranchName(deptName)}"</span> department has already been created. Please enter a different name.
+          </>
+        ),
+      });
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const response = await fetch(`${API_BASE}/api/departments`, {
         method: 'POST',
@@ -137,7 +170,21 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
         handleCloseModal();
         setError(null);
       } else {
-        setError(data.message || 'Failed to create department');
+        const isDuplicate = data.message?.toLowerCase().includes('already exist');
+        if (isDuplicate) {
+          setAlertModal({
+            isOpen: true,
+            type: 'warning',
+            title: 'Department Already Exists',
+            message: (
+              <>
+                The <span className={styles.highlightDept}>"{formatBranchName(deptName)}"</span> department has already been created. Please enter a different name.
+              </>
+            ),
+          });
+        } else {
+          setError(data.message || 'Failed to create department');
+        }
       }
     } catch (err: any) {
       setError('Error creating department');
@@ -234,7 +281,7 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
                     <tr key={dept._id}>
                       <td className={styles.textMuted}>{String(index + 1).padStart(2, '0')}</td>
                       <td className={styles.fontSemibold}>{dept.stream}</td>
-                      <td>{dept.branch}</td>
+                      <td>{formatBranchName(dept.branch)}</td>
                       <td>
                         <span className={styles.badgeCode}>{dept.deptCode}</span>
                       </td>
@@ -246,7 +293,7 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
                       <td>
                         <div className={styles.actionGroup}>
                           <button className={styles.viewButton} onClick={() => handleView(dept.deptCode)} title="View Department Details">
-                            <Eye size={18} />
+                            <Eye size={20} />
                             <span>View</span>
                           </button>
                         </div>
@@ -341,6 +388,26 @@ const Admin_Department = ( { onLogout }: { onLogout?: () => void } ) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Alert Modal Popup */}
+      {alertModal?.isOpen && (
+        <div className={styles.alertModalOverlay} onClick={() => setAlertModal(null)}>
+          <div className={styles.alertModalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.alertIconCircle}>
+              <AlertTriangle size={36} strokeWidth={2.5} />
+            </div>
+            <h2 className={styles.alertTitle}>{alertModal.title}</h2>
+            <p className={styles.alertMessage}>{alertModal.message}</p>
+            <button
+              type="button"
+              className={styles.alertOkBtn}
+              onClick={() => setAlertModal(null)}
+            >
+              Got it
+            </button>
           </div>
         </div>
       )}

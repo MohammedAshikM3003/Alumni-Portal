@@ -4,6 +4,7 @@ import styles from './AD_Job_and_Reference.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
 import { Trash2, Building2 } from 'lucide-react';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -34,8 +35,27 @@ interface CoordinatorItem {
   _id: string;
   name: string;
   department?: string;
+  staffId?: string;
   userId?: any;
 }
+
+const KEYWORDS: Record<string, string[]> = {
+  cse: ['cse', 'computer science', 'cs'],
+  it: ['it', 'information technology'],
+  ece: ['ece', 'electronics', 'communication'],
+  eee: ['eee', 'electrical'],
+  mech: ['mech', 'mechanical'],
+  civil: ['civil'],
+  auto: ['auto', 'automobile'],
+  bme: ['bme', 'biomedical'],
+  csd: ['csd', 'design'],
+  iot: ['iot'],
+  cyber: ['cyber', 'security'],
+  sfe: ['safety', 'fire', 'sfe'],
+  mca: ['mca'],
+  mba: ['mba', 'management'],
+  'ai/ds': ['ai', 'ds', 'aiml', 'data science']
+};
 
 const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
   const navigate = useNavigate();
@@ -49,7 +69,6 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedWorkMode, setSelectedWorkMode] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [refreshing, setRefreshing] = useState(false);
@@ -181,7 +200,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
       });
 
       if (matchingCoords.length === 0) {
-        for (const [key, kwList] of Object.entries(keywords)) {
+        for (const [key, kwList] of Object.entries(KEYWORDS)) {
           if (key === branch || kwList.some(kw => branch.includes(kw))) {
             matchingCoords = coordinatorsList.filter(coord => {
               const d = (coord.department || '').toLowerCase().trim();
@@ -231,7 +250,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
       });
 
       if (matchingCoords.length === 0) {
-        for (const [key, kwList] of Object.entries(keywords)) {
+        for (const [key, kwList] of Object.entries(KEYWORDS)) {
           if (key === branch || kwList.some(kw => branch.includes(kw))) {
             matchingCoords = coordinatorsList.filter(coord => {
               const d = (coord.department || '').toLowerCase().trim();
@@ -285,7 +304,6 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedDept('');
-    setSelectedStatus('');
     setSelectedWorkMode('');
     setSortBy('newest');
   };
@@ -453,13 +471,10 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
     const matchesDept = !selectedDept ||
       (job.targetBranch && job.targetBranch.toLowerCase().includes(selectedDept.toLowerCase()));
 
-    // Status match
-    const matchesStatus = !selectedStatus || job.status === selectedStatus;
-
     // Work Mode match
     const matchesWorkMode = !selectedWorkMode || job.workMode === selectedWorkMode;
 
-    return matchesSearch && matchesDept && matchesStatus && matchesWorkMode;
+    return matchesSearch && matchesDept && matchesWorkMode;
   }).sort((a, b) => {
     if (sortBy === 'vacancies') {
       return (b.vacancies || 0) - (a.vacancies || 0);
@@ -507,7 +522,6 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
         <div className={styles.headerContainer}>
           <div>
             <h2 className={styles.headerTitle}>Job & Reference Hub</h2>
-            <p className={styles.headerSubtitle}>Manage and filter job referral opportunities across all college departments.</p>
           </div>
           <button className={styles.refreshBtn} onClick={handleRefresh} disabled={refreshing}>
             <span className={`material-symbols-outlined ${refreshing ? styles.refreshIconSpin : ''}`}>refresh</span>
@@ -567,80 +581,6 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
             </div>
           </div>
 
-          {/* Card 2: Approval Status Ratio */}
-          <div className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <p className={styles.statLabel}>Approval Status Ratio</p>
-              <span className={`material-symbols-outlined ${styles.statIcon}`} style={{ color: '#10b981' }}>sync</span>
-            </div>
-
-            <div className={styles.donutCardBody}>
-              <div className={styles.donutWrapper}>
-                <svg viewBox="0 0 120 120" className={styles.donutSvg}>
-                  <g transform="rotate(-90 60 60)">
-                    <circle cx="60" cy="60" r="45" fill="none" stroke="#f1f5f9" strokeWidth="10" />
-                    {approvedPct > 0 && (
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r="45"
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="10"
-                        strokeDasharray={`${(approvedPct / 100) * 282.74} 282.74`}
-                        strokeDashoffset={0}
-                      />
-                    )}
-                    {pendingPct > 0 && (
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r="45"
-                        fill="none"
-                        stroke="#fbbf24"
-                        strokeWidth="10"
-                        strokeDasharray={`${(pendingPct / 100) * 282.74} 282.74`}
-                        strokeDashoffset={-((approvedPct / 100) * 282.74)}
-                      />
-                    )}
-                    {rejectedPct > 0 && (
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r="45"
-                        fill="none"
-                        stroke="#ef4444"
-                        strokeWidth="10"
-                        strokeDasharray={`${(rejectedPct / 100) * 282.74} 282.74`}
-                        strokeDashoffset={-(((approvedPct + pendingPct) / 100) * 282.74)}
-                      />
-                    )}
-                  </g>
-                  <text x="60" y="58" textAnchor="middle" className={styles.donutCenterValue}>
-                    {Math.round(approvedPct)}%
-                  </text>
-                  <text x="60" y="74" textAnchor="middle" className={styles.donutCenterLabel}>
-                    APPROVED
-                  </text>
-                </svg>
-              </div>
-
-              <div className={styles.donutLegend}>
-                <div className={styles.legendItem}>
-                  <span className={styles.legendLabel}>Approved by Coordinator</span>
-                  <span className={styles.legendValue} style={{ color: '#10b981' }}>{approvedCount}</span>
-                </div>
-                <div className={styles.legendItem}>
-                  <span className={styles.legendLabel}>Pending</span>
-                  <span className={styles.legendValue} style={{ color: '#fbbf24' }}>{pendingCount}</span>
-                </div>
-                <div className={styles.legendItem}>
-                  <span className={styles.legendLabel}>Rejected</span>
-                  <span className={styles.legendValue} style={{ color: '#ef4444' }}>{rejectedCount}</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Card 3: Top Contributing Batch */}
           <div className={styles.statCard}>
@@ -824,22 +764,10 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
           >
             <option value="">All Departments</option>
             {departments.map((dept) => (
-              <option key={dept._id} value={dept.branch}>
-                {dept.branch}
+              <option key={dept._id} value={formatBranchName(dept.branch)}>
+                {formatBranchName(dept.branch)}
               </option>
             ))}
-          </select>
-
-          {/* Status Filter */}
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className={styles.filterSelect}
-          >
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved by Coordinator</option>
-            <option value="rejected">Rejected</option>
           </select>
 
           {/* Work Mode Filter */}
@@ -865,7 +793,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
           </select>
 
           {/* Reset Button */}
-          {(searchTerm || selectedDept || selectedStatus || selectedWorkMode || sortBy !== 'newest') && (
+          {(searchTerm || selectedDept || selectedWorkMode || sortBy !== 'newest') && (
             <button onClick={clearFilters} className={styles.clearBtn}>
               Clear
             </button>
@@ -884,14 +812,6 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
                     <div className={styles.avatar}>
                       {job.companyName.charAt(0).toUpperCase()}
                     </div>
-                    {job.status && (
-                      <span
-                        className={styles.statusDot}
-                        style={{
-                          backgroundColor: job.status === 'approved' ? '#22c55e' : job.status === 'rejected' ? '#ef4444' : '#eab308'
-                        }}
-                      />
-                    )}
                   </div>
 
                   {/* Company & Role Info */}
@@ -902,19 +822,7 @@ const Admin_Job_and_Reference = ({ onLogout }: { onLogout?: () => void }) => {
                   <div className={styles.badgeWrapper}>
                     {job.targetBranch && (
                       <span className={styles.branchBadge}>
-                        {job.targetBranch}
-                      </span>
-                    )}
-                    {job.status === 'approved' && (
-                      <span className={styles.approvedByCoordinatorBadge}>
-                        <span className={`material-symbols-outlined ${styles.verifiedIcon}`}>verified</span>
-                        Approved by {getCoordinatorNameForJob(job, idx)}
-                      </span>
-                    )}
-                    {job.status === 'rejected' && (
-                      <span className={styles.rejectedByCoordinatorBadge}>
-                        <span className={`material-symbols-outlined ${styles.rejectedIcon}`}>cancel</span>
-                        Rejected by {getRejectedCoordinatorNameForJob(job, idx)}
+                        {formatBranchName(job.targetBranch)}
                       </span>
                     )}
                   </div>

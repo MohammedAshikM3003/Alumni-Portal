@@ -98,32 +98,8 @@ const Admin_View_Donation = ({ onLogout }: { onLogout?: () => void }) => {
     window.print();
   };
 
-  const handleShare = async () => {
-    const url = window.location.href;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Donation Receipt',
-          text: `Donation Receipt - ${donation?.user?.name || 'Unknown'}`,
-          url: url,
-        });
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          alert('Failed to share');
-        }
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
-      } catch {
-        alert('Failed to copy link');
-      }
-    }
-  };
-
-  const handleDownload = async () => {
-    if (!receiptRef.current) return;
+  const generatePDF = async (): Promise<File | null> => {
+    if (!receiptRef.current) return null;
 
     try {
       const canvas = await html2canvas(receiptRef.current, {
@@ -152,10 +128,65 @@ const Admin_View_Donation = ({ onLogout }: { onLogout?: () => void }) => {
 
       pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight, undefined, 'FAST');
 
+      const pdfBlob = pdf.output('blob');
       const fileName = `donation-receipt-${donation?.user?.name?.replace(/\s+/g, '_') || 'unknown'}-${Date.now()}.pdf`;
-      pdf.save(fileName);
+      return new File([pdfBlob], fileName, { type: 'application/pdf' });
     } catch (err) {
-      alert('Failed to generate PDF');
+      console.error('Failed to generate PDF', err);
+      return null;
+    }
+  };
+
+  const handleShare = async () => {
+    if (!donation) return;
+
+    try {
+      const pdfFile = await generatePDF();
+      const shareText = `Donation: ${donation.purpose} - Amount: ${formatAmount(donation.amount)}`;
+      
+      if (pdfFile && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({
+          title: 'Donation Receipt',
+          text: shareText,
+          files: [pdfFile],
+        });
+      } else {
+        if (navigator.share) {
+          await navigator.share({
+            title: 'Donation Receipt',
+            text: shareText,
+          });
+        } else {
+          try {
+            await navigator.clipboard.writeText(shareText);
+            alert('Donation details copied to clipboard');
+          } catch {
+            alert('Failed to copy donation details');
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error('Share cancelled or failed', err);
+      }
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      const pdfFile = await generatePDF();
+      if (pdfFile) {
+        const url = URL.createObjectURL(pdfFile);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = pdfFile.name;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        alert('Failed to generate PDF');
+      }
+    } catch (err) {
+      alert('Failed to download PDF');
     }
   };
 
@@ -208,14 +239,14 @@ const Admin_View_Donation = ({ onLogout }: { onLogout?: () => void }) => {
 
       {/* Main Content Area */}
       <main className={styles.mainContent}>
-        {/* Back Button */}
-        <div className={styles.backButton} onClick={() => window.history.back()}>
-          <span className="material-symbols-outlined">arrow_back</span>
-          <span>Back</span>
-        </div>
-
         {/* Page Content */}
         <div className={styles.contentWrapper}>
+          {/* Back Button */}
+          <div className={styles.backButton} onClick={() => window.history.back()}>
+            <span className="material-symbols-outlined">arrow_back</span>
+            <span>Back</span>
+          </div>
+
           {/* Header & Back Button */}
           <div className={styles.pageHeader}>
             <h2 className={styles.pageTitle}>Donation Transaction Details</h2>

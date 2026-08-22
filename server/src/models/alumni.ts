@@ -58,6 +58,7 @@ export interface IAlumni {
   competitiveExams: ICompetitiveExam[];
   collegeQualifications: ICollegeQualification[];
   placementType: 'On-campus' | 'Off-campus' | 'Others' | 'To be employed' | '';
+  companyName?: string;
   designation?: string;
   companyAddress?: string;
   employmentRemarks?: string;
@@ -176,6 +177,10 @@ const alumniSchema = new Schema<IAlumni>(
 			type: String,
 			enum: ['On-campus', 'Off-campus', 'Others', 'To be employed', ''],
 			default: '',
+		},
+		companyName: {
+			type: String,
+			trim: true,
 		},
 		designation: {
 			type: String,

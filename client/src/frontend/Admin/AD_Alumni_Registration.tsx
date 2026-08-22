@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext/authContext';
 import styles from './AD_Alumni_Registration.module.css';
 import { DateInput } from '../../components/Calendar';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -54,6 +55,7 @@ interface FormData {
   exams: Record<string, string>;
   othersExam: { name: string; marks: string };
   placementType: string;
+  companyName: string;
   designation: string;
   companyAddress: string;
   employmentRemarks: string;
@@ -119,6 +121,7 @@ const Admin_Alumni_Registration = () => {
     } as Record<string, string>,
     othersExam: { name: '', marks: '' },
     placementType: '',
+    companyName: '',
     designation: '',
     companyAddress: '',
     employmentRemarks: '',
@@ -350,6 +353,7 @@ const Admin_Alumni_Registration = () => {
         competitiveExams,
         collegeQualifications,
         placementType: formData.placementType,
+        companyName: formData.companyName,
         designation: formData.designation,
         companyAddress: formData.companyAddress,
         employmentRemarks: formData.employmentRemarks,
@@ -579,7 +583,7 @@ const Admin_Alumni_Registration = () => {
                     {departments
                       .filter(dept => !formData.degree || dept.stream === formData.degree)
                       .map((dept) => (
-                        <option key={dept._id} value={dept.branch}>{dept.branch}</option>
+                        <option key={dept._id} value={formatBranchName(dept.branch)}>{formatBranchName(dept.branch)}</option>
                       ))}
                   </select>
                 </div>
@@ -865,6 +869,18 @@ const Admin_Alumni_Registration = () => {
                   </select>
                 </div>
                 <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Company Name</label>
+                  <input
+                    type="text"
+                    className={styles.textInput}
+                    placeholder="Company / Employer Name"
+                    value={formData.companyName}
+                    onChange={(e) => handleInputChange('companyName', e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className={styles.gridTwoCol}>
+                <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Designation</label>
                   <input
                     type="text"
@@ -874,15 +890,15 @@ const Admin_Alumni_Registration = () => {
                     onChange={(e) => handleInputChange('designation', e.target.value)}
                   />
                 </div>
-              </div>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>Company Address</label>
-                <textarea
-                  className={styles.textareaInput}
-                  placeholder="Company Address"
-                  value={formData.companyAddress}
-                  onChange={(e) => handleInputChange('companyAddress', e.target.value)}
-                />
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Company Address</label>
+                  <textarea
+                    className={styles.textareaInput}
+                    placeholder="Company Address"
+                    value={formData.companyAddress}
+                    onChange={(e) => handleInputChange('companyAddress', e.target.value)}
+                  />
+                </div>
               </div>
               <div className={styles.inputGroup}>
                 <label className={styles.inputLabel}>Employment Remarks</label>

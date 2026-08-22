@@ -60,32 +60,23 @@
 
 /* Back Button */
 .backButton {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
+  gap: 4px;
+  color: #475569;
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 1.5rem;
-  padding: 0.5rem 0.75rem;
-  background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  box-shadow: var(--shadow-sm);
-  font-size: 0.875rem;
-  font-weight: 600;
+  transition: color 0.2s;
   width: fit-content;
+  margin-bottom: 1.5rem;
 }
 
 .backButton:hover {
-  color: var(--primary);
-  border-color: var(--primary);
-  transform: translateX(-3px);
-  box-shadow: var(--shadow-md);
+  color: #228b22;
 }
 
 .backButton span {
-  font-size: 1.15rem;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 /* --- Notification Banner --- */

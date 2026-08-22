@@ -1,4 +1,5 @@
 import styles from './Al_Donation_History.module.css';
+import './scrollbar.js';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -55,33 +56,36 @@ interface AluminiDonationHistoryProps {
   onLogout?: () => void;
 }
 
+import { getPageCache, setPageCache } from '../../utils/pageCache';
+
 const Alumini_Donation_History = ({ onLogout }: AluminiDonationHistoryProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [donationData, setDonationData] = useState<PaymentRecord[]>([]);
-  const [rawPayments, setRawPayments] = useState<ApiPayment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cachedDonations = getPageCache<any>('alumni_donations');
+  const [donationData, setDonationData] = useState<PaymentRecord[]>(cachedDonations?.donationData || []);
+  const [rawPayments, setRawPayments] = useState<ApiPayment[]>(cachedDonations?.rawPayments || []);
+  const [loading, setLoading] = useState(!cachedDonations);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [viewModal, setViewModal] = useState<{ isOpen: boolean; donation: PaymentRecord | null }>({ isOpen: false, donation: null });
 
   // Summary statistics
-  const [totalDonated, setTotalDonated] = useState(0);
-  const [completedCount, setCompletedCount] = useState(0);
+  const [totalDonated, setTotalDonated] = useState(cachedDonations?.totalDonated || 0);
+  const [completedCount, setCompletedCount] = useState(cachedDonations?.completedCount || 0);
 
   useEffect(() => {
     const controller = new AbortController();
     const fetchPayments = async () => {
       if (!user?.token) {
-        setError('Please login to view donation history');
+        if (!cachedDonations) setError('Please login to view donation history');
         setLoading(false);
         return;
       }
 
       try {
         const response = await fetch(`${API_BASE}/api/payments/my`, {
-            signal: controller.signal,
+          signal: controller.signal,
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -109,15 +113,21 @@ const Alumini_Donation_History = ({ onLogout }: AluminiDonationHistoryProps) => 
           setDonationData(formattedData);
           setRawPayments(data.payments);
 
-          // Calculate summary stats
-          const paidPayments = (data.payments as ApiPayment[]).filter(p => p.status === 'paid');
-          const total = paidPayments.reduce((sum, p) => sum + p.amount, 0);
+          const paidPayments = data.payments.filter((p: ApiPayment) => p.status === 'paid');
+          const total = paidPayments.reduce((sum: number, p: ApiPayment) => sum + p.amount, 0);
           setTotalDonated(total);
           setCompletedCount(paidPayments.length);
+
+          setPageCache('alumni_donations', {
+            donationData: formattedData,
+            rawPayments: data.payments,
+            totalDonated: total,
+            completedCount: paidPayments.length,
+          });
         }
       } catch (err: any) {
-          if (err.name === 'AbortError') return;
-        setError(err.message);
+        if (err.name === 'AbortError') return;
+        if (!cachedDonations) setError(err.message || 'Failed to fetch donation history');
       } finally {
         setLoading(false);
       }

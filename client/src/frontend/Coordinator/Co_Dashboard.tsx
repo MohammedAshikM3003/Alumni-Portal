@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './Co_Dashboard.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 
@@ -8,6 +8,7 @@ interface CoordinatorDashboardProps {
 }
 
 const Coordinator_Dashboard: FC<CoordinatorDashboardProps> = ({ onLogout }) => {
+    const navigate = useNavigate();
     return (
         <div className="bg-[#F8FAFC] font-display text-slate-900 min-h-screen flex overflow-hidden font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
             <Sidebar currentView="dashboard" onLogout={onLogout} />
@@ -17,16 +18,7 @@ const Coordinator_Dashboard: FC<CoordinatorDashboardProps> = ({ onLogout }) => {
                         <h1 className={`${styles.collegeName} hidden md:block`}>K.S.R College of Engineering</h1>
                     </div>
                     <div className="flex items-center gap-6">
-                        <div className="relative hidden sm:block">
-                            <input className="w-64 pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF3D00] focus:border-transparent" placeholder="Search alumni, jobs..." type="text" />
-                            <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-sm">search</span>
-                        </div>
                         <div className="flex items-center gap-4">
-                            <button className="relative p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors">
-                                <span className="material-symbols-outlined">notifications</span>
-                                <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white"></span>
-                            </button>
-                            <div className="h-8 w-[1px] bg-slate-200"></div>
                             <Link to="/coordinator/profile" className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
                                 <div className="text-right hidden lg:block">
                                     <p className="text-sm font-bold text-[#001E2B]">Mohammed Ashik M</p>
@@ -44,19 +36,52 @@ const Coordinator_Dashboard: FC<CoordinatorDashboardProps> = ({ onLogout }) => {
                         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                             <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
                                 <div className="flex justify-between items-center mb-4">
-                                    <div className="p-1 -mt-1 bg-blue-50 rounded-lg">
+                                    <div className="flex items-center gap-1 p-1 pr-3 -mt-1 bg-blue-50 rounded-lg">
                                         <span className="material-symbols-outlined text-blue-600">mail</span>
+                                        <span className="text-blue-600 text-sm font-bold">Mail</span>
                                     </div>
                                     <span className="px-2 py-1 text-blue-600 text-xs font-bold rounded-full bg-blue-50">2 New</span>
                                 </div>
                                 <h3 className="text-lg font-bold text-[#001E2B] mb-4">Latest Messages</h3>
                                 <div className="space-y-3 mb-6 flex-grow">
-                                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-blue-200 transition-colors cursor-pointer">
+                                    <div 
+                                        onClick={() => navigate('/coordinator/info-form', {
+                                            state: {
+                                                mailId: 'msg-1',
+                                                mailData: {
+                                                    _id: 'msg-1',
+                                                    title: 'Welcome to the network, Mohammed!',
+                                                    content: 'Welcome to the network, Mohammed!\n\nWe are thrilled to welcome you to the K.S.R College of Engineering Alumni Network! Stay connected with fellow graduates, explore exciting career opportunities in the Career Hub, stay updated with campus events, and participate in departmental growth through mentoring and referrals.',
+                                                    recipientCount: 1,
+                                                    isBroadcast: false,
+                                                    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+                                                    responseStats: { total: 1, accept: 1, reject: 0, pending: 0 }
+                                                }
+                                            }
+                                        })}
+                                        className="p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-blue-200 transition-colors cursor-pointer"
+                                    >
                                         <p className="text-xs font-bold text-[#FF3D00] mb-0.5">Admin</p>
                                         <p className="text-sm font-medium text-[#001E2B] truncate">Welcome to the network, Mohammed!</p>
                                         <p className="text-[10px] text-slate-400 mt-1">2 hours ago</p>
                                     </div>
-                                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-blue-200 transition-colors cursor-pointer">
+                                    <div 
+                                        onClick={() => navigate('/coordinator/info-form', {
+                                            state: {
+                                                mailId: 'msg-2',
+                                                mailData: {
+                                                    _id: 'msg-2',
+                                                    title: 'New job referral available for SDE-1 position',
+                                                    content: 'New job referral available for SDE-1 position.\n\nA prominent technology corporate partner has opened job applications for a Software Development Engineer (SDE-1) profile. We encourage coordinators and alumni mentors to review this opening in the Career Hub and share with final year students seeking placement assistance.',
+                                                    recipientCount: 15,
+                                                    isBroadcast: true,
+                                                    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+                                                    responseStats: { total: 15, accept: 12, reject: 1, pending: 2 }
+                                                }
+                                            }
+                                        })}
+                                        className="p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-blue-200 transition-colors cursor-pointer"
+                                    >
                                         <p className="text-xs font-bold text-emerald-600 mb-0.5">Career Cell</p>
                                         <p className="text-sm font-medium text-[#001E2B] truncate">New job referral available for SDE-1...</p>
                                         <p className="text-[10px] text-slate-400 mt-1">Yesterday</p>
@@ -73,14 +98,61 @@ const Coordinator_Dashboard: FC<CoordinatorDashboardProps> = ({ onLogout }) => {
                                 </div>
                                 <h3 className="text-lg font-bold text-[#001E2B] mb-4">Career Hub</h3>
                                 <div className="space-y-3 mb-6 flex-grow">
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg hover:border-[#FF3D00]/40 transition-colors cursor-pointer">
+                                    <div 
+                                        onClick={() => navigate('/coordinator/View_job_and_reference/job-1', {
+                                            state: {
+                                                jobData: {
+                                                    _id: 'job-1',
+                                                    role: 'Senior Developer',
+                                                    companyName: 'Google',
+                                                    submittedBy: {
+                                                        _id: 'alumni-1',
+                                                        name: 'Rahul S.',
+                                                        jobRole: 'Staff Software Engineer, Google'
+                                                    },
+                                                    status: 'approved',
+                                                    targetBranch: 'Computer Science and Engineering',
+                                                    vacancies: 3,
+                                                    location: 'Bangalore, India',
+                                                    workMode: 'Hybrid',
+                                                    link: 'https://careers.google.com',
+                                                    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                                                    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+                                                }
+                                            }
+                                        })}
+                                        className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg hover:border-[#FF3D00]/40 transition-colors cursor-pointer"
+                                    >
                                         <div>
                                             <p className="text-sm font-bold text-[#001E2B]">Senior Dev, Google</p>
                                             <p className="text-xs text-slate-500">Referral by Rahul S.</p>
                                         </div>
                                         <span className="material-symbols-outlined text-[#FF3D00] text-xl">arrow_forward</span>
                                     </div>
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg hover:border-[#FF3D00]/40 transition-colors cursor-pointer">
+                                    <div 
+                                        onClick={() => navigate('/coordinator/View_job_and_reference/job-2', {
+                                            state: {
+                                                jobData: {
+                                                    _id: 'job-2',
+                                                    role: 'Lead Architect',
+                                                    companyName: 'IBM',
+                                                    submittedBy: {
+                                                        _id: 'alumni-2',
+                                                        name: 'Open Referral (Career Cell)',
+                                                        jobRole: 'Corporate Partner & Placement Cell'
+                                                    },
+                                                    status: 'approved',
+                                                    targetBranch: 'Information Technology & CSE',
+                                                    vacancies: 2,
+                                                    location: 'Hyderabad / Bangalore, India',
+                                                    workMode: 'Remote',
+                                                    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+                                                    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+                                                }
+                                            }
+                                        })}
+                                        className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg hover:border-[#FF3D00]/40 transition-colors cursor-pointer"
+                                    >
                                         <div>
                                             <p className="text-sm font-bold text-[#001E2B]">Lead Architect, IBM</p>
                                             <p className="text-xs text-slate-500">Open Referral</p>

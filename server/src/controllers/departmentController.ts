@@ -4,6 +4,7 @@ import Department from '../models/department.js';
 import Coordinator from '../models/coordinator.js';
 import User from '../models/user.js';
 import Alumni from '../models/alumni.js';
+import { formatBranchName } from '../utils/formatBranch.js';
 
 // Create a new department
 export const createDepartment = async (req: Request, res: Response): Promise<void> => {
@@ -19,19 +20,27 @@ export const createDepartment = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    // Check if department code already exists
-    const existingDept = await Department.findOne({ deptCode: deptCode.toUpperCase() });
+    // Check if department already exists
+    const existingDept = await Department.findOne({
+      $or: [
+        { deptCode: deptCode.trim().toUpperCase() },
+        {
+          stream: stream.trim(),
+          branch: { $regex: new RegExp(`^${branch.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+        }
+      ]
+    });
     if (existingDept) {
       res.status(400).json({
         success: false,
-        message: 'Department code already exists'
+        message: 'Department already exists'
       });
       return;
     }
 
     const department = await Department.create({
       stream: stream.trim(),
-      branch: branch.trim(),
+      branch: formatBranchName(branch),
       deptCode: deptCode.trim().toUpperCase()
     });
 
@@ -65,16 +74,18 @@ export const getAllDepartments = async (_: Request, res: Response): Promise<void
     // Get alumni count and coordinator count for each department based on branch name
     const departmentsWithCount = await Promise.all(
       departments.map(async (dept) => {
+        const formattedBranch = formatBranchName(dept.branch);
         const [alumniCount, coordinatorCount] = await Promise.all([
           Alumni.countDocuments({
-            branch: dept.branch
+            branch: { $regex: new RegExp(`^${dept.branch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
           }),
           Coordinator.countDocuments({
-            department: dept.branch
+            department: { $regex: new RegExp(`^${dept.branch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
           })
         ]);
         return {
           ...dept,
+          branch: formattedBranch,
           alumniCount,
           coordinatorCount
         };
@@ -102,9 +113,14 @@ export const getPublicDepartments = async (_: Request, res: Response): Promise<v
       .sort({ stream: 1, branch: 1 })
       .lean();
 
+    const formattedDepartments = departments.map((dept) => ({
+      ...dept,
+      branch: formatBranchName(dept.branch)
+    }));
+
     res.status(200).json({
       success: true,
-      departments
+      departments: formattedDepartments
     });
   } catch (error) {
     console.error('Error fetching public departments:', error);
@@ -140,7 +156,10 @@ export const getDepartmentById = async (req: Request, res: Response): Promise<vo
 
     res.status(200).json({
       success: true,
-      department
+      department: {
+        ...department.toObject(),
+        branch: formatBranchName(department.branch)
+      }
     });
   } catch {
     res.status(500).json({
@@ -170,7 +189,10 @@ export const getDepartmentByCode = async (req: Request, res: Response): Promise<
 
     res.status(200).json({
       success: true,
-      department
+      department: {
+        ...department.toObject(),
+        branch: formatBranchName(department.branch)
+      }
     });
   } catch {
     res.status(500).json({
@@ -211,7 +233,7 @@ export const updateDepartment = async (req: Request, res: Response): Promise<voi
 
     const updateData: Record<string, any> = {};
     if (stream) updateData.stream = stream.trim();
-    if (branch) updateData.branch = branch.trim();
+    if (branch) updateData.branch = formatBranchName(branch.trim());
     if (deptCode) updateData.deptCode = deptCode.trim().toUpperCase();
 
     const department = await Department.findByIdAndUpdate(
@@ -231,7 +253,10 @@ export const updateDepartment = async (req: Request, res: Response): Promise<voi
     res.status(200).json({
       success: true,
       message: 'Department updated successfully',
-      department
+      department: {
+        ...department.toObject(),
+        branch: formatBranchName(department.branch)
+      }
     });
   } catch (error: any) {
     if (error.name === 'ValidationError') {

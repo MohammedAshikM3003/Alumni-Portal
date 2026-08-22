@@ -42,14 +42,14 @@ export const submitJobReference = async (req: Request, res: Response): Promise<v
 			vacancies: numericVacancies,
 			location,
 			workMode,
-			status: 'pending',
+			status: 'approved',
 		});
 
 		await jobReference.save();
 
 		res.status(201).json({
 			success: true,
-			message: 'Job reference submitted successfully and pending approval',
+			message: 'Job reference submitted successfully',
 			jobReference,
 		});
 	} catch (error: any) {

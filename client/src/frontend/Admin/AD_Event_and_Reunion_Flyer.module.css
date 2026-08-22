@@ -76,7 +76,7 @@
 }
 
 .pageTitle {
-  font-size: 1.5rem;
+  font-size: 2.25rem;
   font-weight: 700;
   color: var(--text-dark);
   margin: 0;
@@ -378,6 +378,7 @@
   gap: 0.5rem;
   box-shadow: 0 4px 6px -1px rgba(20, 83, 45, 0.1);
   transition: all 0.2s ease;
+  margin-top: 0.5rem;
 }
 
 .generateBtn:hover {
@@ -553,7 +554,8 @@
 
 .geminiButtonGroup {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .geminiButtonGroup .generateBtn {
@@ -562,12 +564,14 @@
 
 /* Error Message */
 .errorMessage {
-  padding: 0.75rem;
+  padding: 0.85rem 1rem;
   border-radius: 0.75rem;
   background-color: #FEE2E2;
   color: #991B1B;
   font-size: 0.875rem;
   border-left: 3px solid #DC2626;
+  margin-top: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 /* Templates Horizontal Scrollable Row */

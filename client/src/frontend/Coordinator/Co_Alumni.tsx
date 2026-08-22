@@ -276,7 +276,7 @@ const Coordinator_Alumni: FC<CoordinatorAlumniProps> = ({ onLogout }) => {
                         <th>Batch</th>
                         <th>Location</th>
                         <th className={styles.textCenter}>Type</th>
-                        <th></th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody className={styles.tableBody}>

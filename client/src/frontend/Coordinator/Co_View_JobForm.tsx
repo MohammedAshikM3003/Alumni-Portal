@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import styles from './Co_View_JobForm.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import Back from './Components/BackButton/Back';
@@ -41,6 +41,7 @@ interface JobReference {
     vacancies: number | string;
     location: string;
     workMode: string;
+    link?: string;
 }
 
 interface CoordinatorViewJobFormProps {
@@ -49,9 +50,11 @@ interface CoordinatorViewJobFormProps {
 
 const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) => {
     const { id } = useParams<{ id: string }>();
+    const location = useLocation();
+    const passedJobData = location.state?.jobData as JobReference | undefined;
     const { user } = useAuth();
-    const [jobReference, setJobReference] = useState<JobReference | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [jobReference, setJobReference] = useState<JobReference | null>(passedJobData || null);
+    const [loading, setLoading] = useState<boolean>(!passedJobData);
     const [error, setError] = useState<string | null>(null);
     const [updating, setUpdating] = useState<boolean>(false);
 
@@ -97,6 +100,11 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
 
     useEffect(() => {
       const controller = new AbortController();
+        if (passedJobData) {
+            setJobReference(passedJobData);
+            setLoading(false);
+            return;
+        }
         const fetchJobReference = async (): Promise<void> => {
             if (!user?.token) {
                 setError('Please login to view job reference');
@@ -180,28 +188,13 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
                     <Back to={'/coordinator/job_and_reference'} />
                 </div>
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
-                    <header className="bg-white border-b border-slate-200 p-3 flex items-center mb-8 rounded-xl shadow-sm">
-                        <div className="flex items-center gap-4 w-full px-4">
-                            <div className="relative w-full">
-                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">notifications</span>
-                                <div className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm flex items-center overflow-hidden whitespace-nowrap">
-                                    <span className="font-semibold text-[#FF3D00] mr-2">New:</span>
-                                    <span className="text-slate-600">{jobReference.submittedBy?.name || 'Alumni'} sent a referral for {jobReference.role} at {jobReference.companyName}...</span>
-                                    <span className="ml-auto text-xs text-slate-400">{formatDate(jobReference.createdAt)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </header>
 
                     <div className="max-w-auto mx-auto">
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-2xl font-bold text-slate-900">View Job Reference</h2>
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${jobReference.status === 'approved' ? 'bg-green-100 text-green-700' : jobReference.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                {jobReference.status}
-                            </span>
                         </div>
 
-                        <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8 ${getBorderClassByStatus(jobReference.status)}`}>
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
                             <div className="p-8 pb-0">
                                 {/* Alumni Section */}
                                 <div className="mb-8 pb-8 border-b border-slate-200">
@@ -258,6 +251,16 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
                                         <label className="block text-sm font-medium text-slate-500 mb-1.5 uppercase tracking-wider">Work Mode</label>
                                         <p className="text-lg font-bold text-slate-900 capitalize">{jobReference.workMode}</p>
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-500 mb-1.5 uppercase tracking-wider">Application Link</label>
+                                        {jobReference.link ? (
+                                            <a href={jobReference.link.startsWith('http') ? jobReference.link : `https://${jobReference.link}`} target="_blank" rel="noopener noreferrer" className="text-lg font-bold text-blue-600 hover:underline break-all">
+                                                {jobReference.link}
+                                            </a>
+                                        ) : (
+                                            <p className="text-lg font-bold text-slate-400 italic">Not provided</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <div className="bg-slate-50 px-8 py-4 border-t border-slate-100">
@@ -268,25 +271,6 @@ const CoordinatorViewJobForm: FC<CoordinatorViewJobFormProps> = ({ onLogout }) =
                             </div>
                         </div>
 
-                        {/* Approval Actions Section */}
-                        {jobReference.status === 'pending' && (
-                            <div className="mt-8 p-6 bg-white rounded-2xl border border-slate-200 flex justify-end gap-4 shadow-sm">
-                                <button
-                                    onClick={() => handleStatusUpdate('rejected')}
-                                    disabled={updating}
-                                    className="px-5 py-2.5 rounded-xl border border-red-200 text-red-600 font-bold text-sm bg-white hover:bg-red-50 transition-colors disabled:opacity-50"
-                                >
-                                    Reject Referral
-                                </button>
-                                <button
-                                    onClick={() => handleStatusUpdate('approved')}
-                                    disabled={updating}
-                                    className="px-5 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm transition-colors shadow-md shadow-green-600/10 disabled:opacity-50"
-                                >
-                                    {updating ? 'Updating...' : 'Approve Referral'}
-                                </button>
-                            </div>
-                        )}
 
                     </div>
                 </div>

@@ -27,7 +27,6 @@ export default function Sidebar({ onLogout, currentView }: SidebarProps) {
     }
   };
 
-
   const handleNavClick = (e: React.MouseEvent, view: string) => {
     e.preventDefault();
     setIsOpen(false);
@@ -36,14 +35,16 @@ export default function Sidebar({ onLogout, currentView }: SidebarProps) {
 
   return (
     <>
-      {/* Floating Hamburger Toggle Button on Mobile */}
-      <button 
-        className={styles.mobileToggleBtn} 
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Toggle Navigation Drawer"
-      >
-        <span className="material-symbols-outlined">{isOpen ? 'close' : 'menu'}</span>
-      </button>
+      {/* Floating Hamburger Toggle Button on Mobile (only shown when closed) */}
+      {!isOpen && (
+        <button 
+          className={styles.mobileToggleBtn} 
+          onClick={() => setIsOpen(true)}
+          aria-label="Open Navigation Drawer"
+        >
+          <span className="material-symbols-outlined">menu</span>
+        </button>
+      )}
 
       {/* Backdrop overlay to close sidebar on mobile */}
       {isOpen && (
@@ -51,109 +52,123 @@ export default function Sidebar({ onLogout, currentView }: SidebarProps) {
       )}
 
       <aside id="sidebar" className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
-      <div className={styles.sidebarHeader}>
-        <img
-          src={adminBranding?.logo || undefined}
-          alt="KSRCE Logo"
-          className={styles.sidebarLogo}
-        />
-        <span className={styles.sidebarTitle}>
-          Alumni Portal
-        </span>
-      </div>
+        <div className={styles.sidebarHeader}>
+          <div className={styles.sidebarBrand}>
+            <img
+              src={adminBranding?.logo || undefined}
+              alt="KSRCE Logo"
+              className={styles.sidebarLogo}
+            />
+            <span className={styles.sidebarTitle}>
+              Alumni Portal
+            </span>
+          </div>
 
-      <nav className={styles.sidebarNav}>
-        <a
-          className={`${styles.navLink} ${currentView === 'dashboard' ? styles.navLinkActive : ''} ${styles.dashboardLink}`}
-          href="#"
-          onClick={(e) => handleNavClick(e, 'dashboard')}
-        >
-          <span className="material-symbols-outlined">dashboard</span>
-          <span className={styles.navLinkText}>
-            Dashboard
-          </span>
-        </a>
-        <a
-          className={`${styles.navLink} ${currentView === 'mail' ? styles.navLinkActive : ''}`}
-          onClick={(e) => handleNavClick(e, 'mail')}
-        >
-          <span className="material-symbols-outlined">mail</span>
-          <span className={styles.navLinkText}>
-            Mail
-          </span>
-        </a>
-        <a 
-          className={`${styles.navLink} ${currentView === 'alumini' ? styles.navLinkActive : ''}`}
-          onClick={(e) => handleNavClick(e, 'alumini')}
-        >
-          <span className="material-symbols-outlined">groups</span>
-          <span className={styles.navLinkText}>
-            Alumni
-          </span>
-        </a>
-        <a
-        className={`${styles.navLink} ${currentView === 'department' ? styles.navLinkActive : ''}`}
-        onClick={(e) => handleNavClick(e, 'department')}>
-          <span className="material-symbols-outlined">apartment</span>
-          <span className={styles.navLinkText}>
-            Department
-          </span>
-        </a>
-        <a className={`${styles.navLink} ${currentView === 'job_and_reference' ? styles.navLinkActive : ''}`}
+          {/* Close button inside drawer for mobile */}
+          <button
+            type="button"
+            className={styles.mobileCloseBtn}
+            onClick={() => setIsOpen(false)}
+            aria-label="Close Navigation Drawer"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
 
-        onClick={(e) => handleNavClick(e, 'job_and_reference')}>
-          <span className="material-symbols-outlined">work</span>
-          <span className={styles.navLinkText}>
-            Job &amp; Reference
-          </span>
-        </a>
-        <a className={`${styles.navLink} ${currentView === 'donation_history' ? styles.navLinkActive : ''}`} 
-        onClick={(e) => handleNavClick(e, 'donation_history')}>
-          <span className="material-symbols-outlined">volunteer_activism</span>
-          <span className={styles.navLinkText}>
-            Donation
-          </span>
-        </a>
-        <a
-        className={`${styles.navLink} ${currentView === 'event_and_reunion_history' ? styles.navLinkActive : ''}`}
-        href="#"
-        onClick={(e) => handleNavClick(e, 'event_and_reunion_history')}>
-          <span className="material-symbols-outlined">event</span>
-          <span className={styles.navLinkText}>
-            Events &amp; Reunion
-          </span>
-        </a>
-        <a 
-        className={`${styles.navLink} ${currentView === 'feedback' ? styles.navLinkActive : ''}`} 
-        onClick={(e) => handleNavClick(e, 'feedback')}>
-          <span className="material-symbols-outlined">feedback</span>
-          <span className={styles.navLinkText}>
-            Feedback
-          </span>
-        </a>
-      </nav>
+        <nav className={styles.sidebarNav}>
+          <a
+            className={`${styles.navLink} ${currentView === 'dashboard' ? styles.navLinkActive : ''} ${styles.dashboardLink}`}
+            href="#"
+            onClick={(e) => handleNavClick(e, 'dashboard')}
+          >
+            <span className="material-symbols-outlined">dashboard</span>
+            <span className={styles.navLinkText}>
+              Dashboard
+            </span>
+          </a>
+          <a
+            className={`${styles.navLink} ${currentView === 'mail' ? styles.navLinkActive : ''}`}
+            onClick={(e) => handleNavClick(e, 'mail')}
+          >
+            <span className="material-symbols-outlined">mail</span>
+            <span className={styles.navLinkText}>
+              Mail
+            </span>
+          </a>
+          <a 
+            className={`${styles.navLink} ${currentView === 'alumini' ? styles.navLinkActive : ''}`}
+            onClick={(e) => handleNavClick(e, 'alumini')}
+          >
+            <span className="material-symbols-outlined">groups</span>
+            <span className={styles.navLinkText}>
+              Alumni
+            </span>
+          </a>
+          <a
+            className={`${styles.navLink} ${currentView === 'department' ? styles.navLinkActive : ''}`}
+            onClick={(e) => handleNavClick(e, 'department')}>
+            <span className="material-symbols-outlined">apartment</span>
+            <span className={styles.navLinkText}>
+              Department
+            </span>
+          </a>
+          <a 
+            className={`${styles.navLink} ${currentView === 'job_and_reference' ? styles.navLinkActive : ''}`}
+            onClick={(e) => handleNavClick(e, 'job_and_reference')}>
+            <span className="material-symbols-outlined">work</span>
+            <span className={styles.navLinkText}>
+              Job &amp; Reference
+            </span>
+          </a>
+          <a 
+            className={`${styles.navLink} ${currentView === 'donation_history' ? styles.navLinkActive : ''}`} 
+            onClick={(e) => handleNavClick(e, 'donation_history')}>
+            <span className="material-symbols-outlined">volunteer_activism</span>
+            <span className={styles.navLinkText}>
+              Donation
+            </span>
+          </a>
+          <a
+            className={`${styles.navLink} ${currentView === 'event_and_reunion_history' ? styles.navLinkActive : ''}`}
+            href="#"
+            onClick={(e) => handleNavClick(e, 'event_and_reunion_history')}>
+            <span className="material-symbols-outlined">event</span>
+            <span className={styles.navLinkText}>
+              Events &amp; Reunion
+            </span>
+          </a>
+          <a 
+            className={`${styles.navLink} ${currentView === 'feedback' ? styles.navLinkActive : ''}`} 
+            onClick={(e) => handleNavClick(e, 'feedback')}>
+            <span className="material-symbols-outlined">feedback</span>
+            <span className={styles.navLinkText}>
+              Feedback
+            </span>
+          </a>
+        </nav>
 
-      <div className={styles.sidebarFooter}>
-        <a className={`${styles.navLink} ${currentView === 'profile' ? styles.navLinkActive : ''}`} 
+        <div className={styles.sidebarFooter}>
+          <a 
+            className={`${styles.navLink} ${currentView === 'profile' ? styles.navLinkActive : ''}`} 
             onClick={(e) => handleNavClick(e, 'profile')}>
-          <span className="material-symbols-outlined">account_circle</span>
-          <span className={styles.navLinkText}>
-            Profile
-          </span>
-        </a>
-        <a 
-          className={`${styles.navLink} ${styles.logoutLink}`} 
-          href="#" 
-          onClick={handleLogout}
-          style={{ marginTop: '0.5rem' }}
-        >
-          <span className="material-symbols-outlined">logout</span>
-          <span className={styles.navLinkText}>
-            Logout
-          </span>
-        </a>
-      </div>
-    </aside>
+            <span className="material-symbols-outlined">account_circle</span>
+            <span className={styles.navLinkText}>
+              Profile
+            </span>
+          </a>
+          <a 
+            className={`${styles.navLink} ${styles.logoutLink}`} 
+            href="#" 
+            onClick={handleLogout}
+            style={{ marginTop: '0.5rem' }}
+          >
+            <span className="material-symbols-outlined">logout</span>
+            <span className={styles.navLinkText}>
+              Logout
+            </span>
+          </a>
+        </div>
+      </aside>
     </>
   );
 }

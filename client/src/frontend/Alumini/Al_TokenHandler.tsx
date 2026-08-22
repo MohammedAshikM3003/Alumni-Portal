@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTokenAuth } from '../../context/tokenAuthContext/tokenAuthContext';
 import styles from './Al_TokenHandler.module.css';
+import './scrollbar.js';
 
 interface TokenInfo {
   recipientEmail?: string;

@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './AD_Donation_History.module.css';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext/authContext';
+import { formatBranchName } from '../../utils/formatters';
+import { Eye } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -78,7 +81,21 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
   const [maxAmount, setMaxAmount] = useState('');
   const [sortBy, setSortBy] = useState('date_desc');
 
-  const entriesPerPage = 7;
+  // Export dropdown
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowExportDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const entriesPerPage = 8;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -234,33 +251,91 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
     setCurrentPage(1);
   };
 
-  const handleExportCSV = () => {
+  const handleExportExcel = () => {
     if (filteredData.length === 0) return;
 
-    const headers = ['S.NO', 'Donor Name', 'Department', 'Cause / Purpose', 'Amount', 'Date', 'Type'];
-    const csvRows = [headers.join(',')];
+    const exportData = filteredData.map((row, index) => ({
+      'S.No': index + 1,
+      'Donor Name': row.name,
+      'Department': row.department,
+      'Cause / Purpose': row.batch,
+      'Amount': row.amount,
+      'Date': row.date,
+      'Type': row.type
+    }));
 
-    filteredData.forEach((row, index) => {
-      const line = [
-        index + 1,
-        `"${row.name.replace(/"/g, '""')}"`,
-        `"${row.department.replace(/"/g, '""')}"`,
-        `"${row.batch.replace(/"/g, '""')}"`,
-        `"${row.amount}"`,
-        `"${row.date}"`,
-        `"${row.type}"`
-      ];
-      csvRows.push(line.join(','));
-    });
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Donations');
 
-    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Donations_Report_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const colWidths = [8, 25, 30, 25, 15, 15, 12];
+    ws['!cols'] = colWidths.map(width => ({ wch: width }));
+
+    const currentDate = new Date().toISOString().split('T')[0];
+    const filename = `Alumni_Donations_Report_${currentDate}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
+  const handleExportPDF = async () => {
+    if (filteredData.length === 0) return;
+
+    try {
+      // @ts-ignore
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = (html2pdfModule.default || html2pdfModule) as any;
+
+      const element = document.createElement('div');
+      element.style.padding = '24px';
+      element.style.fontFamily = 'Arial, sans-serif';
+      element.style.color = '#1e293b';
+
+      element.innerHTML = `
+        <div style="margin-bottom: 20px; border-bottom: 2px solid #228B22; padding-bottom: 12px;">
+          <h2 style="color: #228B22; margin: 0 0 4px 0; font-size: 20px;">Alumni Donations Report</h2>
+          <p style="color: #64748b; margin: 0; font-size: 11px;">
+            Generated on ${new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} · Total Records: ${filteredData.length}
+          </p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+          <thead>
+            <tr style="background-color: #f1f5f9; color: #475569; border-bottom: 2px solid #cbd5e1;">
+              <th style="padding: 8px 10px; font-weight: 700;">S.NO</th>
+              <th style="padding: 8px 10px; font-weight: 700;">DONOR NAME</th>
+              <th style="padding: 8px 10px; font-weight: 700;">DEPARTMENT</th>
+              <th style="padding: 8px 10px; font-weight: 700;">CAUSE</th>
+              <th style="padding: 8px 10px; font-weight: 700;">AMOUNT</th>
+              <th style="padding: 8px 10px; font-weight: 700;">DATE</th>
+              <th style="padding: 8px 10px; font-weight: 700;">TYPE</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredData.map((row, index) => `
+              <tr style="border-bottom: 1px solid #e2e8f0; ${index % 2 === 1 ? 'background-color: #f8fafc;' : ''}">
+                <td style="padding: 8px 10px; color: #64748b;">${index + 1}</td>
+                <td style="padding: 8px 10px; font-weight: 600;">${row.name}</td>
+                <td style="padding: 8px 10px; color: #334155;">${row.department}</td>
+                <td style="padding: 8px 10px; color: #475569;">${row.batch}</td>
+                <td style="padding: 8px 10px; font-weight: 700; color: #15803d;">${row.amount}</td>
+                <td style="padding: 8px 10px; color: #64748b;">${row.date}</td>
+                <td style="padding: 8px 10px;">${row.type}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `Alumni_Donations_Report_${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+    }
   };
 
   const totalEntries = filteredData.length;
@@ -346,14 +421,52 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
           <div className={styles.pageHeader} style={{ marginBottom: '1.75rem' }}>
             <div>
               <h2 className={styles.pageTitle}>Alumni Donations Tracking</h2>
-              <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '0.35rem 0 0 0', fontWeight: 400 }}>
-                Comprehensive donation analytics across all college departments.
-              </p>
             </div>
-            <button className={styles.exportBtn} onClick={handleExportCSV}>
-              <span className="material-symbols-outlined">file_download</span>
-              Export CSV
-            </button>
+            <div className={styles.exportDropdownWrapper} ref={dropdownRef}>
+              <button
+                className={styles.exportBtn}
+                onClick={() => setShowExportDropdown(prev => !prev)}
+              >
+                <span className="material-symbols-outlined">file_download</span>
+                Export
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: '1.1rem',
+                    marginLeft: '-2px',
+                    transform: showExportDropdown ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 0.2s ease',
+                  }}
+                >
+                  expand_more
+                </span>
+              </button>
+
+              {showExportDropdown && (
+                <div className={styles.exportDropdownMenu}>
+                  <button
+                    className={styles.exportDropdownItem}
+                    onClick={() => {
+                      setShowExportDropdown(false);
+                      handleExportExcel();
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ color: '#16a34a', fontSize: '1.2rem' }}>table_chart</span>
+                    <span>Excel (.xlsx)</span>
+                  </button>
+                  <button
+                    className={styles.exportDropdownItem}
+                    onClick={() => {
+                      setShowExportDropdown(false);
+                      handleExportPDF();
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ color: '#dc2626', fontSize: '1.2rem' }}>picture_as_pdf</span>
+                    <span>PDF (.pdf)</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ─── METRIC CARDS WITH VISUALS ────────────────────── */}
@@ -558,9 +671,9 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
                 placeholder="Search donor or cause..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                style={{ ...filterInputStyle, width: '100%', paddingLeft: '2.4rem' }}
-                onFocus={e => { e.target.style.borderColor = '#228B22'; e.target.style.boxShadow = '0 0 0 3px rgba(34,139,34,0.1)'; }}
-                onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                style={{ ...filterInputStyle, width: '100%', paddingLeft: '2.4rem', background: '#f8fafc' }}
+                onFocus={e => { e.target.style.borderColor = '#228B22'; e.target.style.boxShadow = '0 0 0 3px rgba(34,139,34,0.1)'; e.target.style.backgroundColor = '#f8fafc'; }}
+                onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; e.target.style.backgroundColor = '#f8fafc'; }}
               />
             </div>
 
@@ -569,11 +682,13 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
               value={selectedDept}
               onChange={(e) => { setSelectedDept(e.target.value); setCurrentPage(1); }}
               style={{ ...filterInputStyle, minWidth: '160px', cursor: 'pointer' }}
+              onFocus={e => { e.target.style.borderColor = '#228B22'; e.target.style.boxShadow = '0 0 0 3px rgba(34,139,34,0.1)'; }}
+              onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
             >
               <option value="">All Departments</option>
               {departments.map((dept) => (
-                <option key={dept._id} value={dept.branch}>
-                  {dept.deptCode} - {dept.branch}
+                <option key={dept._id} value={formatBranchName(dept.branch)}>
+                  {dept.deptCode} - {formatBranchName(dept.branch)}
                 </option>
               ))}
             </select>
@@ -605,6 +720,8 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               style={{ ...filterInputStyle, cursor: 'pointer' }}
+              onFocus={e => { e.target.style.borderColor = '#228B22'; e.target.style.boxShadow = '0 0 0 3px rgba(34,139,34,0.1)'; }}
+              onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
             >
               <option value="date_desc">Date: Newest First</option>
               <option value="date_asc">Date: Oldest First</option>
@@ -658,13 +775,7 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
                           </div>
                         </td>
                         <td>
-                          <span style={{
-                            fontSize: '0.75rem', background: '#f0fdf4', color: '#15803d',
-                            padding: '0.2rem 0.55rem', borderRadius: '0.375rem', fontWeight: 600,
-                            border: '1px solid #bbf7d0', display: 'inline-block',
-                          }}>
-                            {row.department}
-                          </span>
+                          {row.department}
                         </td>
                         <td className={styles.tdBatch}>{row.batch}</td>
                         <td className={styles.tdAmount}>{row.amount}</td>
@@ -675,8 +786,12 @@ const Admin_Donation_History = ({ onLogout }: { onLogout?: () => void }) => {
                           </span>
                         </td>
                         <td className={styles.textRight}>
-                          <button className={styles.actionBtn} onClick={() => { navigate(`/admin/view_donation/${row.id}`) }}>
-                            <span className="material-symbols-outlined">visibility</span>
+                          <button
+                            className={styles.actionBtn}
+                            title="View Details"
+                            onClick={() => { navigate(`/admin/view_donation/${row.id}`) }}
+                          >
+                            <Eye size={20} />
                           </button>
                         </td>
                       </tr>

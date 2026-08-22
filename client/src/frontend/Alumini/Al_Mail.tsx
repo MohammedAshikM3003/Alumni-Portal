@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Al_Mail.module.css';
+import './scrollbar.js';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
 
@@ -25,17 +26,20 @@ interface TransformedMail {
   id: string;
   sender: string;
   title: string;
-    badge: string;
+  badge: string;
   text: string;
-  date: Date;
+  date: Date | string;
   responseStatus?: string;
   mailData: MailItem;
 }
 
+import { getPageCache, setPageCache } from '../../utils/pageCache';
+
 export default function Alumini_Mail({ onLogout }: AluminiMailProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [mailHistory, setMailHistory] = useState<TransformedMail[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cachedMails = getPageCache<TransformedMail[]>('alumni_mails');
+  const [mailHistory, setMailHistory] = useState<TransformedMail[]>(cachedMails || []);
+  const [loading, setLoading] = useState(!cachedMails);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -47,7 +51,7 @@ export default function Alumini_Mail({ onLogout }: AluminiMailProps) {
 
   const fetchAlumniMails = async (signal?: AbortSignal) => {
     try {
-      setLoading(true);
+      if (!cachedMails) setLoading(true);
 
       let apiUrl;
       if (user?.email) {
@@ -90,29 +94,39 @@ export default function Alumini_Mail({ onLogout }: AluminiMailProps) {
         }));
 
         setMailHistory(transformedMails);
+        setPageCache('alumni_mails', transformedMails);
       } else {
-        setMailHistory([]);
+        if (!cachedMails) setMailHistory([]);
       }
     } catch (err: any) {
       if (err.name === 'AbortError') return;
       console.error('Error fetching alumni mails:', err);
-      setMailHistory([]);
+      if (!cachedMails) setMailHistory([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (date: Date) => {
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const formatDate = (dateInput: any): string => {
+    if (!dateInput) return '';
+    try {
+      const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+      if (!date || typeof date.getTime !== 'function' || isNaN(date.getTime())) {
+        return '';
+      }
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - date.getTime());
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) {
-      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    } else if (diffDays < 7) {
-      return date.toLocaleDateString('en-US', { weekday: 'short' });
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (diffDays === 0) {
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      } else if (diffDays < 7) {
+        return date.toLocaleDateString('en-US', { weekday: 'short' });
+      } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+    } catch {
+      return '';
     }
   };
 
@@ -140,6 +154,7 @@ export default function Alumini_Mail({ onLogout }: AluminiMailProps) {
 
   const handleRefresh = () => {
     setSearchQuery('');
+    setLoading(true);
     fetchAlumniMails();
   };
 
@@ -193,8 +208,9 @@ export default function Alumini_Mail({ onLogout }: AluminiMailProps) {
                 className={styles.refreshButton}
                 onClick={handleRefresh}
                 disabled={loading}
+                title="Refresh mail history"
               >
-                <span className="material-symbols-outlined">refresh</span>
+                <span className={`material-symbols-outlined ${loading ? styles.refreshIconSpin : ''}`}>refresh</span>
               </button>
             </div>
           </div>
@@ -213,52 +229,101 @@ export default function Alumini_Mail({ onLogout }: AluminiMailProps) {
               </p>
             </div>
           ) : (
-            <div className={styles.tableWrapper}>
-              <table className={styles.mailTable}>
-                <thead>
-                  <tr>
-                    <th className={styles.thSender}>From</th>
-                    <th className={styles.thSubject}>Subject</th>
-                    <th className={styles.thDate}>Date</th>
-                    <th className={styles.thStatus}>Status</th>
-                    <th className={styles.thAction}>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredMails.map((mail: TransformedMail) => (
-                    <tr key={mail.id} className={styles.mailRow}>
-                      <td className={styles.tdSender}>
-                        <div className={styles.senderCell}>
-                          <span className={styles.senderName}>{mail.sender}</span>
-                          {mail.badge && <span className={styles.badge}>{mail.badge}</span>}
-                        </div>
-                      </td>
-                      <td className={styles.tdSubject}>
-                        <div className={styles.subjectCell}>
-                          {mail.text.length > 80 ? mail.text.substring(0, 80) + '...' : mail.text}
-                        </div>
-                      </td>
-                      <td className={styles.tdDate}>{formatDate(mail.date)}</td>
-                      <td className={styles.tdStatus}>
-                        <span
-                          className={styles.statusBadge}
-                        >
-                          {getStatusLabel(mail.responseStatus)}
-                        </span>
-                      </td>
-                      <td className={styles.tdAction}>
-                        <button
-                          className={styles.viewButton}
-                          onClick={() => handleViewMail(mail)}
-                        >
-                          View
-                        </button>
-                      </td>
+            <>
+              <div className={styles.tableWrapper}>
+                <table className={styles.mailTable}>
+                  <thead>
+                    <tr>
+                      <th className={styles.thSender}>From</th>
+                      <th className={styles.thSubject}>Subject</th>
+                      <th className={styles.thDate}>Date</th>
+                      <th className={styles.thStatus}>Status</th>
+                      <th className={styles.thAction}>Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredMails.map((mail: TransformedMail) => (
+                      <tr key={mail.id} className={styles.mailRow}>
+                        <td className={styles.tdSender}>
+                          <div className={styles.senderCell}>
+                            <span className={styles.senderName}>{mail.sender}</span>
+                            {mail.badge && <span className={styles.badge}>{mail.badge}</span>}
+                          </div>
+                        </td>
+                        <td className={styles.tdSubject}>
+                          <div className={styles.subjectCell}>
+                            {mail.text.length > 80 ? mail.text.substring(0, 80) + '...' : mail.text}
+                          </div>
+                        </td>
+                        <td className={styles.tdDate}>{formatDate(mail.date)}</td>
+                        <td className={styles.tdStatus}>
+                          <span
+                            className={styles.statusBadge}
+                          >
+                            {getStatusLabel(mail.responseStatus)}
+                          </span>
+                        </td>
+                        <td className={styles.tdAction}>
+                          <button
+                            className={styles.viewButton}
+                            onClick={() => handleViewMail(mail)}
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View (Matches Event & Reunion Card layout) */}
+              <div className={styles.mobileCardsList}>
+                {filteredMails.map((mail: TransformedMail, idx: number) => {
+                  const avatarClasses = [styles.avatarBlue, styles.avatarOrange, styles.avatarPurple, styles.avatarGreen];
+                  const initial = (mail.sender || 'AD').substring(0, 2).toUpperCase();
+
+                  return (
+                    <div key={mail.id} className={styles.mobileEmailCard} onClick={() => handleViewMail(mail)}>
+                      <div className={styles.mobileEmailHeader}>
+                        <div className={styles.mobileSenderRow}>
+                          <div className={`${styles.mobileAvatarText} ${avatarClasses[idx % avatarClasses.length]}`}>
+                            {initial}
+                          </div>
+                          <div className={styles.mobileSenderDetails}>
+                            <div className={styles.mobileSenderTitleRow}>
+                              <h4 className={styles.mobileSenderName}>{mail.sender}</h4>
+                              {mail.badge && <span className={styles.badge}>{mail.badge}</span>}
+                            </div>
+                            <p className={styles.mobileMailDate}>{formatDate(mail.date)}</p>
+                          </div>
+                        </div>
+                        <span className={styles.statusBadge}>{getStatusLabel(mail.responseStatus)}</span>
+                      </div>
+
+                      <div className={styles.mobileCardBody}>
+                        <h5 className={styles.mobileMailSubject}>{mail.title}</h5>
+                        <p className={styles.mobileMailText}>
+                          {mail.text.length > 90 ? mail.text.substring(0, 90) + '...' : mail.text}
+                        </p>
+                      </div>
+
+                      <div className={styles.mobileCardFooter}>
+                        <button
+                          className={styles.viewDetailsBtn}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewMail(mail);
+                          }}
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       </main>

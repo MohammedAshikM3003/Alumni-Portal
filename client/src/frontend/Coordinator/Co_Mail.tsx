@@ -2,7 +2,6 @@ import { FC, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Co_Mail.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
-import Back from './Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -47,6 +46,8 @@ const CoordinatorMail: FC<CoordinatorMailProps> = ({ onLogout }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [resolvedDepartment, setResolvedDepartment] = useState<string>("");
+    const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'accept' | 'reject'>('all');
+    const [draftCount, setDraftCount] = useState<number>(0);
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -103,6 +104,21 @@ const CoordinatorMail: FC<CoordinatorMailProps> = ({ onLogout }) => {
 
         if (user?.token) {
             fetchDepartmentMails(controller.signal);
+            
+            // Fetch draft count
+            fetch(`${API_BASE_URL}/api/drafts/count`, {
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setDraftCount(data.count);
+                }
+            })
+            .catch(err => {
+                if (err.name !== 'AbortError') console.error('Error fetching draft count:', err);
+            });
         } else {
             setLoading(false);
         }
@@ -129,12 +145,24 @@ const CoordinatorMail: FC<CoordinatorMailProps> = ({ onLogout }) => {
         }
     };
 
-    const filteredMails = mailHistory.filter(mail =>
-        mail.sender.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        mail.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        mail.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (mail.type && mail.type.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const counts = {
+        all: mailHistory.length,
+        pending: mailHistory.filter(m => m.dominantStatus === 'pending').length,
+        accepted: mailHistory.filter(m => m.dominantStatus === 'accept').length,
+        rejected: mailHistory.filter(m => m.dominantStatus === 'reject').length,
+    };
+
+    const filteredMails = mailHistory.filter(mail => {
+        const matchesSearch = mail.sender.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            mail.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            mail.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (mail.type && mail.type.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        if (!matchesSearch) return false;
+
+        if (filterStatus === 'all') return true;
+        return mail.dominantStatus === filterStatus;
+    });
 
     const handleViewMail = (mail: MailItem) => {
         navigate('/coordinator/info-form', {
@@ -153,23 +181,56 @@ const CoordinatorMail: FC<CoordinatorMailProps> = ({ onLogout }) => {
         <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
             <Sidebar currentView="mail" onLogout={onLogout} />
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
-                    <Back to={'/coordinator/dashboard'} />
-                </div>
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable}`}>
                     <div className="w-full p-8">
-                        <div className="flex items-center justify-between mb-8">
-                            <div>
-                                <h2 className="text-3xl font-bold text-[#001E2B]">Mail History</h2>
-                                <div className="flex items-center gap-2 mt-1">
-                                    {(resolvedDepartment || user?.department) && (
-                                        <p className="text-sm text-slate-500">Department: {resolvedDepartment || user?.department}</p>
-                                    )}
-                                    {(resolvedDepartment || user?.department) && (
-                                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
-                                            Showing only {(resolvedDepartment || user?.department)} alumni mails
-                                        </span>
-                                    )}
+                        <div className="flex items-end justify-between mb-8">
+                            <div className="flex flex-col items-start gap-4">
+                                <div>
+                                    <h2 className="text-3xl font-bold text-[#001E2B]">Mail History</h2>
+                                    <p className="text-sm text-slate-500 mt-1 mb-2">View, track, and manage all sent mail broadcasts and invitation threads</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        {(resolvedDepartment || user?.department) && (
+                                            <p className="text-sm text-slate-500">Department: {resolvedDepartment || user?.department}</p>
+                                        )}
+                                        {(resolvedDepartment || user?.department) && (
+                                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                                                Showing only {(resolvedDepartment || user?.department)} alumni mails
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center flex-wrap gap-4 mt-2">
+                                    <button className="bg-[#ff3d00] text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity shadow-sm">
+                                        <span className="material-symbols-outlined text-sm">add</span>
+                                        Compose Mail
+                                    </button>
+                                    
+                                    <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-slate-50 transition-colors shadow-sm">
+                                        <span className="material-symbols-outlined text-sm">drafts</span>
+                                        Drafts
+                                        <span className="bg-slate-100 text-slate-600 text-xs py-0.5 px-2 rounded-full font-bold">{draftCount}</span>
+                                    </button>
+
+                                    <div className="flex bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                                        {[
+                                            { id: 'all', label: 'All', count: counts.all },
+                                            { id: 'pending', label: 'Pending', count: counts.pending },
+                                            { id: 'accept', label: 'Accepted', count: counts.accepted },
+                                            { id: 'reject', label: 'Rejected', count: counts.rejected }
+                                        ].map(filter => (
+                                            <button 
+                                                key={filter.id}
+                                                onClick={() => setFilterStatus(filter.id as any)}
+                                                className={`px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-colors border-r border-slate-200 last:border-r-0 ${filterStatus === filter.id ? 'bg-[#ff3d00]/10 text-[#ff3d00]' : 'text-slate-600 hover:bg-slate-50'}`}
+                                            >
+                                                {filter.label}
+                                                <span className={`text-xs py-0.5 px-2 rounded-full font-bold ${filterStatus === filter.id ? 'bg-[#ff3d00]/20 text-[#ff3d00]' : 'bg-slate-100 text-slate-500'}`}>
+                                                    {filter.count}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
@@ -214,7 +275,7 @@ const CoordinatorMail: FC<CoordinatorMailProps> = ({ onLogout }) => {
                                             <th className={styles.thSender}>From</th>
                                             <th className={styles.thSubject}>Subject</th>
                                             <th className={styles.thDate}>Date</th>
-                                            <th className={styles.thStats}>Response Stats</th>
+                                            <th className={styles.thStats}>Response Status</th>
                                             <th className={styles.thAction}>Action</th>
                                         </tr>
                                     </thead>

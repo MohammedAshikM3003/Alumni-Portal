@@ -49,7 +49,7 @@
 }
 
 .headerTitle {
-  font-size: 1.75rem;
+  font-size: 2.25rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
@@ -100,7 +100,7 @@
 /* Analytics Stats Grid */
 .topDashboardSection {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
   margin-bottom: 2rem;
 }

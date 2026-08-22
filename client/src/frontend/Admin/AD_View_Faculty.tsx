@@ -209,7 +209,6 @@ const Admin_View_Faculty = ({ onLogout }: { onLogout?: () => void }) => {
               <div className={styles.profileIntro}>
                 <div className={styles.introTop}>
                   <h2>{coordinatorData.name}</h2>
-                  <span className={styles.badgeActive}>{coordinatorData.status}</span>
                 </div>
                 <p className={styles.designation}>{coordinatorData.designation}</p>
                 <p className={styles.department}>{coordinatorData.department}</p>

@@ -2,11 +2,17 @@
 
 .pageContainer {
   display: flex;
-  min-height: 100vh;
-  background-color: #FAFAFA; /* Light gray background matching image */
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #FAFAFA;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #111827; 
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -21,54 +27,60 @@
   flex-direction: column;
   transition: all 0.3s ease-in-out;
   overflow-y: auto;
-  max-height: 100vh;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
+  max-height: 100%;
 }
 
 /* Volume Bar Style Scrollbar - Webkit (Chrome, Safari, Edge) */
 .mainContent::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 .mainContent::-webkit-scrollbar-track {
   background-color: #E5E7EB;
   border-radius: 10px;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
 .mainContent::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #007BFF, #0069D9);
+  background: linear-gradient(180deg, #0084D6 0%, #0069D9 100%);
   border-radius: 10px;
   transition: all 0.3s ease;
   border: 2px solid #E5E7EB;
-  box-shadow: inset 0 0 6px rgba(0, 123, 255, 0.3);
+  box-shadow: inset 0 0 6px rgba(0, 132, 214, 0.3);
 }
 
 .mainContent::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #0069D9, #0051CC);
-  border-color: #007BFF;
-  box-shadow: inset 0 0 8px rgba(0, 123, 255, 0.5), 0 0 4px rgba(0, 123, 255, 0.4);
+  background: linear-gradient(180deg, #0069D9 0%, #0051CC 100%);
+  border-color: #0084D6;
+  box-shadow: inset 0 0 8px rgba(0, 132, 214, 0.5);
 }
 
 .mainContent::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(to bottom, #0051CC, #003d99);
-  box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.7);
+  background: linear-gradient(180deg, #0051CC 0%, #003d99 100%);
+  box-shadow: inset 0 0 10px rgba(0, 132, 214, 0.7);
 }
 
 /* Firefox Scrollbar */
 .mainContent {
-  scrollbar-color: linear-gradient(to bottom, #007BFF, #0069D9) #E5E7EB;
-  scrollbar-width: auto;
+  scrollbar-color: #0084D6 #E5E7EB;
+  scrollbar-width: thin;
 }
 
 /* Back Button */
 .backButton {
     display: flex;
     align-items: center;
+    gap: 8px;
     padding-bottom: 20px;
     color: #475569;
     cursor: pointer;
     transition: color 0.2s;
     width: fit-content;
+    align-self: flex-start;
 }
 
 .backButton:hover {
@@ -84,6 +96,7 @@
 .formWrapper {
   flex: 1;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   width: 100%;
 }
@@ -137,6 +150,72 @@
   font-size: 14px;
   font-weight: 700;
   color: #374151;
+}
+
+.addRoleBtn,
+.removeRoleBtn {
+  width: 120px;
+  height: 52px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.addRoleBtn {
+  background-color: #0084D6;
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.addRoleBtn:hover {
+  background-color: #006BB5;
+}
+
+.addRoleBtn:active {
+  transform: scale(0.98);
+}
+
+.removeRoleBtn {
+  background-color: #FEF2F2;
+  color: #EF4444;
+  border: 1px solid #FEE2E2;
+}
+
+.removeRoleBtn:hover {
+  background-color: #EF4444;
+  color: #FFFFFF;
+  border-color: #EF4444;
+}
+
+.removeRoleBtn:active {
+  transform: scale(0.98);
+}
+
+.rolesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.roleInputRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.roleInputRow .inputField {
+  flex: 1;
+  min-width: 0;
 }
 
 .inputField {
@@ -248,7 +327,15 @@ select.inputField option[value=""] {
   .sidebarFooter { align-items: stretch; padding: 16px 12px; }
   .logoutBtn { width: auto; justify-content: flex-start; padding: 12px 16px; height: auto; }
 
-  .mainContent { margin-left: 0; padding: 24px; }
+  .mainContent {
+    margin-left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4.25rem 1rem 1rem 1rem;
+    box-sizing: border-box;
+  }
   .mobileHeader { display: flex; }
 
   .overlay {
@@ -262,7 +349,7 @@ select.inputField option[value=""] {
 
 /* 3. Small Mobile Phones (425px) */
 @media (max-width: 425px) {
-  .mainContent { padding: 16px; }
+  .mainContent { padding: 4.5rem 1rem 1rem 1rem; }
   
   .formCard { padding: 24px 20px; }
   .cardHeader { flex-direction: column; gap: 20px; }

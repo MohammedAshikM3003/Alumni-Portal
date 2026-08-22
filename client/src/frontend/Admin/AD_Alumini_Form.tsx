@@ -4,6 +4,7 @@ import Sidebar from './Components/Sidebar/Sidebar';
 import { DateInput } from '../../components/Calendar';
 import { useAuth } from '../../context/authContext/authContext';
 import Cropper from 'react-easy-crop';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -79,6 +80,7 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
     } as Record<string, string>,
     othersExam: { name: '', marks: '' },
     placementType: '',
+    companyName: '',
     designation: '',
     companyAddress: '',
     employmentRemarks: '',
@@ -458,6 +460,7 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
       competitiveExams,
       collegeQualifications,
       placementType: formData.placementType,
+      companyName: formData.companyName,
       designation: formData.designation,
       companyAddress: formData.companyAddress,
       employmentRemarks: formData.employmentRemarks,
@@ -562,6 +565,7 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
           exams: { GRE: '', TOEFL: '', UPSC: '', GATE: '', IAS: '' },
           othersExam: { name: '', marks: '' },
           placementType: '',
+          companyName: '',
           designation: '',
           companyAddress: '',
           employmentRemarks: '',
@@ -782,8 +786,8 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                     {departments
                       .filter(dept => !formData.degree || dept.stream === formData.degree)
                       .map((dept) => (
-                        <option key={dept._id} value={dept.branch}>
-                          {dept.branch} ({dept.deptCode})
+                        <option key={dept._id} value={formatBranchName(dept.branch)}>
+                          {formatBranchName(dept.branch)} ({dept.deptCode})
                         </option>
                       ))}
                   </select>
@@ -1072,6 +1076,19 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                       </div>
                     </div>
                     <div className={styles.inputGroup}>
+                      <label className={styles.labelSmall}>Company Name</label>
+                      <input
+                        type="text"
+                        className={styles.textInput}
+                        placeholder="e.g. Google / Microsoft"
+                        value={formData.companyName}
+                        onChange={(e) => handleInputChange('companyName', e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.gridTwoColLargeGap}>
+                    <div className={styles.inputGroup}>
                       <label className={styles.labelSmall}>Designation</label>
                       <input
                         type="text"
@@ -1081,29 +1098,27 @@ const Admin_Alumini_Form = ({ onLogout }: AdminAluminiFormProps) => {
                         onChange={(e) => handleInputChange('designation', e.target.value)}
                       />
                     </div>
-                  </div>
-
-                  <div className={styles.gridTwoColLargeGap}>
                     <div className={styles.inputGroup}>
                       <label className={styles.labelSmall}>Company Address</label>
                       <textarea
                         className={styles.textareaInput}
                         placeholder="Organization name and full address..."
-                        rows={3}
+                        rows={2}
                         value={formData.companyAddress}
                         onChange={(e) => handleInputChange('companyAddress', e.target.value)}
                       ></textarea>
                     </div>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.labelSmall}>Remarks</label>
-                      <textarea
-                        className={styles.textareaInput}
-                        placeholder="Any specific remarks about employment..."
-                        rows={3}
-                        value={formData.employmentRemarks}
-                        onChange={(e) => handleInputChange('employmentRemarks', e.target.value)}
-                      ></textarea>
-                    </div>
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <label className={styles.labelSmall}>Remarks</label>
+                    <textarea
+                      className={styles.textareaInput}
+                      placeholder="Any specific remarks about employment..."
+                      rows={2}
+                      value={formData.employmentRemarks}
+                      onChange={(e) => handleInputChange('employmentRemarks', e.target.value)}
+                    ></textarea>
                   </div>
                 </div>
               </div>

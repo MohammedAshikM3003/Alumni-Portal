@@ -4,6 +4,7 @@ import { Search, Eye, Plus, Users, Award, X, Send, Mail } from 'lucide-react';
 import styles from './AD_Alumini.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -25,6 +26,7 @@ interface Alumni {
   yearFrom: number;
   yearTo: number;
   placementType?: string;
+  companyName?: string;
   companyAddress?: string | Address;
   presentAddress?: Address;
 }
@@ -83,7 +85,7 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
   const handleAddEmail = () => {
     const trimmed = emailInput.trim();
     if (!trimmed) return;
-    
+
     // Validate email pattern
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmed)) {
@@ -130,7 +132,7 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
         });
         setEmailsList([]);
         setEmailInput('');
-        
+
         // Auto close after 2 seconds
         setTimeout(() => {
           setIsPopupOpen(false);
@@ -152,7 +154,9 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
     }
   };
 
-  // Fetch alumni list and departments list
+  const [activeJobsCount, setActiveJobsCount] = useState<number>(0);
+
+  // Fetch alumni list, departments, and active jobs list
   useEffect(() => {
     const controller = new AbortController();
     const fetchData = async (): Promise<void> => {
@@ -192,6 +196,21 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
         } else if (deptData.success && Array.isArray(deptData.departments)) {
           setDepartments(deptData.departments);
         }
+
+        // Fetch active job references count
+        const jobsRes = await fetch(`${API_BASE_URL}/api/jobs/all`, {
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        if (jobsRes.ok) {
+          const jobsJson = await jobsRes.json();
+          if (jobsJson.success && Array.isArray(jobsJson.jobReferences)) {
+            const approvedJobs = jobsJson.jobReferences.filter((j: any) => j.status === 'approved');
+            setActiveJobsCount(approvedJobs.length);
+          }
+        }
       } catch {
         setError('Unable to connect to server');
       } finally {
@@ -220,7 +239,7 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
     }
 
     if (selectedBranch) {
-      result = result.filter((a) => a.branch === selectedBranch);
+      result = result.filter((a) => formatBranchName(a.branch).toLowerCase() === selectedBranch.toLowerCase());
     }
 
     if (selectedBatch) {
@@ -254,87 +273,43 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
       <Sidebar onLogout={onLogout} currentView={'alumini'} />
 
       <main className={styles.mainContent}>
-        <header className={styles.contentHeader}>
+        <header className={styles.contentHeader} style={{ paddingBottom: '0.5rem' }}>
           <div className={styles.pageHeader}>
             <div>
               <h1 className={styles.pageTitle}>Alumni Directory</h1>
-              <p className={styles.pageSubtitle}>
-                Manage and track your institution's global alumni network.
-              </p>
-            </div>
-            <div className={styles.pageActionButtons}>
-              <button
-                className={styles.primaryActionBtn}
-                onClick={() => navigate('/admin/alumini_form')}
-              >
-                <Plus size={18} />
-                Add Alumni
-              </button>
-              <button
-                className={styles.secondaryActionBtn}
-                onClick={() => setIsPopupOpen(true)}
-              >
-                <Send size={18} />
-                Send Registration Link
-              </button>
-            </div>
-          </div>
-
-          <div className={styles.kpiGrid}>
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiIconWrapper} style={{ backgroundColor: '#eaf6ed', color: '#2e6f40' }}>
-                <Users size={24} />
-              </div>
-              <div className={styles.kpiContent}>
-                <p className={styles.kpiLabel}>Total Alumni</p>
-                <h2 className={styles.kpiValue}>{alumniData.length.toLocaleString()}</h2>
-              </div>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiIconWrapper} style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
-                <Award size={24} />
-              </div>
-              <div className={styles.kpiContent}>
-                <p className={styles.kpiLabel}>Active Filters Match</p>
-                <h2 className={styles.kpiValue}>{filteredData.length.toLocaleString()}</h2>
-              </div>
             </div>
           </div>
         </header>
 
-        {/* Filter and Search Bar */}
-        <div style={{ padding: '0 2.5rem 1rem 2.5rem' }}>
-          <div className={styles.filterBar}>
-            <div className={styles.searchInputWrapper}>
-              <span className={styles.searchIcon}>
-                <Search size={18} />
-              </span>
+        {/* Dashboard Grid (Image 2 layout style) */}
+        <div className={styles.dashboardStatsRow}>
+          {/* Card 1: Search & Filter Panel (Two-Row Layout) */}
+          <div className={styles.filterCard}>
+            <div className={styles.searchBoxWrapper}>
+              <Search size={18} className={styles.searchIcon} />
               <input
                 type="text"
-                className={styles.mainSearchInput}
+                className={styles.searchBoxInput}
                 placeholder="Search alumni by name, register no, email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-
-            <div className={styles.filterControls}>
+            <div className={styles.dropdownRow}>
               <select
-                className={styles.filterSelect}
+                className={styles.dropdownSelect}
                 value={selectedBranch}
                 onChange={(e) => setSelectedBranch(e.target.value)}
               >
-                <option value="">All Branches</option>
+                <option value="">Select Filter</option>
                 {departments.map((dept) => (
-                  <option key={dept._id} value={dept.branch}>
-                    {dept.branch}
+                  <option key={dept._id} value={formatBranchName(dept.branch)}>
+                    {formatBranchName(dept.branch)}
                   </option>
                 ))}
               </select>
-
               <select
-                className={styles.filterSelect}
+                className={styles.dropdownSelect}
                 value={selectedBatch}
                 onChange={(e) => setSelectedBatch(e.target.value)}
               >
@@ -345,22 +320,49 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
                   </option>
                 ))}
               </select>
-
               {(searchTerm || selectedBranch || selectedBatch) && (
                 <button
-                  className={styles.clearFilterBtn}
+                  className={styles.clearBtnCompact}
                   onClick={() => {
                     setSearchTerm('');
                     setSelectedBranch('');
                     setSelectedBatch('');
                   }}
-                  title="Clear all active search and filter options"
                 >
-                  <X size={16} style={{ marginRight: '6px' }} />
-                  Clear Filters
+                  Clear
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Card 2: Total Alumni */}
+          <div className={styles.kpiMetricCard}>
+            <p className={styles.kpiMetricLabel}>Total No. of Alumni</p>
+            <h2 className={styles.kpiMetricValue}>{alumniData.length.toLocaleString()}</h2>
+          </div>
+
+          {/* Card 3: Active Filters Match */}
+          <div className={styles.kpiMetricCard}>
+            <p className={styles.kpiMetricLabel}>Active Filters</p>
+            <h2 className={styles.kpiMetricValue}>{filteredData.length.toLocaleString()}</h2>
+          </div>
+
+          {/* Card 4: Send Registration Links Button Card */}
+          <div
+            className={styles.addAlumniButtonCard}
+            onClick={() => setIsPopupOpen(true)}
+          >
+            <Send size={28} className={styles.addAlumniIcon} />
+            <span className={styles.addAlumniText}>SEND REGISTRATION LINKS</span>
+          </div>
+
+          {/* Card 5: Add Alumni Button Card */}
+          <div
+            className={styles.addAlumniButtonCard}
+            onClick={() => navigate('/admin/alumini_form')}
+          >
+            <Plus size={28} className={styles.addAlumniIcon} />
+            <span className={styles.addAlumniText}>+ ADD ALUMNI</span>
           </div>
         </div>
 
@@ -383,7 +385,7 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
                         <th>Batch</th>
                         <th>Location</th>
                         <th>Type</th>
-                        <th></th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody className={styles.tableBody}>
@@ -417,7 +419,7 @@ const Admin_Alumini: FC<AdminAluminiProps> = ({ onLogout }) => {
                                   title="View Details"
                                   onClick={() => navigate(`/admin/alumini/${row._id}`)}
                                 >
-                                  <Eye size={18} />
+                                  <Eye size={20} />
                                 </button>
                               </div>
                             </td>

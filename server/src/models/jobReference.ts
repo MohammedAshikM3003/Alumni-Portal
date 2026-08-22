@@ -64,7 +64,7 @@ const jobReferenceSchema = new Schema<IJobReference>(
 		status: {
 			type: String,
 			enum: ['pending', 'approved', 'rejected'],
-			default: 'pending',
+			default: 'approved',
 			index: true,
 		},
 		approvedBy: {

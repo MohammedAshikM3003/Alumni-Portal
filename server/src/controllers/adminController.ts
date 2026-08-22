@@ -48,7 +48,7 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<vo
       Alumni.countDocuments({}),
       Coordinator.countDocuments({ status: 'Active' }),
       Event.countDocuments({
-        status: 'pending',
+        status: 'upcoming',
         eventDate: { $gte: today },
       }),
       Mail.countDocuments({ isBroadcast: true }),
@@ -68,7 +68,7 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<vo
         .select('amount purpose paidAt user')
         .populate<{ user: { name: string } }>('user', 'name'),
       Event.findOne({
-        status: 'pending',
+        status: 'upcoming',
         eventDate: { $gte: today },
       })
         .sort({ eventDate: 1 })

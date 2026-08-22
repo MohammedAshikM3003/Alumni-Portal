@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Calendar, Clock, CheckSquare, GraduationCap, Plus } from 'lucide-react';
 import styles from './AD_Event_and_Reunion_History.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -23,8 +25,9 @@ const getStatusBadgeClass = (status: string | undefined) => {
   switch (status) {
     case 'completed': return styles.statusCompleted;
     case 'cancelled': return styles.statusCancelled;
-    case 'pending': return styles.statusPending;
-    default: return styles.statusPending;
+    case 'upcoming':
+    case 'pending': return styles.statusUpcoming;
+    default: return styles.statusUpcoming;
   }
 };
 
@@ -40,6 +43,7 @@ interface EventHistory {
   time: string;
   venue: string;
   status: string;
+  batch?: string;
   createdAt: string;
 }
 
@@ -62,7 +66,6 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedTimeframe, setSelectedTimeframe] = useState('');
 
   const cardsPerPage = 9;
 
@@ -103,6 +106,7 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
             time: formatTime(event.eventTime),
             venue: event.venue,
             status: event.status,
+            batch: event.batch,
             createdAt: event.createdAt,
           }));
           setEventsData(formattedData);
@@ -161,23 +165,17 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
 
     const matchesDept = !selectedDept || event.organizer.toLowerCase() === selectedDept.toLowerCase();
 
-    const matchesStatus = !selectedStatus || event.status === selectedStatus;
+    const matchesStatus = !selectedStatus || 
+      (selectedStatus === 'upcoming' && (event.status === 'upcoming' || event.status === 'pending')) ||
+      event.status === selectedStatus;
 
-    let matchesTimeframe = true;
-    if (selectedTimeframe === 'upcoming') {
-      matchesTimeframe = event.rawDate >= now;
-    } else if (selectedTimeframe === 'past') {
-      matchesTimeframe = event.rawDate < now;
-    }
-
-    return matchesSearch && matchesDept && matchesStatus && matchesTimeframe;
+    return matchesSearch && matchesDept && matchesStatus;
   });
 
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedDept('');
     setSelectedStatus('');
-    setSelectedTimeframe('');
     setCurrentPage(1);
   };
 
@@ -236,118 +234,111 @@ const Admin_Event_and_Reunion_History = ({ onLogout }: { onLogout?: () => void }
         <div className={styles.contentMaxWidth}>
 
           {/* Header Section */}
-          <header className={styles.pageHeader} style={{ marginBottom: '1.25rem' }}>
+          <header className={styles.pageHeader}>
             <div className={styles.headerText}>
               <h2 className={styles.pageTitle}>Events & Reunion History</h2>
-              <p className={styles.pageSubtitle}>
-                Reflecting on our past gatherings, celebrations, and alumni milestones across departments.
-              </p>
             </div>
-            <button className={styles.hostBtn} onClick={() => { navigate('/admin/event_and_reunion_form1'); }}>
-              <span className="material-symbols-outlined">add_circle</span>
-              <span>Host New Event</span>
-            </button>
           </header>
 
-          {/* Metric Cards Summary Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-              <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Total Events</p>
-              <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: '0.25rem 0 0 0' }}>{totalEvents}</h3>
+          {/* Dashboard Grid (Alumni Directory layout style) */}
+          <div className={styles.dashboardStatsRow}>
+            {/* Card 1: Search & Filter Panel */}
+            <div className={styles.filterCard}>
+              <div className={styles.searchBoxWrapper}>
+                <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
+                <input
+                  type="text"
+                  className={styles.searchBoxInput}
+                  placeholder="Search event title or venue..."
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                />
+              </div>
+              <div className={styles.dropdownRow}>
+                <select
+                  value={selectedDept}
+                  onChange={(e) => { setSelectedDept(e.target.value); setCurrentPage(1); }}
+                  className={styles.dropdownSelect}
+                >
+                  <option value="">All Organizing Depts</option>
+                  {departments.map((dept) => (
+                    <option key={dept._id} value={formatBranchName(dept.branch)}>
+                      {dept.deptCode} - {formatBranchName(dept.branch)}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => { setSelectedStatus(e.target.value); setCurrentPage(1); }}
+                  className={styles.dropdownSelect}
+                >
+                  <option value="">All Statuses</option>
+                  <option value="upcoming">Upcoming</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+                {(searchTerm || selectedDept || selectedStatus) && (
+                  <button
+                    onClick={clearFilters}
+                    className={styles.clearBtnCompact}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-              <p style={{ fontSize: '0.75rem', color: '#2563eb', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Upcoming Gatherings</p>
-              <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1d4ed8', margin: '0.25rem 0 0 0' }}>{upcomingCount}</h3>
+
+            {/* Card 2: Total Events */}
+            <div className={styles.kpiMetricCard}>
+              <p className={styles.kpiMetricLabel}>Total Events</p>
+              <h2 className={styles.kpiMetricValue}>{totalEvents}</h2>
             </div>
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-              <p style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Completed Reunions</p>
-              <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#15803d', margin: '0.25rem 0 0 0' }}>{completedCount}</h3>
+
+            {/* Card 3: Upcoming Gatherings */}
+            <div className={styles.kpiMetricCard}>
+              <p className={styles.kpiMetricLabel}>Upcoming Gatherings</p>
+              <h2 className={styles.kpiMetricValue}>{upcomingCount}</h2>
             </div>
-            <div style={{ background: '#fff', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-              <p style={{ fontSize: '0.75rem', color: '#9333ea', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>Most Active Dept</p>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#7e22ce', margin: '0.4rem 0 0 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{topEventDept}</h3>
+
+            {/* Card 4: Completed Reunions */}
+            <div className={styles.kpiMetricCard}>
+              <p className={styles.kpiMetricLabel}>Completed Reunions</p>
+              <h2 className={styles.kpiMetricValue}>{completedCount}</h2>
+            </div>
+
+            {/* Card 5: Host New Event Button Card */}
+            <div
+              className={styles.addAlumniButtonCard}
+              onClick={() => { navigate('/admin/event_and_reunion_form1'); }}
+            >
+              <Plus size={28} className={styles.addAlumniIcon} />
+              <span className={styles.addAlumniText}>HOST NEW EVENT</span>
             </div>
           </div>
-
-          {/* Search & Multi-Filter Panel */}
-          <div style={{ background: '#fff', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
-            {/* Search Input */}
-            <div style={{ position: 'relative', flex: '1 1 200px' }}>
-              <span className="material-symbols-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>search</span>
-              <input
-                type="text"
-                placeholder="Search event title or venue..."
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', outline: 'none', fontSize: '0.85rem' }}
-              />
-            </div>
-
-            {/* Department Filter */}
-            <select
-              value={selectedDept}
-              onChange={(e) => { setSelectedDept(e.target.value); setCurrentPage(1); }}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none', minWidth: '160px' }}
-            >
-              <option value="">All Organizing Depts</option>
-              {departments.map((dept) => (
-                <option key={dept._id} value={dept.branch}>
-                  {dept.deptCode} - {dept.branch}
-                </option>
-              ))}
-            </select>
-
-            {/* Status Filter */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => { setSelectedStatus(e.target.value); setCurrentPage(1); }}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none' }}
-            >
-              <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-
-            {/* Timeframe Filter */}
-            <select
-              value={selectedTimeframe}
-              onChange={(e) => { setSelectedTimeframe(e.target.value); setCurrentPage(1); }}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#fff', fontSize: '0.85rem', outline: 'none' }}
-            >
-              <option value="">All Timeframes</option>
-              <option value="upcoming">Upcoming Events</option>
-              <option value="past">Past Events</option>
-            </select>
-
-            {/* Reset Button */}
-            {(searchTerm || selectedDept || selectedStatus || selectedTimeframe) && (
-              <button
-                onClick={clearFilters}
-                style={{ padding: '0.5rem 0.75rem', background: '#f1f5f9', border: 'none', borderRadius: '0.5rem', color: '#64748b', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-
-          {/* Event History Grid */}
-          <section className={styles.eventsGrid}>
-            {paginatedEvents.length > 0 ? (
-              paginatedEvents.map((event) => (
-                <article key={event.id} className={styles.eventCard}>
-                  <div className={styles.cardContent}>
-                    <div className={styles.cardHeader}>
-                      <span className={`${styles.statusBadge} ${getStatusBadgeClass(event.status)}`}>
-                        {event.status}
-                      </span>
-                    </div>
+ 
+           {/* Event History Grid */}
+           <section className={styles.eventsGrid}>
+             {paginatedEvents.length > 0 ? (
+               paginatedEvents.map((event) => (
+                 <article key={event.id} className={styles.eventCard}>
+                   <div className={styles.cardContent}>
+                     <div className={styles.cardHeader}>
+                       <span className={`${styles.statusBadge} ${getStatusBadgeClass(event.status)}`}>
+                         {event.status === 'pending' || event.status === 'upcoming' ? 'upcoming' : event.status}
+                       </span>
+                     </div>
                     <div className={styles.cardText}>
                       <h3 className={styles.eventTitle}>{event.title}</h3>
                       <div className={styles.eventOrganizer}>
                         <span className="material-symbols-outlined">business</span>
                         {event.organizer} ({event.organizerCode})
                       </div>
+                      {event.batch && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: '#475569', marginTop: '0.4rem', marginBottom: '0.2rem' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '1.15rem' }}>school</span>
+                          <span>Batch: {event.batch}</span>
+                        </div>
+                      )}
                       <div className={styles.eventMeta}>
                         <span className={styles.eventDate}>
                           <span className="material-symbols-outlined">calendar_month</span>

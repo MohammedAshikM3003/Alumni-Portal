@@ -90,12 +90,58 @@
     display: none;
 }
 
-.noPrint {
-    display: block;
+@page {
+    size: auto;
+    margin: 0mm !important;
 }
 
 @media print {
-    .noPrint {
+    @page {
+        size: auto;
+        margin: 0mm !important;
+    }
+
+    html, body {
+        height: auto !important;
+        overflow: visible !important;
+        background-color: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    .printWrapper,
+    .printWrapper * {
+        overflow: visible !important;
+        height: auto !important;
+    }
+
+    .printableCard,
+    .printableCard * {
+        visibility: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .printableCard {
+        position: absolute !important;
+        left: 15mm !important;
+        top: 15mm !important;
+        width: calc(100% - 30mm) !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: white !important;
+    }
+
+    .noPrint,
+    .noPrint *,
+    .printableCard .noPrint,
+    .printableCard .noPrint * {
         display: none !important;
+        visibility: hidden !important;
     }
 }

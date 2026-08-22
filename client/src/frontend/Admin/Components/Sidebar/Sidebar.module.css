@@ -9,7 +9,7 @@
   display: flex;
   flex-direction: column;
   width: 70px;
-  border-right: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light, #e2e8f0);
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 1rem;
@@ -24,29 +24,36 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.1rem 1.25rem 1.5rem 0.1rem;
+  padding: 0.75rem 0.5rem 1.25rem 0.5rem;
   border-bottom: 0px solid #f1f5f9;
   overflow: hidden;
   white-space: nowrap;
   justify-content: flex-start;
 }
 
+.sidebarBrand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 .sidebarLogo {
-  width: 70px;
-  height: 70px;
-  min-width: 70px;
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
 .sidebarTitle {
-  font-weight: 600;
-  color: var(--text-title);
+  font-weight: 700;
+  color: var(--text-title, #001E2B);
   font-size: 1.125rem;
   opacity: 0;
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
 }
 
 .sidebar:hover .sidebarTitle {
@@ -54,7 +61,7 @@
 }
 
 .sidebarIcon {
-  color: var(--dark-green-deep);
+  color: var(--dark-green-deep, #2e7d32);
   min-width: 30px;
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -66,7 +73,7 @@
 
 .sidebarNav {
   flex: 1;
-  padding: 1rem 0.75rem;
+  padding: 0.75rem 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -78,7 +85,7 @@
 }
 
 .sidebarNav:hover {
-  scrollbar-color: var(--dark-green-deep) var(--primary-light);
+  scrollbar-color: var(--dark-green-deep, #2e7d32) var(--primary-light, #e7f5ea);
 }
 
 .sidebarNav::-webkit-scrollbar {
@@ -94,8 +101,8 @@
 }
 
 .sidebarNav:hover::-webkit-scrollbar-track {
-  background: var(--primary-light);
-  border: 1px solid var(--success-border);
+  background: var(--primary-light, #e7f5ea);
+  border: 1px solid var(--success-border, #bbf7d0);
 }
 
 .sidebarNav::-webkit-scrollbar-thumb {
@@ -105,13 +112,8 @@
 }
 
 .sidebarNav:hover::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--secondary-green), var(--dark-green-deep));
+  background: linear-gradient(180deg, var(--secondary-green, #22c55e), var(--dark-green-deep, #2e7d32));
   box-shadow: 0 2px 4px rgba(46, 125, 50, 0.2);
-}
-
-.sidebarNav::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--secondary-green-light), var(--dark-green-deep)) !important;
-  box-shadow: 0 3px 6px rgba(46, 125, 50, 0.3);
 }
 
 .sidebarNav::-webkit-scrollbar-button {
@@ -123,32 +125,32 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.625rem 0.75rem;
   border-radius: 0.5rem;
-  color: var(--text-muted);
+  color: var(--text-muted, #64748b);
   transition: all 0.2s;
   text-decoration: none;
   cursor: pointer;
 }
 
 .navLink:hover:not(.navLinkActive) {
-  background-color: var(--primary-light);
-  color: var(--dark-green-deep);
+  background-color: var(--primary-light, #e7f5ea);
+  color: var(--dark-green-deep, #2e7d32);
 }
 
 .navLink:focus {
   background-color: #f8f8f8;
-  color: var(--text-title);
+  color: var(--text-title, #001e2b);
 }
 
 .navLinkActive {
   color: #fff;
   font-weight: 600;
-  background-color: var(--dark-green-deep);
+  background-color: var(--dark-green-deep, #2e7d32);
 }
 
 .navLinkActive:hover {
-  background-color: var(--dark-green-hover);
+  background-color: var(--dark-green-hover, #1a6b1a);
   color: #fff;
 }
 
@@ -165,19 +167,23 @@
 
 .sidebarFooter {
   padding: 0.75rem;
-  border-top: 1px solid var(--border-lighter);
+  border-top: 1px solid var(--border-lighter, #f1f5f9);
   margin-top: auto;
 }
 
 .logoutLink {
-  color: var(--error-color);
+  color: var(--error-color, #ef4444);
 }
 
 .logoutLink:hover {
-  background-color: var(--error-light);
+  background-color: var(--error-light, #fee2e2);
 }
 
 .mobileToggleBtn {
+  display: none;
+}
+
+.mobileCloseBtn {
   display: none;
 }
 
@@ -185,39 +191,40 @@
   .mobileToggleBtn {
     display: flex;
     position: fixed;
-    top: 15px;
-    left: 15px;
+    top: 10px;
+    left: 12px;
     z-index: 100;
     align-items: center;
     justify-content: center;
-    background: white;
-    border: 1px solid var(--border-color);
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 8px;
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    color: var(--text-dark);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    color: var(--text-dark, #0f172a);
     transition: all 0.2s;
   }
 
   .mobileToggleBtn:hover {
-    background-color: var(--border-lighter);
+    background-color: var(--border-lighter, #f1f5f9);
   }
 
   .sidebarOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.4);
+    background: rgba(15, 23, 42, 0.45);
     backdrop-filter: blur(4px);
-    z-index: 45;
+    z-index: 90;
   }
 
   .sidebar {
     transform: translateX(-100%);
-    width: 260px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    width: 275px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
   }
 
   .sidebarOpen {
@@ -225,10 +232,58 @@
   }
 
   .sidebar:hover {
-    width: 260px !important;
+    width: 275px !important;
   }
 
-  .sidebarTitle,
+  .sidebarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1rem 1rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .sidebarBrand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  .sidebarLogo {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+  }
+
+  .sidebarTitle {
+    opacity: 1 !important;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .mobileCloseBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .mobileCloseBtn:hover {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+  }
+
   .navLinkText {
     opacity: 1 !important;
   }

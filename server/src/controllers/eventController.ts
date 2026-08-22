@@ -6,7 +6,7 @@ import { getGridFSBucket } from '../config/db.js';
 // Create a new event
 export const createEvent = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { eventName, eventDate, eventDay, eventTime, venue, organizer, coOrganizers } = req.body;
+    const { eventName, eventDate, eventDay, eventTime, venue, organizer, coOrganizers, batch } = req.body;
 
     // Validation
     if (!eventName || !eventDate || !eventDay || !eventTime || !venue || !organizer) {
@@ -28,9 +28,10 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       eventDay,
       eventTime,
       venue,
+      batch: batch || undefined,
       organizer,
       coOrganizers: coOrganizers || [],
-      status: 'pending',
+      status: 'upcoming',
       createdBy: req.user._id,
     });
 
@@ -53,9 +54,41 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+// Helper to automatically change past upcoming events to completed status
+export const autoCompletePastEvents = async (): Promise<void> => {
+  try {
+    const now = new Date();
+    const upcomingEvents = await Event.find({ status: { $in: ['upcoming', 'pending'] } });
+    const eventsToComplete = upcomingEvents.filter(e => {
+      const eventDate = new Date(e.eventDate);
+      if (e.eventTime) {
+        const [hours, minutes] = e.eventTime.split(':').map(Number);
+        if (!isNaN(hours) && !isNaN(minutes)) {
+          eventDate.setHours(hours, minutes, 0, 0);
+        }
+      } else {
+        eventDate.setHours(23, 59, 59, 999);
+      }
+      return eventDate < now;
+    });
+
+    if (eventsToComplete.length > 0) {
+      const idsToUpdate = eventsToComplete.map(e => e._id);
+      await Event.updateMany(
+        { _id: { $in: idsToUpdate } },
+        { $set: { status: 'completed' } }
+      );
+      console.log(`[Auto-Complete] Transitioned ${eventsToComplete.length} events to completed status.`);
+    }
+  } catch (error) {
+    console.error('Error in autoCompletePastEvents helper:', error);
+  }
+};
+
 // Get all events
 export const getAllEvents = async (req: Request, res: Response): Promise<void> => {
   try {
+    await autoCompletePastEvents();
     const events = await Event.find()
       .populate('organizer', 'name branch deptCode')
       .populate('coOrganizers', 'branch deptCode')
@@ -78,6 +111,7 @@ export const getAllEvents = async (req: Request, res: Response): Promise<void> =
 // Get event by ID
 export const getEventById = async (req: Request, res: Response): Promise<void> => {
   try {
+    await autoCompletePastEvents();
     const { id } = req.params as { id: string };
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -117,10 +151,10 @@ export const updateEventStatus = async (req: Request, res: Response): Promise<vo
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!['pending', 'completed', 'cancelled'].includes(status)) {
+    if (!['upcoming', 'completed', 'cancelled'].includes(status)) {
       res.status(400).json({
         success: false,
-        message: 'Invalid status. Must be pending, completed, or cancelled',
+        message: 'Invalid status. Must be upcoming, completed, or cancelled',
       });
       return;
     }

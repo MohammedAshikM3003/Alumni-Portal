@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from './Components/Sidebar/Sidebar';
 import { useAuth } from '../../context/authContext/authContext';
 import { DateInput } from '../../components/Calendar';
+import { formatBranchName } from '../../utils/formatters';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -91,8 +92,9 @@ const Admin_Add_Faculty = ({ onLogout }: AdminAddFacultyProps) => {
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.department) {
-            setDepartmentName(data.department.branch);
-            setFormData(prev => ({ ...prev, department: data.department.branch })); // Store full name, not code
+            const formatted = formatBranchName(data.department.branch);
+            setDepartmentName(formatted);
+            setFormData(prev => ({ ...prev, department: formatted })); // Store full name, not code
           }
         }
       } catch (error: any) {

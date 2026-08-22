@@ -1,5 +1,6 @@
 import Sidebar from './Components/Sidebar/Sidebar';
 import styles from './Al_JobReference_Form.module.css';
+import './scrollbar.js';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext/authContext';
@@ -13,6 +14,7 @@ interface JobFormData {
   vacancies: string;
   location: string;
   workMode: string;
+  applicationLink: string;
 }
 
 interface AluminiJobReferenceFormProps {
@@ -23,6 +25,7 @@ const Alumini_JobReference_Form = ({ onLogout }: AluminiJobReferenceFormProps) =
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [roles, setRoles] = useState<string[]>(['']);
   const [formData, setFormData] = useState<JobFormData>({
     companyName: '',
     role: '',
@@ -30,6 +33,7 @@ const Alumini_JobReference_Form = ({ onLogout }: AluminiJobReferenceFormProps) =
     vacancies: '',
     location: '',
     workMode: '',
+    applicationLink: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,6 +42,25 @@ const Alumini_JobReference_Form = ({ onLogout }: AluminiJobReferenceFormProps) =
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setError('');
+  };
+
+  const handleAddRole = () => {
+    setRoles(prev => [...prev, '']);
+    setError('');
+  };
+
+  const handleRoleChange = (index: number, value: string) => {
+    setRoles(prev => {
+      const updated = [...prev];
+      updated[index] = value;
+      return updated;
+    });
+    setError('');
+  };
+
+  const handleRemoveRole = (index: number) => {
+    setRoles(prev => prev.filter((_, i) => i !== index));
     setError('');
   };
 
@@ -50,7 +73,8 @@ const Alumini_JobReference_Form = ({ onLogout }: AluminiJobReferenceFormProps) =
       setError('Please enter company name');
       return;
     }
-    if (!formData.role.trim()) {
+    const combinedRoles = roles.map(r => r.trim()).filter(Boolean).join(', ');
+    if (!combinedRoles) {
       setError('Please enter role/position');
       return;
     }
@@ -79,13 +103,18 @@ const Alumini_JobReference_Form = ({ onLogout }: AluminiJobReferenceFormProps) =
     setIsSubmitting(true);
 
     try {
+      const payload = {
+        ...formData,
+        role: combinedRoles,
+      };
+
       const response = await fetch(`${API_BASE}/api/jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${user.token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -111,14 +140,13 @@ const Alumini_JobReference_Form = ({ onLogout }: AluminiJobReferenceFormProps) =
 
       {/* Main Content Area */}
       <main className={styles.mainContent}>
+        {/* Centered Form Wrapper */}
+        <div className={styles.formWrapper}>
           {/* Navigation Back */}
           <div className={styles.backButton} onClick={() => window.history.back()}>
             <span className="material-symbols-outlined">arrow_back</span>
             <span>Back</span>
           </div>
-
-        {/* Centered Form Wrapper */}
-        <div className={styles.formWrapper}>
           <div className={styles.formCard}>
             
             {/* Card Header */}
@@ -154,15 +182,41 @@ const Alumini_JobReference_Form = ({ onLogout }: AluminiJobReferenceFormProps) =
                 {/* Field: Role / Position */}
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Role / Position</label>
-                  <input
-                    type="text"
-                    name="role"
-                    className={styles.inputField}
-                    placeholder="e.g. Senior Software Engineer"
-                    value={formData.role}
-                    onChange={handleChange}
-                    maxLength={200}
-                  />
+                  <div className={styles.rolesContainer}>
+                    {roles.map((roleVal, index) => (
+                      <div key={index} className={styles.roleInputRow}>
+                        <input
+                          type="text"
+                          className={styles.inputField}
+                          placeholder={index === 0 ? "e.g. Senior Software Engineer" : `e.g. Role / Position ${index + 1}`}
+                          value={roleVal}
+                          onChange={(e) => handleRoleChange(index, e.target.value)}
+                          maxLength={200}
+                        />
+                        {index === 0 ? (
+                          <button
+                            type="button"
+                            className={styles.addRoleBtn}
+                            onClick={handleAddRole}
+                            title="Add another role field"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+                            Add Role
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className={styles.removeRoleBtn}
+                            onClick={() => handleRemoveRole(index)}
+                            title="Remove this role field"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Field: Target Branch */}
@@ -222,6 +276,19 @@ const Alumini_JobReference_Form = ({ onLogout }: AluminiJobReferenceFormProps) =
                     <option value="online">Online</option>
                     <option value="hybrid">Hybrid</option>
                   </select>
+                </div>
+
+                {/* Field: Application Link */}
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Application Link</label>
+                  <input
+                    type="url"
+                    name="applicationLink"
+                    className={styles.inputField}
+                    placeholder="e.g. https://careers.company.com/job/123"
+                    value={formData.applicationLink}
+                    onChange={handleChange}
+                  />
                 </div>
 
               </div>

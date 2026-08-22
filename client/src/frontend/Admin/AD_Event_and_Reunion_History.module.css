@@ -16,7 +16,7 @@
   margin-left: 60px;
   flex: 1;
   background-color: var(--bg-light);
-  padding: 2rem;
+  padding: 1.5rem;
   overflow-y: auto;
 }
 
@@ -50,15 +50,15 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 /* Header Section */
 .pageHeader {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding-bottom: 1.5rem;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -151,12 +151,12 @@
 }
 
 .cardContent {
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   flex: 1;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .cardText {
@@ -327,9 +327,9 @@
   text-transform: capitalize;
 }
 
-.statusPending {
-  background-color: #fef3c7;
-  color: #d97706;
+.statusUpcoming {
+  background-color: #ede9fe;
+  color: #6d28d9;
 }
 
 .statusCompleted {
@@ -381,4 +381,390 @@
 
 .eventVenue span {
   font-size: 1rem;
+}
+
+/* Metrics Summary Grid */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.metricCard {
+  background-color: white;
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.metricCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  border-color: #cbd5e1;
+}
+
+/* Dynamic Left Accent Bar */
+.metricCard::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+
+.cardTotal::before {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+}
+
+.cardUpcoming::before {
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.cardCompleted::before {
+  background: linear-gradient(180deg, #10b981 0%, #047857 100%);
+}
+
+.cardDept::before {
+  background: linear-gradient(180deg, #8b5cf6 0%, #6d28d9 100%);
+}
+
+.metricIconWrapper {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.metricCard:hover .metricIconWrapper {
+  transform: scale(1.08) rotate(3deg);
+}
+
+.bgTotal {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+.bgUpcoming {
+  background-color: #eff6ff;
+  color: #3b82f6;
+}
+
+.bgCompleted {
+  background-color: #f0fdf4;
+  color: #16a34a;
+}
+
+.bgDept {
+  background-color: #f5f3ff;
+  color: #8b5cf6;
+}
+
+.metricContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.metricLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin: 0 0 0.25rem 0;
+}
+
+.metricValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1;
+}
+
+.metricValueText {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Redesigned Filter Bar Panel */
+.filterBar {
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  padding: 0.75rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 1.5;
+  min-width: 220px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 1.15rem;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  font-size: 0.875rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.searchInput:focus {
+  background-color: white;
+  border-color: #2E6F40;
+  box-shadow: 0 0 0 3px rgba(46, 111, 64, 0.1);
+}
+
+.filterSelect {
+  flex: 1;
+  min-width: 150px;
+  padding: 0.625rem 1.5rem 0.625rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background-color: white;
+  font-size: 0.875rem;
+  color: #475569;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filterSelect:focus {
+  border-color: #2E6F40;
+  box-shadow: 0 0 0 3px rgba(46, 111, 64, 0.1);
+}
+
+.clearFiltersBtn {
+  padding: 0.625rem 1rem;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clearFiltersBtn:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* ================== NEW DASHBOARD LAYOUT (IMAGE 1 STYLE) ================== */
+.dashboardStatsRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1.1fr;
+  gap: 1.25rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+  .dashboardStatsRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboardStatsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card 1: Search & Filter Card */
+.filterCard {
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.searchBoxWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.875rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.searchBoxInput {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  font-size: 0.875rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.searchBoxInput:focus {
+  background-color: white;
+  border-color: #2e6f40;
+  box-shadow: 0 0 0 3px rgba(46, 111, 64, 0.1);
+}
+
+.dropdownRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+}
+
+.dropdownSelect {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: white;
+  color: #475569;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dropdownSelect:focus {
+  border-color: #2e6f40;
+  box-shadow: 0 0 0 3px rgba(46, 111, 64, 0.1);
+}
+
+/* Card 2, 3 & 4: KPI Metric Cards */
+.kpiMetricCard {
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  padding: 1.5rem 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.kpiMetricLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.5rem 0;
+}
+
+.kpiMetricValue {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #2e6f40;
+  margin: 0;
+  line-height: 1;
+}
+
+/* Card 5: Host New Event Button Card */
+.addAlumniButtonCard {
+  background-color: #2e6f40;
+  border-radius: 16px;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(46, 111, 64, 0.15);
+  color: white;
+  border: 1px solid transparent;
+}
+
+.addAlumniButtonCard:hover {
+  background-color: #1e4b2a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(46, 111, 64, 0.25);
+}
+
+.addAlumniIcon {
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.addAlumniText {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.clearBtnCompact {
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  border: 1px solid #fee2e2;
+  border-radius: 8px;
+  background-color: #fef2f2;
+  color: #ef4444;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.clearBtnCompact:hover {
+  background-color: #fee2e2;
 }

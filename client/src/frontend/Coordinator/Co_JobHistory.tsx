@@ -2,7 +2,6 @@ import { FC, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Co_JobHistory.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
-import Back from './Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -21,6 +20,7 @@ interface JobReference {
     location?: string;
     description?: string;
     requirements?: string;
+    link?: string;
 }
 
 const getInitials = (name: string): string => {
@@ -108,9 +108,6 @@ const CoordinatorJobHistory: FC<CoordinatorJobHistoryProps> = ({ onLogout }) => 
             <Sidebar currentView="job_and_reference" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
-                    <Back to={'/coordinator/dashboard'} />
-                </div>
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-6 bg-[#F8FAFC]`}>
                     <div className="flex justify-between items-end mb-6">
                         <div>
@@ -131,7 +128,6 @@ const CoordinatorJobHistory: FC<CoordinatorJobHistoryProps> = ({ onLogout }) => 
                                             <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xl border-2 border-slate-50">
                                                 {getInitials(job.submittedBy?.name || 'Unknown')}
                                             </div>
-                                            <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white ${job.status === 'approved' ? 'bg-green-500' : job.status === 'rejected' ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
                                         </div>
                                         <h3 className="mt-3 font-bold text-base text-slate-900">{job.submittedBy?.name || 'Unknown'}</h3>
                                         <p className="text-slate-500 text-[10px] font-medium uppercase tracking-wide">Referrer</p>

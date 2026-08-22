@@ -111,27 +111,8 @@ const CoordinatorViewDonation: FC<CoordinatorViewDonationProps> = ({ onLogout })
         window.print();
     };
 
-    const handleShare = async () => {
-        if (!donation) return;
-        const shareText = `Donation: ${donation.purpose} - Amount: ₹${donation.amount}`;
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'Donation Receipt',
-                    text: shareText,
-                });
-            } catch (err) {
-                console.log('Share cancelled');
-            }
-        } else {
-            // Fallback: copy to clipboard
-            navigator.clipboard.writeText(shareText);
-            alert('Donation details copied to clipboard');
-        }
-    };
-
-    const handleDownload = async () => {
-        if (!donationCardRef.current) return;
+    const generatePDF = async (): Promise<File | null> => {
+        if (!donationCardRef.current) return null;
 
         try {
             // Clone the card to avoid modifying the original
@@ -182,10 +163,59 @@ const CoordinatorViewDonation: FC<CoordinatorViewDonationProps> = ({ onLogout })
 
             pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight, undefined, 'FAST');
 
+            const pdfBlob = pdf.output('blob');
             const fileName = `donation-receipt-${Date.now()}.pdf`;
-            pdf.save(fileName);
+            return new File([pdfBlob], fileName, { type: 'application/pdf' });
         } catch (err) {
-            alert('Failed to generate PDF');
+            console.error('Failed to generate PDF', err);
+            return null;
+        }
+    };
+
+    const handleShare = async () => {
+        if (!donation) return;
+        
+        try {
+            const pdfFile = await generatePDF();
+            const shareText = `Donation: ${donation.purpose} - Amount: ₹${donation.amount}`;
+            
+            if (pdfFile && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+                await navigator.share({
+                    title: 'Donation Receipt',
+                    text: shareText,
+                    files: [pdfFile],
+                });
+            } else {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: 'Donation Receipt',
+                        text: shareText,
+                    });
+                } else {
+                    navigator.clipboard.writeText(shareText);
+                    alert('Donation details copied to clipboard');
+                }
+            }
+        } catch (err) {
+            console.log('Share cancelled or failed', err);
+        }
+    };
+
+    const handleDownload = async () => {
+        try {
+            const pdfFile = await generatePDF();
+            if (pdfFile) {
+                const url = URL.createObjectURL(pdfFile);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = pdfFile.name;
+                a.click();
+                URL.revokeObjectURL(url);
+            } else {
+                alert('Failed to generate PDF');
+            }
+        } catch (err) {
+            alert('Failed to download PDF');
         }
     };
 
@@ -225,21 +255,21 @@ const CoordinatorViewDonation: FC<CoordinatorViewDonationProps> = ({ onLogout })
     const statusStyle = getStatusStyle(donation.status);
 
     return (
-        <div className="bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden">
+        <div className={`bg-[#F8FAFC] font-display text-slate-900 h-screen flex overflow-hidden ${styles.printWrapper}`}>
             {/* Sidebar */}
             <Sidebar currentView="donation_history" onLogout={onLogout} />
             {/* Main Content Area */}
             <main className="flex-1 ml-[70px] h-screen flex flex-col overflow-hidden">
-                <div className="sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200">
+                <div className={`sticky top-0 bg-[#F8FAFC] px-8 pt-6 pb-2 z-10 border-b border-slate-200 ${styles.noPrint}`}>
                     <Back to={'/coordinator/donation_history'} />
                 </div>
                 <div className={`flex-1 overflow-y-auto ${styles.mainScrollable} p-8 bg-[#F8FAFC]`}>
                     <div className="max-w-8xl mx-auto">
-                        <div className="flex justify-between items-center mb-8">
+                        <div className={`flex justify-between items-center mb-8 ${styles.noPrint}`}>
                             <h2 className="text-2xl font-bold text-slate-900">Donation Transaction Details</h2>
                         </div>
 
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8" ref={donationCardRef}>
+                        <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8 ${styles.printableCard}`} ref={donationCardRef}>
                             <div className="h-2 bg-[#FF3D00] w-full"></div>
                             <div className="p-8 md:p-12">
                                 <div className="flex justify-between items-start mb-10">
@@ -298,7 +328,7 @@ const CoordinatorViewDonation: FC<CoordinatorViewDonationProps> = ({ onLogout })
 
                                 <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-[#FF3D00]">
+                                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-emerald-600">
                                             <span className="material-symbols-outlined">verified</span>
                                         </div>
                                         <div>

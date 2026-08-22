@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import styles from './Co_ViewMail.module.css';
 import Sidebar from './Components/Sidebar/Sidebar';
+import Back from './Components/BackButton/Back';
 import { useAuth } from '../../context/authContext/authContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -199,10 +200,7 @@ const Coordinator_ViewMail: FC<CoordinatorViewMailProps> = ({ onLogout }) => {
             <div className={styles.container}>
                 <Sidebar onLogout={onLogout} currentView={'mail'} />
                 <main className={styles.mainContent}>
-                    <div className={styles.backButton} onClick={() => window.history.back()}>
-                        <span className="material-symbols-outlined">arrow_back</span>
-                        <span>Back</span>
-                    </div>
+                    <Back to={'/coordinator/mail'} />
                     <div className={styles.pageHeader}>
                         <h1>Loading...</h1>
                     </div>
@@ -216,10 +214,7 @@ const Coordinator_ViewMail: FC<CoordinatorViewMailProps> = ({ onLogout }) => {
             <div className={styles.container}>
                 <Sidebar onLogout={onLogout} currentView={'mail'} />
                 <main className={styles.mainContent}>
-                    <div className={styles.backButton} onClick={() => window.history.back()}>
-                        <span className="material-symbols-outlined">arrow_back</span>
-                        <span>Back</span>
-                    </div>
+                    <Back to={'/coordinator/mail'} />
                     <div className={styles.pageHeader}>
                         <h1>Mail not found</h1>
                     </div>
@@ -232,10 +227,7 @@ const Coordinator_ViewMail: FC<CoordinatorViewMailProps> = ({ onLogout }) => {
         <div className={styles.container}>
             <Sidebar onLogout={onLogout} currentView={'mail'} />
             <main className={styles.mainContent}>
-                <div className={styles.backButton} onClick={() => window.history.back()}>
-                    <span className="material-symbols-outlined">arrow_back</span>
-                    <span>Back</span>
-                </div>
+                <Back to={'/coordinator/mail'} />
 
                 <div className={styles.pageHeader}>
                     <h1>Alumni Mail</h1>

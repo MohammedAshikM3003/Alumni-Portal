@@ -289,9 +289,9 @@
   text-transform: capitalize;
 }
 
-.statusPending {
-  background-color: #fef3c7;
-  color: #d97706;
+.statusUpcoming {
+  background-color: #ede9fe;
+  color: #6d28d9;
 }
 
 .statusCompleted {
